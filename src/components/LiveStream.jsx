@@ -1,0 +1,1466 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Camera, Monitor, Upload, SlidersHorizontal, ChevronRight, ChevronLeft, PowerOff, Loader2, Mic, Settings2, FlipHorizontal, Download, Link, KeyRound, MonitorPlay, BookOpen, X, CheckCircle2, Cable, Laptop, RadioReceiver, Video, Lightbulb, PlayCircle, Star, Settings, Plus, Trash2, ClipboardList, Wand2, Bot, Send, Sparkles, BarChart3 } from 'lucide-react';
+import { platformIcons } from '@/data/platformIcons';
+import { platformsData } from '@/data/platformsData';
+import StudioDiagram from './livestream/StudioDiagram';
+import { isAuthorizedForLiveReport } from '@/lib/roles';
+import { saveLiveReport } from '@/services/db';
+import { useUser } from '@clerk/nextjs';
+
+export default function LiveStream() {
+    const videoRef = useRef(null);
+
+    const [devices, setDevices] = useState([]);
+    const [audioDevices, setAudioDevices] = useState([]);
+    const [selectedDevice, setSelectedDevice] = useState('');
+    const [selectedAudioDevice, setSelectedAudioDevice] = useState('');
+    const [stream, setStream] = useState(null);
+    const [isStreaming, setIsStreaming] = useState(false);
+    const [cameraError, setCameraError] = useState('');
+    const { user } = useUser();
+
+    const [activePlatformIndex, setActivePlatformIndex] = useState(0);
+    const [platforms, setPlatforms] = useState(platformsData);
+    const [currentStep, setCurrentStep] = useState(1);
+
+    const activePlatform = platforms[activePlatformIndex] || null;
+    const PlatformIcon = activePlatform ? activePlatform.icon : Camera;
+
+    const steps = [
+        { id: 1, title: 'Chuẩn bị', icon: ClipboardList },
+        { id: 2, title: 'Kết nối', icon: Cable },
+        { id: 3, title: 'Máy ảnh', icon: Camera },
+        { id: 4, title: 'Phần mềm', icon: Laptop },
+        { id: 5, title: 'Ánh sáng', icon: Lightbulb },
+        { id: 6, title: 'Kịch Bản', icon: Wand2 },
+        { id: 7, title: 'Báo cáo', icon: CheckCircle2 }
+    ];
+
+    // Equipment and Report States
+    // Script & Chatbot States
+    const [scriptTitle, setScriptTitle] = useState('');
+    const [scriptDesc, setScriptDesc] = useState('');
+    const [generatedTimeline, setGeneratedTimeline] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [chatMessages, setChatMessages] = useState([
+        { role: 'model', text: 'Xin chào! Tôi là trợ lý AI Live. Hỏi tôi bất cứ điều gì về sản phẩm Sony nhé! 🎬' }
+    ]);
+    const [chatInput, setChatInput] = useState('');
+    const [isChatLoading, setIsChatLoading] = useState(false);
+    const chatEndRef = useRef(null);
+    const [equipmentList, setEquipmentList] = useState([
+        { id: 1, name: '', series: '', condition: '' }
+    ]);
+    const addEquipment = () => {
+        if (equipmentList.length < 10) {
+            setEquipmentList([...equipmentList, { id: Date.now(), name: '', series: '', condition: '' }]);
+        }
+    };
+
+    const updateEquipment = (id, field, value) => {
+        setEquipmentList(equipmentList.map(eq => eq.id === id ? { ...eq, [field]: value } : eq));
+    };
+
+    const removeEquipment = (id) => {
+        setEquipmentList(equipmentList.filter(eq => eq.id !== id));
+    };
+
+    // --- Post-Live Report State ---
+    const [reportMetrics, setReportMetrics] = useState({
+        topic: '',
+        startTime: '',
+        endTime: '',
+        note: '',
+        platforms: [] // Array of { name, views, likes, pcu, followers, clicks, orders, revenue }
+    });
+
+    // Initialize with active platform if empty
+    useEffect(() => {
+        if (activePlatform && reportMetrics.platforms.length === 0) {
+            setReportMetrics(prev => ({
+                ...prev,
+                platforms: [{
+                    name: activePlatform.name,
+                    views: '', likes: '', pcu: '', followers: '', clicks: '', orders: '', revenue: ''
+                }]
+            }));
+        }
+    }, [activePlatform, reportMetrics.platforms.length]);
+    const [isSavingReport, setIsSavingReport] = useState(false);
+    const [reportSaved, setReportSaved] = useState(false);
+
+    const handleSaveReport = async () => {
+        if (!user) return;
+        setIsSavingReport(true);
+        try {
+            // Aggregate totals across all platforms
+            let totalViews = 0, totalOrders = 0, totalRevenue = 0, totalClicks = 0, totalLikes = 0;
+
+            const processedPlatforms = reportMetrics.platforms.map(p => {
+                const views = Number(p.views || 0);
+                const orders = Number(p.orders || 0);
+                const revenue = Number(p.revenue || 0);
+
+                totalViews += views;
+                totalOrders += orders;
+                totalRevenue += revenue;
+                totalClicks += Number(p.clicks || 0);
+                totalLikes += Number(p.likes || 0);
+
+                return {
+                    ...p,
+                    views, orders, revenue,
+                    cvr: views > 0 ? ((orders / views) * 100).toFixed(2) : 0,
+                    gpm: views > 0 ? ((revenue / views) * 1000).toFixed(0) : 0
+                };
+            });
+
+            const totalCVR = totalViews > 0 ? ((totalOrders / totalViews) * 100).toFixed(2) : 0;
+            const totalGPM = totalViews > 0 ? ((totalRevenue / totalViews) * 1000).toFixed(0) : 0;
+
+            await saveLiveReport({
+                topic: reportMetrics.topic,
+                startTime: reportMetrics.startTime,
+                endTime: reportMetrics.endTime,
+                note: reportMetrics.note,
+                platforms: processedPlatforms,
+                views: totalViews,
+                orders: totalOrders,
+                revenue: totalRevenue,
+                likes: totalLikes,
+                productClicks: totalClicks,
+                cvr: totalCVR,
+                gpm: totalGPM,
+                userEmail: user.primaryEmailAddress?.emailAddress,
+                userName: user.fullName,
+                timestamp: new Date().toISOString()
+            });
+
+            setReportSaved(true);
+            setTimeout(() => {
+                setReportSaved(false);
+                setCurrentStep(1);
+                setReportMetrics({
+                    topic: '', startTime: '', endTime: '', note: '',
+                    platforms: activePlatform ? [{
+                        name: activePlatform.name,
+                        views: '', likes: '', pcu: '', followers: '', clicks: '', orders: '', revenue: ''
+                    }] : []
+                });
+            }, 3000);
+        } catch (err) {
+            console.error("Failed to save report:", err);
+            alert("Lỗi khi lưu báo cáo: " + err.message);
+        } finally {
+            setIsSavingReport(false);
+        }
+    };
+
+    // Render the AI-generated script with proper formatting
+    const renderFormattedScript = (text) => {
+        if (!text) return null;
+        const lines = text.split('\n');
+        return lines.map((line, i) => {
+            const clean = line.replace(/\*\*/g, '').trim();
+            if (!clean) return <div key={i} className="h-2" />;
+
+            // Section headers: ━━━ PHẦN ... ━━━
+            if (/━━|——/.test(clean) || /^PHẦN \d/.test(clean)) {
+                return (
+                    <div key={i} className="flex items-center gap-2 mt-6 mb-3">
+                        <div className="h-px flex-1 bg-violet-300/50 dark:bg-violet-500/30" />
+                        <span className="text-[11px] font-black uppercase tracking-widest text-violet-600 dark:text-violet-400 px-2">
+                            {clean.replace(/━/g, '').replace(/-/g, '').trim()}
+                        </span>
+                        <div className="h-px flex-1 bg-violet-300/50 dark:bg-violet-500/30" />
+                    </div>
+                );
+            }
+
+            // Timeline items: start with a time like 00:00 or [00:00]
+            if (/^\[?\d{2}:\d{2}/.test(clean)) {
+                // Match time range like "00:00 - 00:05" or single "00:00"
+                const timeRangeMatch = clean.match(/^(\d{2}:\d{2}(?:\s*-\s*\d{2}:\d{2})?)/);
+                const timeRange = timeRangeMatch ? timeRangeMatch[0].trim() : '';
+                const rest = clean.slice(timeRange.length).replace(/^[\s\-]+/, '');
+                const parts = rest.split(/\s*-\s*/);
+                const activity = parts[0]?.trim();
+                const detail = parts.slice(1).join(' - ').trim();
+                return (
+                    <div key={i} className="flex gap-3 items-start py-2 border-b border-black/5 dark:border-white/5 last:border-0">
+                        <span className="shrink-0 text-[11px] font-black text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 px-2.5 py-1 rounded-lg text-center whitespace-nowrap">{timeRange}</span>
+                        <div className="flex flex-col gap-0.5">
+                            {activity && <span className="text-[13px] font-bold text-[#1d1d1f] dark:text-white leading-snug">{activity}</span>}
+                            {detail && <span className="text-[12px] text-[#86868b] dark:text-slate-400 leading-snug">{detail}</span>}
+                        </div>
+                    </div>
+                );
+            }
+
+            // Bullet points: start with • or *
+            if (/^[•*]\s/.test(clean) || /^•/.test(clean)) {
+                const parts = clean.replace(/^[•*]\s*/, '').split('→');
+                const spec = parts[0]?.trim();
+                const usage = parts[1]?.trim();
+                return (
+                    <div key={i} className="flex gap-2.5 items-start py-1.5">
+                        <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-violet-400 mt-2" />
+                        <div>
+                            {spec && <span className="text-[13px] font-semibold text-[#1d1d1f] dark:text-slate-100">{spec}</span>}
+                            {usage && <div className="text-[12px] text-[#86868b] dark:text-slate-400 mt-0.5">↪ {usage}</div>}
+                        </div>
+                    </div>
+                );
+            }
+
+            // Regular text / subheadings
+            return (
+                <p key={i} className="text-[13px] font-semibold text-[#1d1d1f] dark:text-slate-200 leading-relaxed py-0.5">{clean}</p>
+            );
+        });
+    };
+
+    // Timeline generation handler
+    const handleGenerateTimeline = async () => {
+        if (!scriptTitle.trim()) return;
+        setIsGenerating(true);
+        setGeneratedTimeline('');
+        try {
+            const res = await fetch('/api/live-timeline', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: scriptTitle, description: scriptDesc })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error)));
+            setGeneratedTimeline(data.timeline || 'Không có phản hồi từ AI.');
+        } catch (e) {
+            setGeneratedTimeline(`Lỗi kết nối AI: ${e.message}`);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    // Chatbot handler
+    const handleChatSend = async () => {
+        const trimmed = chatInput.trim();
+        if (!trimmed || isChatLoading) return;
+        const newMessages = [...chatMessages, { role: 'user', text: trimmed }];
+        setChatMessages(newMessages);
+        setChatInput('');
+        setIsChatLoading(true);
+        try {
+            const res = await fetch('/api/live-chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: newMessages })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error)));
+            setChatMessages(prev => [...prev, { role: 'model', text: data.text || '...' }]);
+        } catch (e) {
+            setChatMessages(prev => [...prev, { role: 'model', text: `Lỗi kết nối: ${e.message}` }]);
+        } finally {
+            setIsChatLoading(false);
+        }
+    };
+
+    // Auto-scroll chatbot
+    useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [chatMessages]);
+
+    // Video adjustment states
+    const [isMirrored, setIsMirrored] = useState(false);
+    const [brightness, setBrightness] = useState(100);
+    const [saturation, setSaturation] = useState(100);
+
+    // Get available cameras and microphones
+    useEffect(() => {
+        async function getDevices() {
+            try {
+                // Request permission first to get labels
+                const streamForPerms = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                const allDevices = await navigator.mediaDevices.enumerateDevices();
+
+                // Stop the permission stream tracks immediately
+                streamForPerms.getTracks().forEach(t => t.stop());
+
+                const videoDevices = allDevices.filter(d => d.kind === 'videoinput');
+                setDevices(videoDevices);
+                if (videoDevices.length > 0) {
+                    setSelectedDevice(videoDevices[0].deviceId);
+                }
+
+                const audioDevs = allDevices.filter(d => d.kind === 'audioinput');
+                setAudioDevices(audioDevs);
+                if (audioDevs.length > 0) {
+                    setSelectedAudioDevice(audioDevs[0].deviceId);
+                }
+            } catch (err) {
+                console.error("Camera/Mic access denied or error:", err);
+                setCameraError("Không thể truy cập thiết bị. Vui lòng cấp quyền trong trình duyệt.");
+            }
+        }
+        getDevices();
+    }, []);
+
+    // Handle stream start/stop
+    useEffect(() => {
+        if (!isStreaming || !selectedDevice) return;
+
+        let currentStream = null;
+
+        async function startStream() {
+            try {
+                setCameraError('');
+                currentStream = await navigator.mediaDevices.getUserMedia({
+                    video: selectedDevice ? { deviceId: { exact: selectedDevice }, width: { ideal: 1920 }, height: { ideal: 1080 } } : true,
+                    audio: selectedAudioDevice ? { deviceId: { exact: selectedAudioDevice } } : false
+                });
+                setStream(currentStream);
+                if (videoRef.current) {
+                    videoRef.current.srcObject = currentStream;
+                    videoRef.current.play();
+                }
+            } catch (err) {
+                setCameraError("Lỗi kết nối tới thiết bị Camera: " + err.message);
+                setIsStreaming(false);
+            }
+        }
+
+        startStream();
+
+        return () => {
+            if (currentStream) {
+                currentStream.getTracks().forEach(t => t.stop());
+            }
+            setStream(null);
+            if (videoRef.current) videoRef.current.srcObject = null;
+        };
+    }, [isStreaming, selectedDevice]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+            }
+        };
+    }, [stream]);
+
+    // Platform navigation
+    const nextPlatform = () => setActivePlatformIndex((prev) => platforms.length ? (prev + 1) % platforms.length : 0);
+    const prevPlatform = () => setActivePlatformIndex((prev) => platforms.length ? (prev - 1 + platforms.length) % platforms.length : 0);
+
+
+    return (
+        <div className="w-full animate-slide-up flex flex-col mx-auto min-h-[85vh]">
+            <div className="mb-6 px-2">
+                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-900/30 dark:to-emerald-800/30 text-teal-700 dark:text-teal-400 font-semibold text-[11px] px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider ring-1 ring-teal-500/20 dark:ring-teal-500/30">
+                    <Monitor size={12} className="mr-1" />
+                    <span>Live Studio Hub</span>
+                </div>
+                <h2 className="text-3xl md:text-5xl font-bold text-[#1d1d1f] dark:text-white tracking-tight mb-2">Trung tâm Livestream</h2>
+                <p className="text-[#86868b] dark:text-slate-400 text-[15px] font-medium">Bản xem trước Camera trực tiếp và Hướng dẫn thiết lập cho từng nền tảng thương mại điện tử.</p>
+            </div>
+
+            <div className="flex flex-col gap-6 px-2 flex-grow h-full pb-12">
+                {/* Premium Step Navigation */}
+                <div className="w-full relative py-8 px-4 sm:px-10 mb-8 bg-white/40 dark:bg-black/20 backdrop-blur-xl rounded-[40px] ring-1 ring-black/[0.03] dark:ring-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.02)] overflow-hidden">
+                    {/* Background decorative elements */}
+                    <div className="absolute top-0 left-0 w-64 h-64 bg-teal-500/5 blur-[100px] -z-10"></div>
+                    <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[100px] -z-10"></div>
+
+                    {/* Navigation Container */}
+                    <div className="relative flex justify-between items-center max-w-5xl mx-auto">
+                        {/* Progress Line Container */}
+                        <div className="absolute top-[24px] sm:top-[28px] left-0 right-0 h-[2px] z-0 mx-6 sm:mx-[28px]">
+                            {/* Background Line */}
+                            <div className="absolute inset-0 bg-slate-200 dark:bg-white/5 rounded-full"></div>
+                            {/* Dynamic Active Progress Line */}
+                            <div
+                                className="absolute inset-y-0 left-0 bg-gradient-to-r from-teal-500 to-emerald-400 z-0 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] rounded-full shadow-[0_0_15px_rgba(20,184,166,0.3)]"
+                                style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+                            ></div>
+                        </div>
+
+                        {steps.map((step) => {
+                            const Icon = step.icon;
+                            const isActive = currentStep === step.id;
+                            const isPast = currentStep > step.id;
+                            const isFuture = currentStep < step.id;
+
+                            return (
+                                <button
+                                    key={step.id}
+                                    onClick={() => setCurrentStep(step.id)}
+                                    className={`relative z-10 flex flex-col items-center group transition-all duration-500 ${isActive ? 'scale-110' : 'hover:scale-105'}`}
+                                >
+                                    {/* Icon Container */}
+                                    <div className={`
+                                        w-12 h-12 sm:w-14 sm:h-14 rounded-[20px] flex items-center justify-center transition-all duration-500 relative
+                                        ${isActive
+                                            ? 'bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f] shadow-[0_15px_30px_rgba(0,0,0,0.2)] dark:shadow-[0_15px_30px_rgba(255,255,255,0.1)] scale-110'
+                                            : isPast
+                                                ? 'bg-white dark:bg-[#1d1d1f] text-teal-600 dark:text-teal-400 ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm'
+                                                : 'bg-white dark:bg-[#1d1d1f] text-slate-400 dark:text-slate-600 ring-1 ring-black/5 dark:ring-white/5 shadow-sm group-hover:ring-slate-300 dark:group-hover:ring-white/20'
+                                        }
+                                    `}>
+                                        {/* Status Glow for Active */}
+                                        {isActive && (
+                                            <div className="absolute inset-0 rounded-[20px] bg-teal-500/20 animate-ping -z-10"></div>
+                                        )}
+
+                                        <Icon size={isActive ? 24 : 20} strokeWidth={isActive ? 2.5 : 2} className="transition-transform duration-500" />
+
+                                        {/* Completed Checkmark Overlay */}
+                                        {isPast && (
+                                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white ring-2 ring-white dark:ring-[#1d1d1f] shadow-lg animate-fade-in-up">
+                                                <CheckCircle2 size={12} strokeWidth={3} />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Label Text */}
+                                    <div className="mt-4 flex flex-col items-center">
+                                        <span className={`
+                                            text-[10px] sm:text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-500 whitespace-nowrap
+                                            ${isActive
+                                                ? 'text-[#1d1d1f] dark:text-white translate-y-0 opacity-100'
+                                                : isPast
+                                                    ? 'text-teal-600/80 dark:text-teal-400/80 opacity-80'
+                                                    : 'text-slate-400 dark:text-slate-600 opacity-60 group-hover:opacity-100'
+                                            }
+                                        `}>
+                                            {step.title}
+                                        </span>
+                                        {/* Active underline indicator */}
+                                        <div className={`h-[3px] rounded-full bg-teal-500 transition-all duration-700 mt-1.5 ${isActive ? 'w-4 opacity-100' : 'w-0 opacity-0'}`}></div>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {currentStep === 1 && (
+                    <div className="flex flex-col w-full animate-fade-in gap-6">
+                        <div className="glass-panel p-6 sm:p-10 rounded-[40px]">
+                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-black/5 dark:border-white/10">
+                                <h4 className="text-[20px] font-black text-[#1d1d1f] dark:text-white flex items-center gap-2">
+                                    <ClipboardList size={24} className="text-teal-600 dark:text-teal-400" />
+                                    Chuẩn bị Thiết bị (Pre-Live)
+                                </h4>
+                                <span className="text-[11px] font-bold bg-[#F5F5F7] dark:bg-white/5 text-[#86868b] dark:text-slate-400 px-3 py-1.5 rounded-lg uppercase tracking-wider ring-1 ring-black/5 dark:ring-white/10 shadow-sm">
+                                    Bắt buộc
+                                </span>
+                            </div>
+
+                            <div className="mb-6">
+                                <p className="text-[14px] text-[#86868b] dark:text-slate-400 mb-4 font-medium">
+                                    Vui lòng liệt kê các vật tư, thiết bị đã mượn hoặc có sẵn trong phòng live trước khi bắt đầu (tối đa 10 mục).
+                                </p>
+
+                                <div className="space-y-4">
+                                    {equipmentList.map((eq, index) => (
+                                        <div key={eq.id} className="flex flex-col sm:flex-row gap-3 bg-[#F5F5F7] dark:bg-white/5 p-4 rounded-2xl ring-1 ring-black/5 dark:ring-white/5">
+                                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white dark:bg-[#1d1d1f] text-teal-600 dark:text-teal-400 font-bold text-[14px] shadow-sm shrink-0">
+                                                {index + 1}
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-grow">
+                                                <div>
+                                                    <label className="text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Tên Sản Phẩm*</label>
+                                                    <input
+                                                        type="text"
+                                                        value={eq.name}
+                                                        onChange={(e) => updateEquipment(eq.id, 'name', e.target.value)}
+                                                        placeholder="VD: Sony A7C II"
+                                                        className="w-full bg-white dark:bg-[#1d1d1f] border border-slate-200 dark:border-white/10 text-[#1d1d1f] dark:text-white text-[13px] rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500/50"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Số Series</label>
+                                                    <input
+                                                        type="text"
+                                                        value={eq.series}
+                                                        onChange={(e) => updateEquipment(eq.id, 'series', e.target.value)}
+                                                        placeholder="Số S/N (nếu có)"
+                                                        className="w-full bg-white dark:bg-[#1d1d1f] border border-slate-200 dark:border-white/10 text-[#1d1d1f] dark:text-white text-[13px] rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500/50"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Tình Trạng Mượn</label>
+                                                    <input
+                                                        type="text"
+                                                        value={eq.condition}
+                                                        onChange={(e) => updateEquipment(eq.id, 'condition', e.target.value)}
+                                                        placeholder="VD: Mới, Khá mới, Xước dăm..."
+                                                        className="w-full bg-white dark:bg-[#1d1d1f] border border-slate-200 dark:border-white/10 text-[#1d1d1f] dark:text-white text-[13px] rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500/50"
+                                                    />
+                                                </div>
+                                            </div>
+                                            {equipmentList.length > 1 && (
+                                                <button
+                                                    onClick={() => removeEquipment(eq.id)}
+                                                    className="w-8 h-8 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 transition-colors shrink-0 mt-6 sm:mt-0"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {equipmentList.length < 10 && (
+                                    <button
+                                        onClick={addEquipment}
+                                        className="mt-4 flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 rounded-xl bg-teal-50 text-teal-600 hover:bg-teal-100 dark:bg-teal-500/10 dark:text-teal-400 dark:hover:bg-teal-500/20 font-bold text-[13px] transition-colors"
+                                    >
+                                        <Plus size={16} /> Thêm Thiết Bị
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="flex justify-end mt-8">
+                                <button
+                                    onClick={() => setCurrentStep(2)}
+                                    className="px-6 py-3 rounded-xl bg-[#1d1d1f] text-white dark:bg-white dark:text-[#1d1d1f] font-bold text-[14px] flex items-center gap-2 hover:opacity-90 transition-opacity"
+                                >
+                                    Tiếp tục <ChevronRight size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {currentStep === 2 && (
+                    <div className="flex flex-col lg:flex-row gap-6 w-full animate-fade-in">
+                        {/* Visual Studio (Camera Preview) */}
+                        <div className="w-full lg:w-1/3 flex flex-col gap-6">
+                            <div className="glass-panel p-6 sm:p-8 rounded-[40px] flex flex-col flex-grow">
+                                <div className="flex flex-col gap-4 mb-5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-[#F5F5F7] dark:bg-white/10 p-2.5 rounded-xl text-[#1d1d1f] dark:text-white flex-shrink-0">
+                                            <Camera size={20} />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="text-[17px] font-bold text-[#1d1d1f] dark:text-white truncate">Camera Preview</h3>
+                                            <p className="text-[12px] text-[#86868b] dark:text-slate-400 truncate">Xem trước góc máy và màu sắc</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-2 w-full mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-2 bg-[#F5F5F7] dark:bg-white/5 rounded-xl text-[#86868b]"><Camera size={16} /></div>
+                                            <select
+                                                className="bg-[#F5F5F7] dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[#1d1d1f] dark:text-white text-[13px] font-medium rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500/50 w-full truncate flex-1"
+                                                value={selectedDevice}
+                                                onChange={(e) => setSelectedDevice(e.target.value)}
+                                                disabled={isStreaming}
+                                            >
+                                                {devices.length === 0 ? <option>Đang tìm Camera...</option> :
+                                                    devices.map((d, i) => (
+                                                        <option key={d.deviceId} value={d.deviceId}>{d.label || `Camera ${i + 1}`}</option>
+                                                    ))
+                                                }
+                                            </select>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-2 bg-[#F5F5F7] dark:bg-white/5 rounded-xl text-[#86868b]"><Mic size={16} /></div>
+                                            <select
+                                                className="bg-[#F5F5F7] dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[#1d1d1f] dark:text-white text-[13px] font-medium rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500/50 w-full truncate flex-1"
+                                                value={selectedAudioDevice}
+                                                onChange={(e) => setSelectedAudioDevice(e.target.value)}
+                                                disabled={isStreaming}
+                                            >
+                                                {audioDevices.length === 0 ? <option>Đang tìm Micro...</option> :
+                                                    audioDevices.map((d, i) => (
+                                                        <option key={d.deviceId} value={d.deviceId}>{d.label || `Microphone ${i + 1}`}</option>
+                                                    ))
+                                                }
+                                            </select>
+                                        </div>
+                                        <button
+                                            onClick={() => setIsStreaming(!isStreaming)}
+                                            className={`w-full mt-2 py-2.5 rounded-xl text-[13px] font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm ${isStreaming ? 'bg-red-50 text-red-600 ring-1 ring-red-200 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/30' : 'bg-[#1d1d1f] text-white hover:bg-black dark:bg-white dark:text-[#1d1d1f] dark:hover:bg-slate-200'}`}
+                                        >
+                                            {isStreaming ? <PowerOff size={16} /> : <Monitor size={16} />}
+                                            {isStreaming ? 'Dừng Streaming' : 'Bật Kết Nối'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Video Canvas Container (9:16 Aspect Ratio) */}
+                                <div className="relative w-full max-w-[360px] mx-auto aspect-[9/16] bg-slate-100 dark:bg-black/40 rounded-3xl overflow-hidden ring-1 ring-black/5 dark:ring-white/10 flex items-center justify-center mb-6 shadow-inner">
+                                    {cameraError ? (
+                                        <div className="text-red-500 text-[13px] font-medium px-6 text-center">{cameraError}</div>
+                                    ) : !isStreaming ? (
+                                        <div className="flex flex-col items-center justify-center text-[#86868b] dark:text-slate-500">
+                                            <Camera size={40} className="mb-3 opacity-30" />
+                                            <p className="text-[14px] font-medium">Camera đang tắt. Vui lòng kết nối Sony Imaging Edge Webcam.</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <video
+                                                ref={videoRef}
+                                                className="absolute inset-0 w-full h-full object-cover transition-all duration-300"
+                                                autoPlay
+                                                playsInline
+                                                muted
+                                                style={{
+                                                    transform: isMirrored ? 'scaleX(-1)' : 'none',
+                                                    filter: `brightness(${brightness}%) saturate(${saturation}%)`
+                                                }}
+                                            />
+                                            {isStreaming && !stream && <Loader2 className="animate-spin text-teal-500 w-8 h-8 absolute" />}
+                                        </>
+                                    )}
+
+                                    {/* Live Badge indicator */}
+                                    {isStreaming && stream && (
+                                        <div className="absolute top-4 left-4 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md tracking-wider flex items-center gap-1.5 shadow-[0_2px_10px_rgba(239,68,68,0.5)] z-10">
+                                            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+                                            LIVE
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Video Adjustment Controls */}
+                                <div className="bg-[#F5F5F7]/60 dark:bg-white/5 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 ring-1 ring-black/5 dark:ring-white/5 mt-auto">
+                                    <h4 className="text-[14px] font-bold text-[#1d1d1f] dark:text-white mb-1 flex items-center gap-2">
+                                        <Settings2 size={16} className="text-teal-500" /> Tinh Chỉnh Hình Ảnh
+                                    </h4>
+
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[13px] font-medium text-[#86868b] dark:text-slate-400">Lật gương (Mirror)</span>
+                                        <button
+                                            onClick={() => setIsMirrored(!isMirrored)}
+                                            className={`p-2 rounded-xl transition-colors ${isMirrored ? 'bg-teal-100 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400 ring-1 ring-teal-200 dark:ring-teal-500/30' : 'bg-white dark:bg-[#1d1d1f] text-[#86868b] dark:text-slate-400 ring-1 ring-black/5 dark:ring-white/10'}`}
+                                        >
+                                            <FlipHorizontal size={16} />
+                                        </button>
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <div className="flex justify-between items-center text-[12px] font-medium">
+                                            <span className="text-[#86868b] dark:text-slate-400">Độ sáng (Brightness)</span>
+                                            <span className="text-[#1d1d1f] dark:text-white">{brightness}%</span>
+                                        </div>
+                                        <input type="range" min="50" max="150" value={brightness} onChange={(e) => setBrightness(e.target.value)} className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none outline-none accent-teal-500 cursor-pointer" />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <div className="flex justify-between items-center text-[12px] font-medium">
+                                            <span className="text-[#86868b] dark:text-slate-400">Độ bão hoà (Saturation)</span>
+                                            <span className="text-[#1d1d1f] dark:text-white">{saturation}%</span>
+                                        </div>
+                                        <input type="range" min="0" max="200" value={saturation} onChange={(e) => setSaturation(e.target.value)} className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none outline-none accent-teal-500 cursor-pointer" />
+                                    </div>
+                                </div>
+                            </div> {/* End of inner card */}
+                        </div> {/* End of w-1/3 Visual Studio column */}
+
+                        {/* Equipment Status / Diagram Panel */}
+                        <div className="w-full lg:w-2/3 glass-panel p-6 lg:p-10 rounded-[40px] flex flex-col relative overflow-hidden">
+
+                            <div className="flex items-center justify-between mb-2 z-10 w-full shrink-0">
+                                <h3 className="text-[18px] font-bold text-[#1d1d1f] dark:text-white flex items-center gap-2">
+                                    <Cable size={20} className="text-indigo-500" /> Sơ đồ kết nối tiêu chuẩn
+                                </h3>
+                                <span className="text-[11px] font-bold bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 px-3 py-1.5 rounded-lg uppercase tracking-wider ring-1 ring-indigo-500/20 shadow-sm hidden sm:inline-flex">
+                                    STUDIO LIVE
+                                </span>
+                            </div>
+
+                            {/* Connection Diagram flow (React Flow Integration) */}
+                            <div className="flex-grow w-full relative z-10 rounded-2xl overflow-hidden ring-1 ring-black/5 dark:ring-white/5 mt-4">
+                                <StudioDiagram />
+                            </div>
+
+                        </div> {/* End of w-2/3 Diagram column */}
+                    </div>
+                )} {/* End of Step 2 */}
+
+                {currentStep === 3 && (
+                    <div className="flex flex-col gap-6 w-full animate-fade-in">
+                        <div className="glass-panel p-6 sm:p-10 rounded-[40px]">
+                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-black/5 dark:border-white/10">
+                                <h4 className="text-[20px] font-black text-[#1d1d1f] dark:text-white flex items-center gap-2">
+                                    <BookOpen size={24} className="text-teal-600 dark:text-teal-400" />
+                                    Cẩm nang cài đặt Máy ảnh
+                                </h4>
+                                <span className="text-[11px] font-bold bg-[#F5F5F7] dark:bg-white/5 text-[#86868b] dark:text-slate-400 px-3 py-1.5 rounded-lg uppercase tracking-wider ring-1 ring-black/5 dark:ring-white/10 shadow-sm">
+                                    Bước 2
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                                {/* Left column: hardware prep & checklist */}
+                                <div className="space-y-8">
+                                    <div>
+                                        <h5 className="text-[14.5px] font-bold text-[#1d1d1f] dark:text-white mb-3">1. Cấu Hình Phần Cứng</h5>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[13.5px] text-[#86868b] dark:text-slate-400 font-medium">
+                                            <div className="bg-[#F5F5F7] dark:bg-white/5 p-4 rounded-2xl ring-1 ring-black/5 dark:ring-white/5 flex gap-3 shadow-sm hover:shadow-md transition-shadow">
+                                                <Camera size={18} className="mt-0.5 text-[#1d1d1f] dark:text-white flex-shrink-0" />
+                                                <span className="leading-tight"><strong className="text-[#1d1d1f] dark:text-white">Sony ZV-E10, A6700...</strong> gắn sẵn lens.</span>
+                                            </div>
+                                            <div className="bg-[#F5F5F7] dark:bg-white/5 p-4 rounded-2xl ring-1 ring-black/5 dark:ring-white/5 flex gap-3 shadow-sm hover:shadow-md transition-shadow">
+                                                <PowerOff size={18} className="mt-0.5 text-[#1d1d1f] dark:text-white flex-shrink-0" />
+                                                <span className="leading-tight"><strong className="text-[#1d1d1f] dark:text-white">Pin giả</strong> cắm điện liên tục 24/7.</span>
+                                            </div>
+                                            <div className="bg-[#F5F5F7] dark:bg-white/5 p-4 rounded-2xl ring-1 ring-black/5 dark:ring-white/5 flex gap-3 shadow-sm hover:shadow-md transition-shadow">
+                                                <Link size={18} className="mt-0.5 text-[#1d1d1f] dark:text-white flex-shrink-0" />
+                                                <span className="leading-tight">Cáp mạng <strong className="text-[#1d1d1f] dark:text-white">LAN</strong> siêu tốc (không Wi-Fi).</span>
+                                            </div>
+                                            <div className="bg-[#F5F5F7] dark:bg-white/5 p-4 rounded-2xl ring-1 ring-black/5 dark:ring-white/5 flex gap-3 shadow-sm hover:shadow-md transition-shadow">
+                                                <Monitor size={18} className="mt-0.5 text-[#1d1d1f] dark:text-white flex-shrink-0" />
+                                                <span className="leading-tight">Ánh sáng quyết định <strong className="text-[#1d1d1f] dark:text-white">80% độ đẹp</strong>.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 className="text-[14.5px] font-bold text-[#1d1d1f] dark:text-white mb-3">2. Phương Pháp Trích Xuất</h5>
+                                        <div className="flex flex-col gap-3">
+                                            <div className="bg-[#F5F5F7] dark:bg-white/5 p-5 rounded-2xl ring-1 ring-black/5 dark:ring-white/5 shadow-sm border-l-4 border-l-teal-500 hover:shadow-md transition-shadow">
+                                                <strong className="text-[14px] text-[#1d1d1f] dark:text-white block mb-1">Cách 1: Trực tiếp qua USB-C (Đơn giản)</strong>
+                                                <p className="text-[13px] text-[#86868b] dark:text-slate-400 font-medium leading-relaxed">Chỉ cần 1 cáp truyền dữ liệu USB-C xịn, cắm thẳng từ Máy Ảnh sang PC. Máy tính tự nhận làm Webcam lập tức (Hỗ trợ tốt ZV-E10, A7C II...)</p>
+                                            </div>
+                                            <div className="bg-[#F5F5F7] dark:bg-white/5 p-5 rounded-2xl ring-1 ring-black/5 dark:ring-white/5 shadow-sm border-l-4 border-l-indigo-500 hover:shadow-md transition-shadow">
+                                                <strong className="text-[14px] text-[#1d1d1f] dark:text-white block mb-1">Cách 2: Thông qua Capture Card (Sắc nét)</strong>
+                                                <p className="text-[13px] text-[#86868b] dark:text-slate-400 font-medium leading-relaxed">Cáp Micro-HDMI xuất hình ảnh ra USB Capture Card, và cắm vào PC. Giữ được khung hình màu 10-bit nếu có.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 className="text-[14.5px] font-bold text-[#1d1d1f] dark:text-white mb-4 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 px-4 py-2.5 rounded-xl inline-flex items-center gap-2 ring-1 ring-red-500/20 shadow-sm">
+                                            <CheckCircle2 size={18} className="text-red-500" />
+                                            Biển kiểm tra trước khi Lên Sóng
+                                        </h5>
+                                        <ul className="space-y-3.5 text-[14px] text-[#86868b] dark:text-slate-400 font-medium list-none">
+                                            <li className="flex gap-4 p-1">
+                                                <div className="w-5 h-5 rounded-full bg-teal-100 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 size={12} /></div>
+                                                <span className="leading-relaxed"><strong className="text-[#1d1d1f] dark:text-white">Ánh sáng:</strong> Không bị Backlit quá mạnh. Tắt Auto ISO, ghim thông số đo sáng cố định để tránh hiện tượng Flicker sáng tối.</span>
+                                            </li>
+                                            <li className="flex gap-4 p-1">
+                                                <div className="w-5 h-5 rounded-full bg-teal-100 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 size={12} /></div>
+                                                <span className="leading-relaxed"><strong className="text-[#1d1d1f] dark:text-white">Âm thanh:</strong> Đếm thử {'"'}1..2..3..Alo{'"'} và quan sát hình sóng xanh nảy trên OBS/TikTok để chắc chắn luồng không bị {"'"}câm{"'"}.</span>
+                                            </li>
+
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                {/* Right column: ZV-E10/FX3 Settings */}
+                                <div className="space-y-6">
+                                    <div className="bg-[#F5F5F7] dark:bg-white/5 p-6 sm:p-8 rounded-3xl ring-1 ring-black/5 dark:ring-white/5 shadow-sm">
+                                        <h5 className="text-[16px] font-bold text-[#1d1d1f] dark:text-white mb-6 flex items-center gap-2">
+                                            <Settings size={20} className="text-teal-600 dark:text-teal-400" />
+                                            Thông số tiêu chuẩn (ZV-E10 II / FX3)
+                                        </h5>
+                                        <ul className="space-y-4 text-[14px] text-[#86868b] dark:text-slate-400 font-medium list-disc pl-5">
+                                            <li>Chế độ quay: <strong className="text-[#1d1d1f] dark:text-white">Manual (M)</strong> hoặc <strong className="text-[#1d1d1f] dark:text-white">Movie</strong></li>
+                                            <li>Khẩu độ (Aperture): Mở lớn nhất theo lens (vd: <strong className="text-[#1d1d1f] dark:text-white">f/1.4 - f/2.8</strong>)</li>
+                                            <li>Tốc độ màn trập (Shutter Speed): <strong className="text-[#1d1d1f] dark:text-white">1/50</strong> (nếu live 25fps) hoặc <strong className="text-[#1d1d1f] dark:text-white">1/100</strong> (nếu live 50fps) - gấp đôi framerate</li>
+                                            <li>ISO: Set cố định (tránh Auto). Thường tầm <strong className="text-[#1d1d1f] dark:text-white">400 - 800</strong> tùy ánh sáng</li>
+                                            <li>Lấy nét: <strong className="text-[#1d1d1f] dark:text-white">AF-C</strong> (Continuous AF), bật <strong className="text-[#1d1d1f] dark:text-white">Face/Eye AF</strong></li>
+                                            <li>White Balance: Chỉnh tay theo đèn studio (vd: <strong className="text-[#1d1d1f] dark:text-white">5600K</strong>)</li>
+                                        </ul>
+                                    </div>
+
+                                    <div className="bg-gradient-to-br from-teal-500 to-emerald-600 p-6 sm:p-8 rounded-3xl text-white shadow-lg relative overflow-hidden">
+                                        <div className="absolute -right-4 -bottom-4 opacity-20 transform rotate-12">
+                                            <Star size={140} />
+                                        </div>
+                                        <h5 className="text-[18px] font-bold mb-3 relative z-10 flex items-center gap-2">
+                                            <Star size={24} className="text-yellow-300 fill-yellow-300" />
+                                            Picture Profile Khuyên Dùng
+                                        </h5>
+                                        <p className="text-[15px] text-teal-50 font-medium mb-5 relative z-10 leading-relaxed">
+                                            Để da người sáng đẹp, tương phản vùng tối sáng tốt mà không cần hậu kỳ màu phức tạp, vui lòng sang tab ColorLab và thiết lập công thức sau:
+                                        </p>
+                                        <div className="bg-black/20 backdrop-blur-md px-5 py-4 rounded-xl border border-white/20 relative z-10 font-mono text-[14px] font-bold tracking-wide text-center content-center justify-center items-center flex">
+                                            PROCOLOR-003: EXTRA DR Stream 109
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {currentStep === 4 && (
+                    <div className="flex flex-col w-full animate-fade-in relative z-10">
+                        {/* --- BOTTOM SECTION: PLATFORM GUIDES --- */}
+                        <div className="w-full flex justify-center sticky top-0 bg-white/80 dark:bg-[#1d1d1f]/80 backdrop-blur-xl z-30 py-4 mb-4 mt-6 border-b border-black/5 dark:border-white/5">
+                            <div className="flex overflow-x-auto gap-3 custom-scrollbar px-2 max-w-full">
+                                {/* Desktop Software Apps (OBS, etc) */}
+                                <div className="flex bg-[#F5F5F7] dark:bg-white/5 p-1.5 rounded-[20px] gap-1 ring-1 ring-black/5 dark:ring-white/5 shadow-sm shrink-0">
+                                    {platforms.filter(p => p.software && p.software.type === 'obs').map((plat) => {
+                                        const idx = platforms.findIndex(p => p.id === plat.id);
+                                        const isActive = activePlatformIndex === idx;
+                                        return (
+                                            <button
+                                                key={plat.id}
+                                                onClick={() => setActivePlatformIndex(idx)}
+                                                className={`px-5 py-2.5 rounded-2xl text-[14px] font-bold whitespace-nowrap transition-all duration-300 ${isActive ? plat.activeColor + ' shadow-[0_4px_16px_rgba(0,0,0,0.12)] scale-100 ring-2 ring-white/20 dark:ring-black/20' : 'text-[#86868b] dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/10'}`}
+                                            >
+                                                {plat.name}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Separator */}
+                                <div className="w-px bg-black/5 dark:bg-white/10 my-3 mx-1 hidden sm:block"></div>
+
+                                {/* Mobile Apps (TikTok Studio, etc) */}
+                                <div className="flex gap-2 items-center shrink-0">
+                                    {platforms.filter(p => !p.software || p.software.type !== 'obs').map((plat) => {
+                                        const idx = platforms.findIndex(p => p.id === plat.id);
+                                        const isActive = activePlatformIndex === idx;
+                                        return (
+                                            <button
+                                                key={plat.id}
+                                                onClick={() => setActivePlatformIndex(idx)}
+                                                className={`px-5 py-2.5 rounded-2xl text-[14px] font-bold whitespace-nowrap transition-all duration-300 ring-1 ring-black/5 dark:ring-white/5 ${isActive ? plat.activeColor + ' shadow-[0_4px_16px_rgba(0,0,0,0.12)] scale-105 z-10 ring-2 ring-white/20 dark:ring-black/20' : 'bg-[#F5F5F7] dark:bg-white/5 text-[#86868b] dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/10 hover:shadow-sm'}`}
+                                            >
+                                                {plat.name}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="w-full flex flex-col glass-panel p-6 sm:p-8 lg:p-12 rounded-[40px] relative overflow-hidden h-full min-h-[500px]">
+                            {/* Dynamic Background Glow based on Active Platform */}
+                            {activePlatform && (
+                                <div className={`absolute -top-40 -left-20 w-[600px] h-[600px] rounded-full blur-3xl opacity-10 dark:opacity-20 -z-10 transition-colors duration-700 pointer-events-none ${activePlatform.activeColor.split(' ')[0]}`}></div>
+                            )}
+
+                            {/* Tutorial Content Wrapper */}
+                            {activePlatform ? (
+                                <div className="flex-grow flex flex-col relative z-10 animate-fade-in w-full max-w-4xl mx-auto" key={activePlatform.id}>
+
+                                    <div className="flex flex-col pb-6">
+                                        {/* Platform Setup */}
+                                        <div className="flex flex-col border-black/5 dark:border-white/10 pb-8">
+                                            <div className="flex items-center gap-5 mb-6">
+                                                <div className={`p-4 rounded-[20px] text-white shadow-lg flex-shrink-0 ${activePlatform.activeColor} scale-110 shadow-[0_8px_20px_rgba(0,0,0,0.15)]`}>
+                                                    <PlatformIcon size={32} />
+                                                </div>
+                                                <h4 className="text-[32px] md:text-[36px] font-black text-[#1d1d1f] dark:text-white tracking-tight leading-tight">{activePlatform.name}</h4>
+                                            </div>
+                                            <p className="text-[15px] text-[#86868b] dark:text-slate-400 mb-8 font-medium leading-relaxed pr-4">{activePlatform.description}</p>
+
+
+                                            {/* Stream Specs */}
+                                            {activePlatform.streamSpecs && (
+                                                <div className="mb-8 grid grid-cols-3 gap-3">
+                                                    <div className="bg-[#F5F5F7] dark:bg-[#2c2c2e] rounded-2xl p-4 flex flex-col items-center justify-center text-center ring-1 ring-black/5 dark:ring-white/5 shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md">
+                                                        <div className="text-[10px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Monitor size={12} /> Độ Phân Giải</div>
+                                                        <div className="text-[14px] font-black text-[#1d1d1f] dark:text-white">{activePlatform.streamSpecs.resolution}</div>
+                                                    </div>
+                                                    <div className="bg-[#F5F5F7] dark:bg-[#2c2c2e] rounded-2xl p-4 flex flex-col items-center justify-center text-center ring-1 ring-black/5 dark:ring-white/5 shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md">
+                                                        <div className="text-[10px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><MonitorPlay size={12} /> Khung Hình</div>
+                                                        <div className="text-[14px] font-black text-[#1d1d1f] dark:text-white">{activePlatform.streamSpecs.framerate}</div>
+                                                    </div>
+                                                    <div className="bg-[#F5F5F7] dark:bg-[#2c2c2e] rounded-2xl p-4 flex flex-col items-center justify-center text-center ring-1 ring-black/5 dark:ring-white/5 shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md">
+                                                        <div className="text-[10px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Upload size={12} /> Bitrate</div>
+                                                        <div className="text-[14px] font-black text-[#1d1d1f] dark:text-white">{activePlatform.streamSpecs.bitrate}</div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Software */}
+                                            {activePlatform.software && (
+                                                <div className="mb-8 flex flex-col gap-3">
+                                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[#F5F5F7] dark:bg-white/5 rounded-[20px] p-5 ring-1 ring-black/5 dark:ring-white/5 shadow-sm hover:shadow-md transition-shadow gap-4 sm:gap-0">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-12 h-12 shadow-sm rounded-[14px] bg-white dark:bg-[#1d1d1f] flex items-center justify-center text-[#1d1d1f] dark:text-white ring-1 ring-black/5 dark:ring-white/10 shrink-0">
+                                                                {activePlatform.software.type === 'obs' ? <KeyRound size={22} className="text-teal-600 dark:text-teal-400" /> : <MonitorPlay size={22} className="text-indigo-600 dark:text-indigo-400" />}
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[11.5px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-wider mb-0.5">
+                                                                    {activePlatform.software.streamKeyRequired ? 'Yêu cầu Stream Key' : 'Phần mềm khuyên dùng'}
+                                                                </span>
+                                                                <span className="text-[16px] font-black text-[#1d1d1f] dark:text-white leading-tight">
+                                                                    {activePlatform.software.name}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        {activePlatform.software.url && (
+                                                            <a
+                                                                href={activePlatform.software.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold transition-all shadow-sm bg-white dark:bg-[#2c2c2e] text-[#1d1d1f] dark:text-white ring-1 ring-black/5 dark:ring-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95 whitespace-nowrap lg:ml-4 shrink-0"
+                                                            >
+                                                                <Download size={16} /> Tải
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Setup Steps */}
+                                            <div className="space-y-6 lg:space-y-8 mt-2">
+                                                {activePlatform.steps.map((step, idx) => (
+                                                    <div key={idx} className="flex gap-5 group">
+                                                        <div className="flex flex-col items-center">
+                                                            <div className="w-10 h-10 rounded-full bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f] flex items-center justify-center text-[15px] font-black shadow-lg z-10 ring-4 ring-white dark:ring-[#1d1d1f] group-hover:scale-110 group-hover:bg-teal-600 dark:group-hover:bg-teal-400 group-hover:text-white transition-all flex-shrink-0 duration-300">
+                                                                {idx + 1}
+                                                            </div>
+                                                            {idx < activePlatform.steps.length - 1 && (
+                                                                <div className="w-0.5 h-full bg-slate-200 dark:bg-white/10 mt-3 mb-1 group-hover:bg-teal-200 dark:group-hover:bg-teal-900/50 transition-colors duration-300"></div>
+                                                            )}
+                                                        </div>
+                                                        <div className="pb-6 pt-1.5 w-full">
+                                                            <h5 className="text-[17px] font-bold text-[#1d1d1f] dark:text-slate-200 mb-2 leading-tight group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors duration-300">{step.title}</h5>
+                                                            <p className="text-[15px] text-[#86868b] dark:text-slate-400 leading-relaxed font-medium">{step.content}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center flex-grow py-12">
+                                    <p className="text-slate-500 font-medium text-[15px]">Không có dữ liệu nền tảng.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )} {/* End of Step 4 */}
+
+                {currentStep === 5 && (
+                    <div className="flex flex-col w-full animate-fade-in gap-6 pb-8">
+                        <div className="glass-panel p-6 sm:p-10 rounded-[40px]">
+                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-black/5 dark:border-white/10">
+                                <h4 className="text-[20px] font-black text-[#1d1d1f] dark:text-white flex items-center gap-2">
+                                    <Lightbulb size={24} className="text-teal-600 dark:text-teal-400" />
+                                    Hướng dẫn Đánh Sáng Studio
+                                </h4>
+                                <span className="text-[11px] font-bold bg-[#F5F5F7] dark:bg-white/5 text-[#86868b] dark:text-slate-400 px-3 py-1.5 rounded-lg uppercase tracking-wider ring-1 ring-black/5 dark:ring-white/10 shadow-sm">
+                                    Bước 4
+                                </span>
+                            </div>
+
+                            {/* Youtube Embedded Video */}
+                            <div className="w-full max-w-4xl mx-auto mb-8 rounded-3xl overflow-hidden ring-1 ring-black/5 dark:ring-white/10 shadow-lg aspect-video isolate bg-black">
+                                <iframe
+                                    className="w-full h-full"
+                                    src="https://www.youtube.com/embed/6p13FqFdgDc"
+                                    title="YouTube video player"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
+
+                            {/* Summary Key Points */}
+                            <div className="w-full max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-[#F5F5F7] dark:bg-white/5 p-6 rounded-3xl ring-1 ring-black/5 dark:ring-white/5">
+                                    <h5 className="text-[16px] font-bold text-[#1d1d1f] dark:text-white mb-4 flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center"><Lightbulb size={16} /></div>
+                                        Key Light (Ánh sáng chính)
+                                    </h5>
+                                    <ul className="space-y-3 text-[14px] text-[#86868b] dark:text-slate-400 font-medium">
+                                        <li>Đặt góc 45 độ so với mặt người, ánh sáng hơi hướng xuống.</li>
+                                        <li>Chủ thể hơi ngẩng lên hoặc nhìn theo hướng Key Light để mắt tạo <strong className="text-[#1d1d1f] dark:text-white">Catchlight</strong>.</li>
+                                        <li>Dùng đèn nguồn công suất lớn (150W - 300W) kết hợp Softbox to (Dome/Parabolic 90cm+) để da mịn màng nhất.</li>
+                                    </ul>
+                                </div>
+                                <div className="bg-[#F5F5F7] dark:bg-white/5 p-6 rounded-3xl ring-1 ring-black/5 dark:ring-white/5">
+                                    <h5 className="text-[16px] font-bold text-[#1d1d1f] dark:text-white mb-4 flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center"><Settings size={16} /></div>
+                                        Các chức năng đèn bổ trợ
+                                    </h5>
+                                    <ul className="space-y-3 text-[14px] text-[#86868b] dark:text-slate-400 font-medium">
+                                        <li><strong className="text-[#1d1d1f] dark:text-white">Fill Light:</strong> Công suất ~30-50% Key Light, chiếu từ hướng ngược lại để làm sáng và mềm vùng đổ bóng râm.</li>
+                                        <li><strong className="text-[#1d1d1f] dark:text-white">Hair/Rim Light:</strong> Đèn công suất vừa, đánh từ phía sau lưng tạt lên tóc/vai, giúp tách chủ thể ra khỏi phông nền.</li>
+                                        <li><strong className="text-[#1d1d1f] dark:text-white">Background Light:</strong> Đèn màu RGB (Tube) hắt nhẹ vào phông nền tạo hiệu ứng chiều sâu bắt mắt.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )} {/* End of Step 5 */}
+
+                {currentStep === 6 && (
+                    <div className="flex flex-col lg:flex-row gap-6 w-full animate-fade-in pb-8">
+
+                        {/* LEFT: Script Form + Timeline */}
+                        <div className="w-full lg:w-1/2 flex flex-col gap-6">
+                            <div className="glass-panel p-6 sm:p-10 rounded-[40px] flex flex-col gap-6">
+                                <div className="flex items-center justify-between pb-4 border-b border-black/5 dark:border-white/10">
+                                    <h4 className="text-[20px] font-black text-[#1d1d1f] dark:text-white flex items-center gap-2">
+                                        <Wand2 size={22} className="text-violet-500" />
+                                        Tạo Kịch Bản Phiên Live
+                                    </h4>
+                                    <span className="text-[11px] font-bold bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400 px-3 py-1.5 rounded-lg uppercase tracking-wider ring-1 ring-violet-500/20 shadow-sm hidden sm:inline-flex">
+                                        AI Powered
+                                    </span>
+                                </div>
+
+                                {/* Inputs */}
+                                <div className="flex flex-col gap-4">
+                                    <div>
+                                        <label className="text-[12px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-wider mb-2 block">Tiêu Đề Phiên Live *</label>
+                                        <input
+                                            type="text"
+                                            value={scriptTitle}
+                                            onChange={e => setScriptTitle(e.target.value)}
+                                            placeholder="VD: Livestream Ra mắt Sony ZV-E10 II"
+                                            className="w-full bg-[#F5F5F7] dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[#1d1d1f] dark:text-white text-[14px] font-medium rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-violet-500/50 transition-all"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[12px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-wider mb-2 block">Mô Tả Ngắn</label>
+                                        <textarea
+                                            value={scriptDesc}
+                                            onChange={e => setScriptDesc(e.target.value)}
+                                            placeholder="VD: Giới thiệu tính năng vượt trội, so sánh với thế hệ cũ, demo quay phim, tư vấn mua hàng..."
+                                            className="w-full bg-[#F5F5F7] dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[#1d1d1f] dark:text-white text-[13px] font-medium rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-violet-500/50 min-h-[100px] resize-y transition-all"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handleGenerateTimeline}
+                                        disabled={!scriptTitle.trim() || isGenerating}
+                                        className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-[14px] shadow-[0_8px_20px_rgba(139,92,246,0.3)] hover:shadow-[0_12px_25px_rgba(139,92,246,0.4)] transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+                                    >
+                                        {isGenerating ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                                        {isGenerating ? 'Đang tạo kịch bản...' : '✨ Tạo Kịch Bản AI'}
+                                    </button>
+                                </div>
+
+                                {/* Generated Timeline */}
+                                {generatedTimeline && (
+                                    <div className="flex flex-col gap-3 animate-fade-in">
+                                        <h5 className="text-[14px] font-bold text-[#1d1d1f] dark:text-white flex items-center gap-2">
+                                            <Sparkles size={16} className="text-violet-500" /> Timeline Được Tạo
+                                        </h5>
+                                        <div className="bg-[#F5F5F7] dark:bg-white/5 rounded-2xl p-5 ring-1 ring-black/5 dark:ring-white/5 max-h-[500px] overflow-y-auto custom-scrollbar">
+                                            <div className="flex flex-col">
+                                                {renderFormattedScript(generatedTimeline)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {!generatedTimeline && !isGenerating && (
+                                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                                        <div className="w-16 h-16 rounded-3xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center mb-3">
+                                            <Wand2 size={28} className="text-violet-400" />
+                                        </div>
+                                        <p className="text-[13px] text-[#86868b] dark:text-slate-400 font-medium">Nhập tiêu đề và nhấn &quot;Tạo Kịch Bản AI&quot; để Gemini tự động xây dựng timeline cho phiên live của bạn.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* RIGHT: Live Chatbot Q&A */}
+                        <div className="w-full lg:w-1/2 flex flex-col">
+                            <div className="bg-white dark:bg-[#1d1d1f] rounded-[32px] shadow-[0_8px_30px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.02] dark:ring-white/[0.05] flex flex-col h-full min-h-[520px] overflow-hidden">
+                                {/* Chat Header */}
+                                <div className="flex items-center gap-3 p-5 sm:p-6 border-b border-black/5 dark:border-white/10 shrink-0">
+                                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-sm">
+                                        <Bot size={20} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-[16px] font-black text-[#1d1d1f] dark:text-white leading-tight">Trợ lý Live Q&amp;A</h4>
+                                        <p className="text-[12px] text-[#86868b] dark:text-slate-400 font-medium">AI trả lời nhanh tuỳ vấn khách hàng</p>
+                                    </div>
+                                    <div className="ml-auto flex items-center gap-1.5">
+                                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                                        <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">Sẵn sàng</span>
+                                    </div>
+                                </div>
+
+                                {/* Messages */}
+                                <div className="flex-grow overflow-y-auto p-4 sm:p-5 flex flex-col gap-3 custom-scrollbar">
+                                    {chatMessages.map((msg, i) => (
+                                        <div key={i} className={`flex gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                                            {msg.role === 'model' && (
+                                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                                                    <Bot size={14} className="text-white" />
+                                                </div>
+                                            )}
+                                            <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-[13px] font-medium leading-relaxed ${msg.role === 'user'
+                                                ? 'bg-[#1d1d1f] text-white dark:bg-teal-500 rounded-tr-sm'
+                                                : 'bg-[#F5F5F7] dark:bg-white/8 text-[#1d1d1f] dark:text-slate-200 rounded-tl-sm ring-1 ring-black/5 dark:ring-white/5'
+                                                }`}>
+                                                {msg.text}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {isChatLoading && (
+                                        <div className="flex gap-2.5 flex-row">
+                                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shrink-0 shadow-sm">
+                                                <Bot size={14} className="text-white" />
+                                            </div>
+                                            <div className="bg-[#F5F5F7] dark:bg-white/5 px-4 py-3 rounded-2xl rounded-tl-sm ring-1 ring-black/5 dark:ring-white/5 flex items-center gap-1.5">
+                                                <div className="w-1.5 h-1.5 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                                <div className="w-1.5 h-1.5 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                                <div className="w-1.5 h-1.5 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div ref={chatEndRef} />
+                                </div>
+
+                                {/* Input Box */}
+                                <div className="p-4 sm:p-5 border-t border-black/5 dark:border-white/10 shrink-0">
+                                    <div className="flex gap-2 items-end">
+                                        <textarea
+                                            value={chatInput}
+                                            onChange={e => setChatInput(e.target.value)}
+                                            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend(); } }}
+                                            placeholder="Nhập câu hỏi về sản phẩm Sony..."
+                                            rows={1}
+                                            className="flex-1 bg-[#F5F5F7] dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[#1d1d1f] dark:text-white text-[13px] font-medium rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500/50 resize-none transition-all"
+                                        />
+                                        <button
+                                            onClick={handleChatSend}
+                                            disabled={!chatInput.trim() || isChatLoading}
+                                            className="w-11 h-11 rounded-2xl bg-[#1d1d1f] dark:bg-teal-500 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black dark:hover:bg-teal-400 transition-all shadow-sm shrink-0"
+                                        >
+                                            <Send size={17} />
+                                        </button>
+                                    </div>
+                                    <p className="text-[11px] text-[#86868b] dark:text-slate-500 mt-2 font-medium">Enter để gửi • Shift+Enter xuống dòng</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                )} {/* End of Step 6 */}
+
+                {currentStep === 7 && (
+                    <div className="flex flex-col w-full animate-fade-in gap-8 pb-20">
+                        <div className="glass-panel p-8 sm:p-12 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-teal-500/5 blur-[120px] -z-0"></div>
+
+                            <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6 relative z-10">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 shadow-inner">
+                                        <CheckCircle2 size={30} strokeWidth={2.5} />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-[26px] font-black text-[#1d1d1f] dark:text-white tracking-tight leading-tight">Báo Cáo Hiệu Suất Live</h4>
+                                        <p className="text-[14px] text-slate-500 dark:text-slate-400 font-bold">Chỉ số kinh doanh đa nền tảng (Tối đa 5)</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 px-6 py-3 bg-[#F5F5F7] dark:bg-white/5 rounded-2xl ring-1 ring-black/5 dark:ring-white/10 shadow-sm">
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ngày báo cáo</span>
+                                        <span className="text-[13px] font-black text-[#1d1d1f] dark:text-white">{new Date().toLocaleDateString('vi-VN')}</span>
+                                    </div>
+                                    <div className="w-px h-8 bg-black/5 dark:bg-white/10 mx-2"></div>
+                                    <span className="text-[10px] font-black bg-teal-500/10 text-teal-600 px-3 py-1 rounded-lg uppercase tracking-wider text-center">Auto Sync</span>
+                                </div>
+                            </div>
+
+                            {!isAuthorizedForLiveReport(user?.primaryEmailAddress?.emailAddress) ? (
+                                <div className="max-w-2xl mx-auto py-16 text-center flex flex-col items-center gap-8 relative z-10">
+                                    <div className="w-24 h-24 rounded-[32px] bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white shadow-2xl shadow-orange-500/30 animate-pulse-slow">
+                                        <KeyRound size={44} strokeWidth={2.5} />
+                                    </div>
+                                    <div className="space-y-4">
+                                        <h5 className="text-[28px] font-black text-[#1d1d1f] dark:text-white tracking-tighter">Quyền Truy Cập Nội Bộ</h5>
+                                        <p className="text-[16px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed max-w-md mx-auto">
+                                            Tính năng báo cáo kinh doanh chỉ dành cho tài khoản Sony Training Wiki được cấp quyền.
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-3 px-8 py-4 bg-white dark:bg-white/5 rounded-3xl ring-1 ring-black/5 dark:ring-white/10 text-[13px] font-black text-slate-500 uppercase tracking-widest shadow-lg">
+                                        <Bot size={20} className="text-teal-500" />
+                                        Alpha Security Verified
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="max-w-7xl mx-auto relative z-10 space-y-10">
+                                    {/* Section 1: Session Context */}
+                                    <div className="bg-[#F5F5F7]/50 dark:bg-white/3 p-8 rounded-[32px] ring-1 ring-black/5 dark:ring-white/5">
+                                        <div className="flex items-center gap-3 mb-6 px-2">
+                                            <Video size={18} className="text-teal-500" />
+                                            <h6 className="text-[12px] font-black text-[#86868b] uppercase tracking-[0.2em]">Thông Tin Chung</h6>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                            <div className="flex flex-col gap-2 lg:col-span-2">
+                                                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Chủ đề & Topic</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="VD: Sony ZV-E10 II Launch Event..."
+                                                    value={reportMetrics.topic}
+                                                    onChange={e => setReportMetrics({ ...reportMetrics, topic: e.target.value })}
+                                                    className="bg-white dark:bg-black/20 border-0 rounded-2xl px-5 py-4 text-[15px] font-black text-[#1d1d1f] dark:text-white outline-none focus:ring-2 focus:ring-teal-500/50 shadow-sm transition-all"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Giờ Bắt Đầu</label>
+                                                <input
+                                                    type="time"
+                                                    value={reportMetrics.startTime}
+                                                    onChange={e => setReportMetrics({ ...reportMetrics, startTime: e.target.value })}
+                                                    className="bg-white dark:bg-black/20 border-0 rounded-2xl px-5 py-4 text-[15px] font-black text-[#1d1d1f] dark:text-white outline-none focus:ring-2 focus:ring-teal-500/50 shadow-sm transition-all"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Giờ Kết Thúc</label>
+                                                <input
+                                                    type="time"
+                                                    value={reportMetrics.endTime}
+                                                    onChange={e => setReportMetrics({ ...reportMetrics, endTime: e.target.value })}
+                                                    className="bg-white dark:bg-black/20 border-0 rounded-2xl px-5 py-4 text-[15px] font-black text-[#1d1d1f] dark:text-white outline-none focus:ring-2 focus:ring-teal-500/50 shadow-sm transition-all"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Section 2: Platform Specific Breakdown */}
+                                    <div className="space-y-6">
+                                        <div className="flex items-center justify-between mb-4 px-2">
+                                            <div className="flex items-center gap-3">
+                                                <BarChart3 size={18} className="text-teal-500" />
+                                                <h6 className="text-[12px] font-black text-[#86868b] uppercase tracking-[0.2em]">Hiệu Suất Theo Nền Tảng ({reportMetrics.platforms.length}/5)</h6>
+                                            </div>
+
+                                            {reportMetrics.platforms.length < 5 && (
+                                                <button
+                                                    onClick={() => {
+                                                        const unusedPlatforms = platformsData.filter(p => !reportMetrics.platforms.find(rp => rp.name === p.name));
+                                                        if (unusedPlatforms.length > 0) {
+                                                            setReportMetrics({
+                                                                ...reportMetrics,
+                                                                platforms: [...reportMetrics.platforms, {
+                                                                    name: unusedPlatforms[0].name,
+                                                                    views: '', likes: '', pcu: '', followers: '', clicks: '', orders: '', revenue: ''
+                                                                }]
+                                                            });
+                                                        }
+                                                    }}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all"
+                                                >
+                                                    <Plus size={16} /> Thêm nền tảng
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-1 gap-8">
+                                            {reportMetrics.platforms.map((plat, idx) => (
+                                                <div key={idx} className="bg-white dark:bg-white/5 rounded-[32px] p-6 lg:p-8 ring-1 ring-black/5 dark:ring-white/10 shadow-sm relative group animate-fade-in">
+                                                    <div className="flex flex-col lg:flex-row gap-8">
+                                                        {/* Platform Side */}
+                                                        <div className="lg:w-1/4 flex flex-col gap-6 border-b lg:border-b-0 lg:border-r border-black/5 dark:border-white/10 pb-6 lg:pb-0 lg:pr-8">
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-10 h-10 rounded-xl bg-[#F5F5F7] dark:bg-white/10 flex items-center justify-center">
+                                                                        {(() => {
+                                                                            const pData = platformsData.find(p => p.name === plat.name);
+                                                                            const Icon = pData?.icon || RadioReceiver;
+                                                                            return <Icon size={20} className="text-[#1d1d1f] dark:text-white" />;
+                                                                        })()}
+                                                                    </div>
+                                                                    <select
+                                                                        value={plat.name}
+                                                                        onChange={(e) => {
+                                                                            const newPlats = [...reportMetrics.platforms];
+                                                                            newPlats[idx].name = e.target.value;
+                                                                            setReportMetrics({ ...reportMetrics, platforms: newPlats });
+                                                                        }}
+                                                                        className="bg-transparent border-0 text-[18px] font-black text-[#1d1d1f] dark:text-white focus:ring-0 outline-none cursor-pointer appearance-none"
+                                                                    >
+                                                                        {platformsData.map(p => (
+                                                                            <option key={p.id} value={p.name} className="dark:bg-[#1d1d1f]">{p.name}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
+                                                                {reportMetrics.platforms.length > 1 && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            const newPlats = reportMetrics.platforms.filter((_, i) => i !== idx);
+                                                                            setReportMetrics({ ...reportMetrics, platforms: newPlats });
+                                                                        }}
+                                                                        className="text-slate-400 hover:text-red-500 transition-colors"
+                                                                    >
+                                                                        <Trash2 size={18} />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                            <div className="space-y-4">
+                                                                <div className="flex flex-col gap-1.5">
+                                                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Doanh thu dự kiến</label>
+                                                                    <div className="relative">
+                                                                        <input
+                                                                            type="number"
+                                                                            value={plat.revenue}
+                                                                            onChange={(e) => {
+                                                                                const newPlats = [...reportMetrics.platforms];
+                                                                                newPlats[idx].revenue = e.target.value;
+                                                                                setReportMetrics({ ...reportMetrics, platforms: newPlats });
+                                                                            }}
+                                                                            placeholder="0"
+                                                                            className="w-full bg-[#F5F5F7] dark:bg-black/20 border-0 rounded-2xl px-4 py-4 text-[20px] font-black text-emerald-600 dark:text-emerald-400 outline-none focus:ring-2 focus:ring-emerald-500/30"
+                                                                        />
+                                                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] font-black text-emerald-600/50 uppercase">VND</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex flex-col gap-1.5">
+                                                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Số đơn hàng</label>
+                                                                    <input
+                                                                        type="number"
+                                                                        value={plat.orders}
+                                                                        onChange={(e) => {
+                                                                            const newPlats = [...reportMetrics.platforms];
+                                                                            newPlats[idx].orders = e.target.value;
+                                                                            setReportMetrics({ ...reportMetrics, platforms: newPlats });
+                                                                        }}
+                                                                        placeholder="0"
+                                                                        className="w-full bg-[#F5F5F7] dark:bg-black/20 border-0 rounded-2xl px-4 py-4 text-[16px] font-black text-[#1d1d1f] dark:text-white outline-none focus:ring-2 focus:ring-teal-500/30"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Metrics Side */}
+                                                        <div className="lg:w-3/4 grid grid-cols-2 md:grid-cols-4 gap-6 content-start">
+                                                            <div className="flex flex-col gap-2">
+                                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Lượt xem (Views)</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={plat.views}
+                                                                    onChange={(e) => {
+                                                                        const newPlats = [...reportMetrics.platforms];
+                                                                        newPlats[idx].views = e.target.value;
+                                                                        setReportMetrics({ ...reportMetrics, platforms: newPlats });
+                                                                    }}
+                                                                    placeholder="0"
+                                                                    className="w-full bg-[#F5F5F7] dark:bg-black/20 border-0 rounded-xl px-4 py-3.5 text-[14px] font-bold text-[#1d1d1f] dark:text-white outline-none focus:ring-2 focus:ring-teal-500/30"
+                                                                />
+                                                            </div>
+                                                            <div className="flex flex-col gap-2">
+                                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Mắt xem (PCU)</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={plat.pcu}
+                                                                    onChange={(e) => {
+                                                                        const newPlats = [...reportMetrics.platforms];
+                                                                        newPlats[idx].pcu = e.target.value;
+                                                                        setReportMetrics({ ...reportMetrics, platforms: newPlats });
+                                                                    }}
+                                                                    placeholder="0"
+                                                                    className="w-full bg-[#F5F5F7] dark:bg-black/20 border-0 rounded-xl px-4 py-3.5 text-[14px] font-bold text-[#1d1d1f] dark:text-white outline-none focus:ring-2 focus:ring-teal-500/30 text-right"
+                                                                />
+                                                            </div>
+                                                            <div className="flex flex-col gap-2">
+                                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Theo dõi mới</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={plat.followers}
+                                                                    onChange={(e) => {
+                                                                        const newPlats = [...reportMetrics.platforms];
+                                                                        newPlats[idx].followers = e.target.value;
+                                                                        setReportMetrics({ ...reportMetrics, platforms: newPlats });
+                                                                    }}
+                                                                    placeholder="0"
+                                                                    className="w-full bg-[#F5F5F7] dark:bg-black/20 border-0 rounded-xl px-4 py-3.5 text-[14px] font-bold text-[#1d1d1f] dark:text-white outline-none focus:ring-2 focus:ring-teal-500/30"
+                                                                />
+                                                            </div>
+                                                            <div className="flex flex-col gap-2">
+                                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Tổng lượt thích</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={plat.likes}
+                                                                    onChange={(e) => {
+                                                                        const newPlats = [...reportMetrics.platforms];
+                                                                        newPlats[idx].likes = e.target.value;
+                                                                        setReportMetrics({ ...reportMetrics, platforms: newPlats });
+                                                                    }}
+                                                                    placeholder="0"
+                                                                    className="w-full bg-[#F5F5F7] dark:bg-black/20 border-0 rounded-xl px-4 py-3.5 text-[14px] font-bold text-[#1d1d1f] dark:text-white outline-none focus:ring-2 focus:ring-teal-500/30 text-right"
+                                                                />
+                                                            </div>
+                                                            <div className="flex flex-col gap-2 md:col-start-1">
+                                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Số Click SP</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={plat.clicks}
+                                                                    onChange={(e) => {
+                                                                        const newPlats = [...reportMetrics.platforms];
+                                                                        newPlats[idx].clicks = e.target.value;
+                                                                        setReportMetrics({ ...reportMetrics, platforms: newPlats });
+                                                                    }}
+                                                                    placeholder="0"
+                                                                    className="w-full bg-[#F5F5F7] dark:bg-black/20 border-0 rounded-xl px-4 py-3.5 text-[14px] font-bold text-[#1d1d1f] dark:text-white outline-none focus:ring-2 focus:ring-teal-500/30"
+                                                                />
+                                                            </div>
+                                                            <div className="col-span-2 md:col-start-3 md:col-span-2 mt-auto">
+                                                                <div className="flex justify-between items-center bg-[#F5F5F7] dark:bg-black/10 rounded-2xl px-5 py-4">
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tỉ lệ CVR</span>
+                                                                        <span className="text-[18px] font-black text-teal-600 dark:text-teal-400">
+                                                                            {plat.views > 0 ? ((plat.orders / plat.views) * 100).toFixed(2) : '0.00'}%
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="w-px h-8 bg-black/5 dark:bg-white/10" />
+                                                                    <div className="flex flex-col text-right">
+                                                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Chỉ số GPM</span>
+                                                                        <span className="text-[18px] font-black text-violet-600 dark:text-violet-400">
+                                                                            {plat.views > 0 ? (plat.revenue / plat.views).toFixed(1) : '0.0'}k
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Section 3: Notes & Action */}
+                                    <div className="flex flex-col lg:flex-row gap-10">
+                                        <div className="lg:w-2/3 flex flex-col gap-2">
+                                            <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest pl-2">Ghi chú & Phân tích phiên live</label>
+                                            <textarea
+                                                value={reportMetrics.note}
+                                                onChange={e => setReportMetrics({ ...reportMetrics, note: e.target.value })}
+                                                placeholder="Nhập nhận định về hiệu quả phiên live, tệp khách hàng, sản phẩm bán chạy..."
+                                                className="w-full bg-[#F5F5F7] dark:bg-black/20 border-0 rounded-[24px] px-6 py-5 text-[14px] font-medium text-[#1d1d1f] dark:text-white outline-none focus:ring-2 focus:ring-teal-500/50 min-h-[140px] resize-none"
+                                            />
+                                        </div>
+                                        <div className="lg:w-1/3 flex flex-col justify-end gap-6">
+                                            <div className="bg-teal-500 dark:bg-teal-600 p-6 rounded-[28px] text-white shadow-xl shadow-teal-500/20">
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <span className="text-[11px] font-black uppercase tracking-widest opacity-80">Tổng Doanh Thu</span>
+                                                    <RadioReceiver size={18} />
+                                                </div>
+                                                <div className="text-[32px] font-black tracking-tight mb-1">
+                                                    {reportMetrics.platforms.reduce((acc, p) => acc + Number(p.revenue || 0), 0).toLocaleString('vi-VN')}
+                                                </div>
+                                                <div className="text-[12px] font-bold opacity-80 uppercase tracking-wider">VND (Gộp {reportMetrics.platforms.length} Nền Tảng)</div>
+                                            </div>
+
+                                            <button
+                                                onClick={handleSaveReport}
+                                                disabled={isSavingReport || reportSaved}
+                                                className={`w-full py-6 rounded-[28px] flex items-center justify-center gap-4 font-black text-[17px] uppercase tracking-[0.2em] transition-all duration-300 shadow-2xl ${reportSaved
+                                                    ? 'bg-emerald-500 text-white'
+                                                    : 'bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f] hover:scale-[1.02] active:scale-95'
+                                                    }`}
+                                            >
+                                                {isSavingReport ? <Loader2 size={24} className="animate-spin" /> : reportSaved ? <CheckCircle2 size={24} /> : <Download size={24} />}
+                                                {isSavingReport ? 'Đang Xử Lý...' : reportSaved ? 'Đã Lưu Báo Cáo' : 'Chốt & Lưu Dữ Liệu'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div >
+    );
+}
