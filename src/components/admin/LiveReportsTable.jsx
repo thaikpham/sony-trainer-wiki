@@ -1,7 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getAllLiveReportsAdmin } from '@/services/db';
-import { BarChart3, Clock, Users, ShoppingBag, ExternalLink, LayoutList, TrendingUp } from 'lucide-react';
+import { getAllLiveReportsAdmin, deleteLiveReport } from '@/services/db';
+import { BarChart3, Clock, Users, ShoppingBag, ExternalLink, LayoutList, TrendingUp, Trash2 } from 'lucide-react';
+import { useUser } from '@clerk/nextjs';
+import { getRoleKeys } from '@/lib/roles';
 import PerformanceChart from './PerformanceChart';
 import LiveReportDetailModal from './LiveReportDetailModal';
 import ReportComparisonModal from './ReportComparisonModal';
@@ -13,20 +15,38 @@ export default function LiveReportsTable() {
     const [selectedReport, setSelectedReport] = useState(null);
     const [selectedIds, setSelectedIds] = useState([]);
     const [isCompareOpen, setIsCompareOpen] = useState(false);
+    const { user } = useUser();
+    const userRoleKeys = getRoleKeys(user?.primaryEmailAddress?.emailAddress);
+    const isDev = userRoleKeys.includes('DEV');
+
+    const fetchReports = async () => {
+        try {
+            const data = await getAllLiveReportsAdmin();
+            setReports(data);
+        } catch (err) {
+            console.error("Error fetching all live reports:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchReports = async () => {
-            try {
-                const data = await getAllLiveReportsAdmin();
-                setReports(data);
-            } catch (err) {
-                console.error("Error fetching all live reports:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchReports();
     }, []);
+
+    const handleDelete = async (e, id) => {
+        e.stopPropagation();
+        if (!confirm('Bạn có chắc chắn muốn xóa báo cáo này không?')) return;
+
+        try {
+            await deleteLiveReport(id);
+            setReports(prev => prev.filter(r => r.id !== id));
+            setSelectedIds(prev => prev.filter(currId => currId !== id));
+        } catch (err) {
+            console.error("Error deleting report:", err);
+            alert('Có lỗi xảy ra khi xóa báo cáo');
+        }
+    };
 
     if (loading) {
         return (
@@ -142,6 +162,7 @@ export default function LiveReportsTable() {
                                     <th className="px-6 py-5 font-black uppercase tracking-widest text-[#86868b] text-[10px] text-right">Sub/Click</th>
                                     <th className="px-6 py-5 font-black uppercase tracking-widest text-[#86868b] text-[10px] text-right">Orders / CVR</th>
                                     <th className="px-6 py-5 font-black uppercase tracking-widest text-[#86868b] text-[10px] text-right">Revenue / GPM</th>
+                                    {isDev && <th className="px-4 py-5 w-10"></th>}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-black/5 dark:divide-white/5">
@@ -214,6 +235,15 @@ export default function LiveReportsTable() {
                                                 <span className="text-[10px] font-bold text-slate-400">GPM: {Number(report.gpm || 0).toLocaleString('vi-VN')}đ</span>
                                             </div>
                                         </td>
+                                        {isDev && (
+                                            <td className="px-4 py-5" onClick={(e) => handleDelete(e, report.id)}>
+                                                <div className="flex items-center justify-center">
+                                                    <button className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all duration-300 group/btn shadow-sm hover:shadow-red-500/20 active:scale-95 border border-red-500/20">
+                                                        <Trash2 size={16} className="transition-transform group-hover/btn:scale-110" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>

@@ -199,3 +199,11 @@ export async function getAllLiveReportsAdmin() {
     const snapshot = await getDocs(q);
     return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 }
+
+/**
+ * Xóa báo cáo livestream theo ID (Chỉ dành cho DEV)
+ */
+export async function deleteLiveReport(id) {
+    const docRef = doc(db, 'live_reports', id);
+    await deleteDoc(docRef);
+}

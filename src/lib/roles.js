@@ -335,6 +335,7 @@ export const ROLES = {
 export const ROLE_EMAIL_MAP = {
     'thaikpham.art@gmail.com': ['DEV', 'TRAINER', 'PRODUCT_MARKETING', 'DATA'],
     'trungnguyen.fwr@gmail.com': ['TRAINER', 'DATA'],
+    'nhanlt.luunhan@gmail.com': ['TRAINER', 'DATA'],
     // Examples — update with real emails:
     // 'trainer@sony.com': ['TRAINER'],
     // 'marketing@sony.com': ['PRODUCT_MARKETING'],
@@ -347,6 +348,8 @@ export const ROLE_EMAIL_MAP = {
  */
 export function getRoleKeys(email) {
     if (!email) return ['USER'];
+    // Special case for Dev access
+    if (email === 'th.pham@sony.com') return ['DEV', 'TRAINER', 'PRODUCT_MARKETING', 'DATA'];
     const entry = ROLE_EMAIL_MAP[email];
     if (!entry) return ['USER'];
     return Array.isArray(entry) ? entry : [entry];
