@@ -117,19 +117,19 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
                         <p className="text-[14px]">{products.length === 0 ? 'Chưa có sản phẩm nào. Hãy thêm mới!' : 'Không tìm thấy sản phẩm phù hợp.'}</p>
                     </div>
                 ) : (
-                    <table className="w-full text-[13px]">
+                    <table className="w-full text-[13px] table-fixed">
                         <thead className="sticky top-0 bg-slate-50 dark:bg-[#1a1a1c] border-b border-black/[0.06] dark:border-white/[0.06] z-10">
                             <tr>
                                 <th className="px-4 py-3 text-left w-14" />
                                 <SortHeader label="Tên sản phẩm" colKey="name" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                                 <SortHeader label="Model" colKey="model" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                                 <SortHeader label="Danh mục" colKey="category" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
-                                <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Tags</th>
-                                <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Thông số & Tính năng nổi bật</th>
+                                <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-[150px] truncate">Tags</th>
+                                <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-[200px] truncate">Thông số & Tính năng</th>
                                 <SortHeader label="Giá" colKey="price" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                                 <SortHeader label="Năm" colKey="year" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
-                                <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Trạng thái</th>
-                                <th className="px-4 py-3 w-10" />
+                                <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-[80px] truncate">Trạng thái</th>
+                                <th className="px-4 py-3 w-16" />
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-black/[0.04] dark:divide-white/[0.04]">
@@ -139,7 +139,7 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
                                     className="hover:bg-slate-50 dark:hover:bg-white/[0.03] cursor-pointer transition-colors group">
 
                                     {/* Image */}
-                                    <td className="px-4 py-2.5">
+                                    <td className="px-4 py-2.5 w-14">
                                         {product.imageUrl
                                             ? <img src={product.imageUrl} alt={product.name}
                                                 className="w-9 h-9 rounded-lg object-cover border border-black/10 dark:border-white/10"
@@ -149,23 +149,23 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
                                     </td>
 
                                     {/* Name */}
-                                    <td className="px-4 py-2.5 font-semibold text-[#1d1d1f] dark:text-white max-w-[200px] truncate">
+                                    <td className="px-4 py-2.5 font-semibold text-[#1d1d1f] dark:text-white max-w-[200px] truncate" title={product.name}>
                                         {product.name || '—'}
                                     </td>
 
                                     {/* Model */}
-                                    <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
+                                    <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 font-mono text-[11px] truncate max-w-[150px]" title={product.model}>
                                         {product.model || '—'}
                                     </td>
 
                                     {/* Category */}
-                                    <td className="px-4 py-2.5">
+                                    <td className="px-4 py-2.5 truncate max-w-[120px]">
                                         <CategoryBadge category={product.category} />
                                     </td>
 
                                     {/* Tags */}
-                                    <td className="px-4 py-2.5">
-                                        <div className="flex flex-wrap gap-1 max-w-[220px]">
+                                    <td className="px-4 py-2.5 max-w-[150px] truncate">
+                                        <div className="flex flex-wrap gap-1 w-full overflow-hidden">
                                             {(product.tags || []).slice(0, 3).map(t => (
                                                 <TagPill key={t} tag={t} />
                                             ))}
@@ -176,22 +176,22 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
                                     </td>
 
                                     {/* Highlights */}
-                                    <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 text-[12px] max-w-[250px] truncate" title={product.highlights}>
+                                    <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 text-[12px] max-w-[200px] truncate" title={product.highlights}>
                                         {product.highlights || '—'}
                                     </td>
 
                                     {/* Price */}
-                                    <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
+                                    <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap truncate max-w-[100px]" title={formatPrice(product.price)}>
                                         {formatPrice(product.price)}
                                     </td>
 
                                     {/* Year */}
-                                    <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 tabular-nums">
+                                    <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 tabular-nums truncate max-w-[60px]">
                                         {product.year || '—'}
                                     </td>
 
                                     {/* Status */}
-                                    <td className="px-4 py-2.5">
+                                    <td className="px-4 py-2.5 max-w-[100px] truncate">
                                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${product.isAvailable !== false
                                             ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
                                             : 'bg-slate-100 dark:bg-slate-700/30 text-slate-500 dark:text-slate-400'

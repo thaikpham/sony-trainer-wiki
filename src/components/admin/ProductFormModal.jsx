@@ -199,7 +199,7 @@ export default function ProductFormModal({ product = null, onSave, onDelete, onC
                     <div className="grid grid-cols-3 gap-4">
                         <div>
                             <label className={LabelClass}>Giá (VND)</label>
-                            <input value={form.price} onChange={e => set('price', e.target.value)}
+                            <input value={isNaN(form.price) ? '' : form.price} onChange={e => set('price', e.target.value)}
                                 className={InputClass} placeholder="18990000" type="number" min={0} />
                         </div>
                         <div>

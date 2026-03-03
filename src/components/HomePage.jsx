@@ -1,6 +1,5 @@
 import dynamic from 'next/dynamic';
-import { Sparkles, BookOpenText } from 'lucide-react';
-import Link from 'next/link';
+
 import HeroCyclingWord from '@/components/HeroCyclingWord';
 
 // Dynamic import for the heavier analytics component
@@ -60,17 +59,6 @@ export default function HomeHero() {
                 <div style={{ animation: 'slide-up 0.55s ease-out forwards', opacity: 0, animationDelay: '0.18s' }}
                     className="mt-8 mb-5 w-10 h-[3px] rounded-full bg-gradient-to-r from-blue-500 to-violet-500" />
 
-                {/* CTA Buttons */}
-                <div style={{ animation: 'slide-up 0.55s ease-out forwards', opacity: 0, animationDelay: '0.3s' }} className="mt-10 flex flex-wrap justify-center gap-4">
-                    <Link href="/ai" className="group flex items-center gap-2 px-8 py-4 rounded-2xl bg-[#1d1d1f] text-white dark:bg-white dark:text-[#1d1d1f] font-bold text-[15px] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-blue-500/10 dark:shadow-white/5">
-                        <Sparkles size={18} />
-                        Bắt đầu Tư vấn AI
-                    </Link>
-                    <Link href="/wiki" className="group flex items-center gap-2 px-8 py-4 rounded-2xl bg-white/50 dark:bg-white/5 text-foreground font-bold text-[15px] border border-black/5 dark:border-white/10 hover:bg-white/80 dark:hover:bg-white/10 hover:scale-105 active:scale-95 transition-all backdrop-blur-md">
-                        <BookOpenText size={18} />
-                        Thư viện Wiki
-                    </Link>
-                </div>
 
                 {/* Real-Time Analytics Dashboard */}
                 <div style={{ animation: 'slide-up 0.6s ease-out forwards', opacity: 0, animationDelay: '0.45s' }} className="w-full mt-6 mb-10">

@@ -187,14 +187,13 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                 </div>
             </div>
 
-            {/* Database View: Unified Modern Table */}
-            <div className="bg-white dark:bg-[#1d1d1f] ring-1 ring-black/[0.04] dark:ring-white/[0.05] rounded-[32px] shadow-[0_8px_30px_rgba(0,0,0,0.02)] overflow-hidden">
-                <div className="overflow-x-auto custom-scrollbar min-h-[500px]">
-                    <table className="w-full text-left border-collapse whitespace-nowrap">
+            <div className="bg-white dark:bg-[#1d1d1f] ring-1 ring-black/[0.04] dark:ring-white/[0.05] rounded-[32px] shadow-[0_8px_30px_rgba(0,0,0,0.02)] overflow-hidden w-full max-w-full">
+                <div className="overflow-x-auto custom-scrollbar min-h-[500px] w-full max-w-full">
+                    <table className="w-full text-left border-collapse whitespace-nowrap table-fixed">
                         <thead>
                             <tr className="bg-[#F5F5F7]/80 dark:bg-white/5 border-b border-black/[0.04] dark:border-white/[0.05] text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-wider">
                                 {isDev && (
-                                    <th className="px-6 py-5 w-10">
+                                    <th className="px-3 py-5 w-[40px]">
                                         <input
                                             type="checkbox"
                                             checked={selectedIds.length === filteredData.length && filteredData.length > 0}
@@ -206,17 +205,14 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                         />
                                     </th>
                                 )}
-                                <th className="px-6 py-5 font-bold w-1/4">
+                                <th className="px-4 py-5 font-bold w-[250px]">
                                     <div className="flex items-center gap-2"><Fingerprint size={14} className="text-[#86868b] dark:text-slate-500" /> SẢN PHẨM</div>
                                 </th>
-                                <th className="px-6 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest">Model</th>
-                                <th className="px-6 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest">Danh mục</th>
-                                <th className="px-6 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest">Tags</th>
-                                <th className="px-6 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest">Thông số & Tính năng</th>
-                                <th className="px-6 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest">Giá tham khảo</th>
-                                <th className="px-6 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest">Năm</th>
-                                <th className="px-6 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest">Trạng thái</th>
-                                <th className="px-6 py-5 font-bold text-center">HÀNH ĐỘNG</th>
+                                <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest w-[120px]">Model</th>
+                                <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest w-[200px]">Thông số & Tính năng</th>
+                                <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest w-[100px]">Giá tham khảo</th>
+                                <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest w-[80px]">Năm</th>
+                                <th className="px-4 py-5 font-bold text-center w-[150px]">HÀNH ĐỘNG</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-black/[0.02] dark:divide-white/[0.05] text-[14px]">
@@ -252,7 +248,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                             style={{ animationDelay: `${idx * 50}ms` }}
                                         >
                                             {isDev && (
-                                                <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                                                <td className="px-3 py-4 truncate" onClick={(e) => e.stopPropagation()}>
                                                     <input
                                                         type="checkbox"
                                                         checked={selectedIds.includes(item.id)}
@@ -264,53 +260,13 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                     />
                                                 </td>
                                             )}
-                                            <td className="px-6 py-4 font-semibold text-[#1d1d1f] dark:text-white flex items-center gap-3">
-                                                <div className="bg-[#F5F5F7] dark:bg-white/10 p-2 rounded-xl text-[#86868b] dark:text-slate-400 group-hover:bg-white dark:group-hover:bg-white/20 group-hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] dark:group-hover:shadow-[0_2px_8px_rgba(255,255,255,0.08)] group-hover:text-[#1d1d1f] dark:group-hover:text-white transition-all w-8 h-8 flex items-center justify-center flex-shrink-0">
-                                                    <Aperture size={16} />
+                                            <td className="px-4 py-4 font-semibold text-[#1d1d1f] dark:text-white flex items-center gap-2 truncate">
+                                                <div className="bg-[#F5F5F7] dark:bg-white/10 p-1.5 rounded-xl text-[#86868b] dark:text-slate-400 group-hover:bg-white dark:group-hover:bg-white/20 group-hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] dark:group-hover:shadow-[0_2px_8px_rgba(255,255,255,0.08)] group-hover:text-[#1d1d1f] dark:group-hover:text-white transition-all w-8 h-8 flex items-center justify-center flex-shrink-0">
+                                                    <Aperture size={14} />
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="truncate max-w-[200px]" title={item.name}>{item.name}</span>
+                                                <div className="flex items-center gap-1.5 overflow-hidden">
+                                                    <span className="truncate" title={item.name}>{item.name}</span>
                                                     {renderBadges(item.name)}
-                                                    <FeatureStar featureId={`prod_${item.name.replace(/\s+/g, '_')}`} />
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-[#424245] dark:text-slate-300 font-mono text-[12px] max-w-[150px] truncate" title={item.model}>
-                                                {item.model || '—'}
-                                            </td>
-                                            <td className="px-6 py-5 whitespace-nowrap">
-                                                <CategoryBadge category={item.category || item.type} />
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-wrap gap-1 max-w-[150px]">
-                                                    {(item.tags || []).slice(0, 2).map(tag => (
-                                                        <span key={tag} className="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded-full text-[10px] text-slate-500 font-bold whitespace-nowrap uppercase tracking-tighter">
-                                                            {tag}
-                                                        </span>
-                                                    ))}
-                                                    {(item.tags || []).length > 2 && (
-                                                        <span className="text-[10px] text-slate-400">+{item.tags.length - 2}</span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-[12px] max-w-[200px] truncate group-hover:text-[#1d1d1f] dark:group-hover:text-white transition-colors" title={item.highlights}>
-                                                {item.highlights || '—'}
-                                            </td>
-                                            <td className="px-6 py-4 font-black text-blue-600 dark:text-blue-400 tabular-nums">
-                                                {item.price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(item.price) : '—'}
-                                            </td>
-                                            <td className="px-6 py-4 text-slate-500 dark:text-slate-400 tabular-nums font-medium">
-                                                {item.year || '—'}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${item.status !== 'Ngừng bán'
-                                                    ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
-                                                    : 'bg-slate-100 dark:bg-slate-700/30 text-slate-500 dark:text-slate-400'
-                                                    }`}>
-                                                    {item.status !== 'Ngừng bán' ? '● Đang bán' : '○ Ngừng bán'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <div className="flex items-center gap-2 justify-end">
                                                     {item.quickSettingGuide && (
                                                         <button
                                                             onClick={(e) => {
@@ -319,11 +275,28 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                                 trackFeatureUsage(`guide_${item.name.replace(/\s+/g, '_')}`, item.name);
                                                             }}
                                                             title="Quick Setting Guide"
-                                                            className="flex items-center justify-center p-1.5 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-500 hover:text-white dark:bg-orange-900/40 dark:text-orange-400 dark:hover:bg-orange-600 dark:hover:text-white transition-all shadow-sm group/guide"
+                                                            className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-orange-100 text-orange-600 hover:bg-orange-500 hover:text-white dark:bg-orange-900/40 dark:text-orange-400 dark:hover:bg-orange-600 dark:hover:text-white transition-all text-[9px] font-bold uppercase tracking-wide border border-orange-200 dark:border-orange-500/30 flex-shrink-0"
                                                         >
-                                                            <Settings2 size={16} className="group-hover/guide:rotate-90 transition-transform duration-300" />
+                                                            <Settings2 size={10} /> Guide
                                                         </button>
                                                     )}
+                                                    <FeatureStar featureId={`prod_${item.name.replace(/\s+/g, '_')}`} />
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-4 text-[#424245] dark:text-slate-300 font-mono text-[12px] truncate" title={item.model}>
+                                                {item.model || '—'}
+                                            </td>
+                                            <td className="px-4 py-4 text-slate-500 dark:text-slate-400 text-[12px] truncate group-hover:text-[#1d1d1f] dark:group-hover:text-white transition-colors" title={item.highlights}>
+                                                {item.highlights || '—'}
+                                            </td>
+                                            <td className="px-4 py-4 font-black text-blue-600 dark:text-blue-400 tabular-nums truncate" title={item.price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(item.price) : '—'}>
+                                                {item.price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(item.price) : '—'}
+                                            </td>
+                                            <td className="px-4 py-4 text-slate-500 dark:text-slate-400 tabular-nums font-medium truncate">
+                                                {item.year || '—'}
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <div className="flex items-center gap-2 justify-end">
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();

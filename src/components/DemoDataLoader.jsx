@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react';
-import { db } from '../services/db'; // Make sure this path is correct based on where you place this file
+import { db } from '../lib/firebase'; // Make sure this path is correct based on where you place this file
 import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
 
 const A6400_GUIDE = `📸 PHẦN 1: CHẾ ĐỘ CHỤP (SHOOTING MODES)
