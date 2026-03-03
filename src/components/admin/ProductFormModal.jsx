@@ -10,6 +10,7 @@ const EMPTY_PRODUCT = {
     category: '',
     tags: [],
     highlights: '',
+    quickSettingGuide: '',
     imageUrl: '',
     specUrl: '',
     price: '',
@@ -46,6 +47,7 @@ export default function ProductFormModal({ product = null, onSave, onDelete, onC
 
     // Reset form when switching between different products to edit
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setForm(product?.id ? { ...EMPTY_PRODUCT, ...product } : { ...EMPTY_PRODUCT });
         setDeleteConfirm(false);
     }, [product]);
@@ -150,6 +152,18 @@ export default function ProductFormModal({ product = null, onSave, onDelete, onC
                             placeholder="- Cảm biến 33MP Full-frame&#10;- Lấy nét AI thời thực&#10;- Quay 4K 60p 10-bit 4:2:2"
                         />
                         <p className="mt-1.5 text-[11px] text-slate-400 italic">Mẹo: Nhập theo dạng danh sách để hiển thị đẹp nhất trên Wiki.</p>
+                    </div>
+
+                    {/* Quick Setting Guide */}
+                    <div>
+                        <label className={LabelClass}>Quick Setting Guide (Khuyến nghị cài đặt)</label>
+                        <textarea
+                            value={form.quickSettingGuide || ''}
+                            onChange={e => set('quickSettingGuide', e.target.value)}
+                            rows={6}
+                            className={`${InputClass} resize-none font-medium leading-relaxed`}
+                            placeholder="Nhập hướng dẫn cài đặt nhanh dành cho Trainers..."
+                        />
                     </div>
 
                     {/* Image URL */}

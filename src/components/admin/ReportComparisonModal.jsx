@@ -141,7 +141,7 @@ export default function ReportComparisonModal({ selectedReports, onClose }) {
                                     </div>
                                 ) : (
                                     <p className="text-[13px] text-slate-400 font-medium italic">
-                                        Nhấn "Phân tích ngay" để AI đưa ra nhận định về các phiên live này.
+                                        Nhấn &quot;Phân tích ngay&quot; để AI đưa ra nhận định về các phiên live này.
                                     </p>
                                 )}
                             </div>

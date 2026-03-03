@@ -5,6 +5,9 @@ import ProductTable from './ProductTable';
 import ProductFormModal from './ProductFormModal';
 import LiveReportsTable from './LiveReportsTable';
 import { getAllProductsAdmin, addProduct, updateProduct, deleteProduct } from '@/services/db';
+import { useUser } from '@clerk/nextjs';
+import { getRoleKeys } from '@/lib/roles';
+import DemoDataLoader from '../DemoDataLoader';
 
 export default function AdminPanel() {
     const [activeTab, setActiveTab] = useState('products'); // 'products' or 'reports'
@@ -13,6 +16,10 @@ export default function AdminPanel() {
     const [saving, setSaving] = useState(false);
     const [modalProduct, setModalProduct] = useState(null); // null = closed; {} = new; {...product} = edit
     const [toast, setToast] = useState(null); // { type: 'success'|'error', msg }
+
+    const { user } = useUser();
+    const userRoleKeys = getRoleKeys(user?.primaryEmailAddress?.emailAddress);
+    const isDev = userRoleKeys.includes('DEV');
 
     const showToast = (type, msg) => {
         setToast({ type, msg });
@@ -112,12 +119,15 @@ export default function AdminPanel() {
             {/* Content Area */}
             <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 {activeTab === 'products' ? (
-                    <ProductTable
-                        products={products}
-                        loading={loading}
-                        onAdd={() => setModalProduct({})}
-                        onEdit={(p) => setModalProduct(p)}
-                    />
+                    <div className="flex flex-col gap-4">
+                        {isDev && <DemoDataLoader />}
+                        <ProductTable
+                            products={products}
+                            loading={loading}
+                            onAdd={() => setModalProduct({})}
+                            onEdit={(p) => setModalProduct(p)}
+                        />
+                    </div>
                 ) : (
                     <LiveReportsTable />
                 )}

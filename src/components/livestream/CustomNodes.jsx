@@ -11,7 +11,6 @@ const EditableLabel = ({ id, label, subLabel, labelStyle, subLabelStyle }) => {
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setLocalLabel(label);
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLocalSubLabel(subLabel);
     }, [label, subLabel]);
 
