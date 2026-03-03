@@ -393,11 +393,75 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                 <X size={24} />
                             </button>
                         </div>
-                        <div className="px-8 py-8 max-h-[70vh] overflow-y-auto scrollbar-thin">
-                            <div className="prose dark:prose-invert max-w-none text-[15px] leading-relaxed">
-                                {quickSettingGuide.guide.split('\n').map((line, i) => (
-                                    <p key={i} className="mb-2">{line}</p>
-                                ))}
+                        <div className="px-6 py-6 max-h-[75vh] overflow-y-auto scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10 scrollbar-track-transparent">
+                            <div className="flex flex-col gap-6">
+                                {(() => {
+                                    const rawLines = quickSettingGuide.guide.split('\n').map(l => l.trim()).filter(Boolean);
+                                    const sections = [];
+                                    let currentSection = null;
+
+                                    rawLines.forEach(line => {
+                                        // Detect section headers (all caps or starts with "PHẦN")
+                                        if (line.match(/^([📸🖼️🎯💡🎥]\s*)?PHẦN\s+\d+|^[A-Z\s&()]+$/)) {
+                                            if (currentSection) sections.push(currentSection);
+                                            currentSection = { title: line, items: [], description: '' };
+                                        }
+                                        else if (currentSection) {
+                                            // Handle key-value pairs separated by colon
+                                            if (line.includes(':')) {
+                                                const [key, ...rest] = line.split(':');
+                                                currentSection.items.push({ key: key.trim(), value: rest.join(':').trim() });
+                                            } else {
+                                                // Handle descriptions or sub-headers that aren't key-value pairs
+                                                if (currentSection.items.length === 0) {
+                                                    // This is probably a description under the title before any settings
+                                                    currentSection.description += (currentSection.description ? ' ' : '') + line;
+                                                } else {
+                                                    // It's just an extra floating line, treat as full-width note
+                                                    currentSection.items.push({ key: '', value: line, isNote: true });
+                                                }
+                                            }
+                                        } else {
+                                            // Fallback if no sections were started yet
+                                            currentSection = { title: 'Thông tin chung', items: [], description: line };
+                                        }
+                                    });
+                                    if (currentSection) sections.push(currentSection);
+
+                                    return sections.map((section, idx) => (
+                                        <div key={idx} className="bg-white dark:bg-white/5 rounded-2xl border border-black/[0.04] dark:border-white/[0.04] shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden">
+                                            <div className="bg-slate-50 dark:bg-black/20 px-5 py-3.5 border-b border-black/[0.04] dark:border-white/[0.04]">
+                                                <h3 className="font-bold text-[14px] text-[#1d1d1f] dark:text-white flex items-center gap-2">
+                                                    {section.title}
+                                                </h3>
+                                                {section.description && (
+                                                    <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1">{section.description}</p>
+                                                )}
+                                            </div>
+                                            <div className="divide-y divide-black/[0.04] dark:divide-white/[0.04]">
+                                                {section.items.map((item, itemIdx) => (
+                                                    <div key={itemIdx} className={`px-5 py-3 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors ${item.isNote ? 'bg-orange-50/50 dark:bg-orange-900/10' : 'flex items-start gap-4'}`}>
+                                                        {item.isNote ? (
+                                                            <p className="text-[13px] text-slate-600 dark:text-slate-300 italic">{item.value}</p>
+                                                        ) : (
+                                                            <>
+                                                                <div className="w-1/3 flex-shrink-0 text-[13px] font-semibold text-slate-700 dark:text-slate-200">
+                                                                    {item.key}
+                                                                </div>
+                                                                <div className="w-2/3 text-[13px] text-slate-500 dark:text-slate-400">
+                                                                    {item.value}
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                                {section.items.length === 0 && !section.description && (
+                                                    <div className="px-5 py-4 text-[13px] text-slate-400 italic text-center">Không có dữ liệu chi tiết</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ));
+                                })()}
                             </div>
                         </div>
                         <div className="px-8 py-6 border-t border-black/[0.05] dark:border-white/[0.05] bg-black/[0.02] dark:bg-white/[0.02] flex items-center justify-end">
