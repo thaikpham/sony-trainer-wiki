@@ -14,13 +14,23 @@ const firebaseConfig = {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+// Guard: chỉ khởi tạo Firebase nếu có đủ config
+const isFirebaseConfigured = !!firebaseConfig.projectId && !!firebaseConfig.apiKey;
 
-// Initialize Analytics (Only in browser environment)
+if (!isFirebaseConfigured) {
+    console.warn(
+        "[Firebase] Thiếu cấu hình môi trường. Vui lòng điền đầy đủ giá trị vào file .env.local.\n" +
+        "Firebase sẽ không hoạt động cho đến khi cấu hình được cung cấp."
+    );
+}
+
+// Initialize Firebase
+const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null;
+export const db = isFirebaseConfigured ? getFirestore(app) : null;
+
+// Initialize Analytics (Only in browser environment & when Firebase is configured)
 export let analytics;
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && isFirebaseConfigured) {
     isSupported().then((supported) => {
         if (supported) {
             analytics = getAnalytics(app);

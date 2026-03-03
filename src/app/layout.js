@@ -27,7 +27,7 @@ export default function RootLayout({ children }) {
         <body
           className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
         >
-          <ThemeProvider attribute="class" defaultTheme="dark">
+          <ThemeProvider attribute="class" defaultTheme="light">
             {children}
           </ThemeProvider>
         </body>
