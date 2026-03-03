@@ -25,7 +25,7 @@ export async function POST(request) {
 
         // Step 1: Scout Agent (Gemini + Google Search)
         const geminiModel = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash",
+            model: "gemini-2.0-flash",
             generationConfig: {
                 temperature: 0.1, // Low temp for factual data
             }

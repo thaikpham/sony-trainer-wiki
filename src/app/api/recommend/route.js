@@ -72,7 +72,7 @@ export async function POST(request) {
         };
 
         const geminiModel = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash",
+            model: "gemini-2.0-flash",
             generationConfig: {
                 temperature: 0.2, // Low temp for more accurate data retrieval
                 responseMimeType: "application/json",
@@ -159,7 +159,8 @@ export async function POST(request) {
         {
           "good": { "camName": "", "camDesc": "", "camPrice": 0, "lensName": "", "lensType": "", "lensPrice": 0, "totalPrice": 0, "label": "TỐT / CƠ BẢN", "tierCode": "TR-01" },
           "better": { "camName": "", "camDesc": "", "camPrice": 0, "lensName": "", "lensType": "", "lensPrice": 0, "totalPrice": 0, "label": "TỐT HƠN / ĐỀ XUẤT", "tierCode": "TR-02" },
-          "best": { "camName": "", "camDesc": "", "camPrice": 0, "lensName": "", "lensType": "", "lensPrice": 0, "totalPrice": 0, "label": "TỐT NHẤT / CAO CẤP", "tierCode": "TR-03" }
+          "best": { "camName": "", "camDesc": "", "camPrice": 0, "lensName": "", "lensType": "", "lensPrice": 0, "totalPrice": 0, "label": "TỐT NHẤT / CAO CẤP", "tierCode": "TR-03" },
+          "courseRecommendation": { "name": "", "instructor": "" }
         }
 
         [RETRIEVED KNOWLEDGE BASE CONTEXT]
