@@ -53,11 +53,11 @@ export default function ReportComparisonModal({ selectedReports, onClose }) {
     const COLORS = ['#14b8a6', '#8b5cf6', '#f59e0b', '#3b82f6'];
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-black/[0.02] dark:bg-white/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200">
-            <div className="bg-background w-full max-w-6xl max-h-full rounded-[40px] shadow-2xl overflow-hidden ring-1 ring-white/10 flex flex-col animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-black/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200">
+            <div className="bg-background w-full max-w-6xl max-h-full rounded-[40px] shadow-2xl overflow-hidden ring-1 ring-black/5 flex flex-col animate-in zoom-in-95 duration-200">
 
                 {/* Header */}
-                <div className="p-8 border-b border-white/5 flex items-center justify-between shrink-0">
+                <div className="p-8 border-b border-black/5 flex items-center justify-between shrink-0">
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                             <span className="px-3 py-1 bg-teal-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full">
@@ -68,7 +68,7 @@ export default function ReportComparisonModal({ selectedReports, onClose }) {
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-3 rounded-full bg-white/5 text-slate-400 hover:text-foreground transition-all hover:scale-110 active:scale-95"
+                        className="p-3 rounded-full bg-black/5 text-slate-400 hover:text-foreground transition-all hover:scale-110 active:scale-95"
                     >
                         <X size={24} />
                     </button>
@@ -115,7 +115,7 @@ export default function ReportComparisonModal({ selectedReports, onClose }) {
                                             <Bot size={22} />
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-[12px] font-black text-teal-600 dark:text-teal-400 uppercase tracking-widest">AI Consultant</span>
+                                            <span className="text-[12px] font-black text-teal-600 uppercase tracking-widest">AI Consultant</span>
                                             <span className="text-[10px] font-bold text-slate-400 uppercase">Sony Alpha Analytics</span>
                                         </div>
                                     </div>
@@ -156,7 +156,7 @@ export default function ReportComparisonModal({ selectedReports, onClose }) {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-[11px]">
                                     <thead>
-                                        <tr className="border-b border-black/5 dark:border-white/5">
+                                        <tr className="border-b border-black/5">
                                             <th className="py-4 font-black uppercase tracking-widest text-slate-400">Metric</th>
                                             {selectedReports.map((r, idx) => (
                                                 <th key={idx} className="py-4 px-3 font-black uppercase tracking-widest text-foreground truncate max-w-[100px]" style={{ color: COLORS[idx] }}>
@@ -165,7 +165,7 @@ export default function ReportComparisonModal({ selectedReports, onClose }) {
                                             ))}
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-black/5 dark:divide-white/5">
+                                    <tbody className="divide-y divide-black/5">
                                         <CompareRow label="Lượt xem" icon={<Users size={12} />} values={selectedReports.map(r => Number(r.views || 0).toLocaleString())} />
                                         <CompareRow label="Đơn hàng" icon={<ShoppingBag size={12} />} values={selectedReports.map(r => Number(r.orders || 0).toLocaleString())} />
                                         <CompareRow label="Doanh thu" icon={<TrendingUp size={12} />} values={selectedReports.map(r => Number(r.revenue || 0).toLocaleString() + 'đ')} />
@@ -191,7 +191,7 @@ export default function ReportComparisonModal({ selectedReports, onClose }) {
 
 function CompareRow({ label, icon, values }) {
     return (
-        <tr className="group hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+        <tr className="group hover:bg-black/5 transition-colors">
             <td className="py-4 flex items-center gap-2 font-black text-slate-500 uppercase tracking-widest">
                 <span className="opacity-0 group-hover:opacity-100 text-teal-500 transition-opacity">{icon}</span>
                 {label}

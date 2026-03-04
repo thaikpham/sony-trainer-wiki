@@ -1,13 +1,16 @@
 'use client';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { BookOpen, Palette, Loader2 } from 'lucide-react';
+import { BookOpen, Palette, Loader2, BarChart3 } from 'lucide-react';
 import Layout from '@/components/Layout';
 import ProductDatabase from '@/components/ProductDatabase';
 import SpecCard from '@/components/SpecCard';
 import SpecModal from '@/components/SpecModal';
 import CompareBar from '@/components/CompareBar';
 import { trackFeatureUsage } from '@/services/analytics';
+import { useUser } from '@clerk/nextjs';
+import { hasAdminAccess } from '@/lib/roles';
+import LiveReportsTable from '@/components/admin/LiveReportsTable';
 
 // Lazy-load heavy components only when needed
 const ColorLab = dynamic(() => import('@/components/ColorLab'), {
@@ -32,7 +35,11 @@ export default function WikiPage() {
     const [selectedProductForSpecs, setSelectedProductForSpecs] = useState(null);
     const [compareList, setCompareList] = useState([]);
     const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+    const [productToEdit, setProductToEdit] = useState(null);
     const [pageToast, setPageToast] = useState(null);
+    const { user } = useUser();
+    const email = user?.primaryEmailAddress?.emailAddress;
+    const isAdmin = hasAdminAccess(email);
 
     const showPageToast = (type, msg) => {
         setPageToast({ type, msg });
@@ -70,12 +77,12 @@ export default function WikiPage() {
         <Layout>
             {/* Sub-Tab Switcher */}
             <div className="flex items-center gap-2 mb-6">
-                <div className="flex bg-black/[0.04] dark:bg-white/[0.04] p-1 rounded-2xl border border-black/[0.02] dark:border-white/[0.05]">
+                <div className="flex bg-black/[0.04] p-1 rounded-2xl border border-black/[0.02]">
                     <button
                         onClick={() => { setActiveSubTab('products'); trackFeatureUsage('wiki_products', 'Wiki: Kho Sản Phẩm'); }}
                         className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[13px] font-medium transition-all duration-300 ${activeSubTab === 'products'
-                            ? 'bg-white dark:bg-[#2d2d2f] shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-[#1d1d1f] dark:text-white'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                            ? 'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-[#1d1d1f]'
+                            : 'text-slate-500 hover:text-slate-800'
                             }`}
                     >
                         <BookOpen size={15} strokeWidth={activeSubTab === 'products' ? 2.5 : 2} />
@@ -84,16 +91,29 @@ export default function WikiPage() {
                     <button
                         onClick={() => { setActiveSubTab('colorlab'); trackFeatureUsage('wiki_colorlab', 'Wiki: ColorLab'); }}
                         className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[13px] font-medium transition-all duration-300 ${activeSubTab === 'colorlab'
-                            ? 'bg-white dark:bg-[#2d2d2f] shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-[#1d1d1f] dark:text-white'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                            ? 'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-[#1d1d1f]'
+                            : 'text-slate-500 hover:text-slate-800'
                             }`}
                     >
                         <Palette size={15} strokeWidth={activeSubTab === 'colorlab' ? 2.5 : 2} />
                         ColorLab
                     </button>
+
+                    {isAdmin && (
+                        <button
+                            onClick={() => { setActiveSubTab('reports'); trackFeatureUsage('wiki_reports', 'Wiki: Báo cáo Live'); }}
+                            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[13px] font-medium transition-all duration-300 ${activeSubTab === 'reports'
+                                ? 'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-teal-600'
+                                : 'text-slate-500 hover:text-slate-800'
+                                }`}
+                        >
+                            <BarChart3 size={15} strokeWidth={activeSubTab === 'reports' ? 2.5 : 2} />
+                            Báo cáo Live
+                        </button>
+                    )}
                 </div>
                 {activeSubTab === 'colorlab' && (
-                    <span className="text-[11px] font-bold text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 px-2.5 py-1 rounded-full ring-1 ring-violet-200 dark:ring-violet-800">
+                    <span className="text-[11px] font-bold text-violet-500 bg-violet-50 px-2.5 py-1 rounded-full ring-1 ring-violet-200">
                         Creative Studio
                     </span>
                 )}
@@ -106,11 +126,14 @@ export default function WikiPage() {
                         onOpenSpecs={(product) => setSelectedProductForSpecs(product)}
                         compareList={compareList}
                         onToggleCompare={toggleCompareItem}
+                        editProduct={productToEdit}
+                        onClearEdit={() => setProductToEdit(null)}
                     />
                     <SpecModal
                         isOpen={!!selectedProductForSpecs}
                         onClose={() => setSelectedProductForSpecs(null)}
                         product={selectedProductForSpecs}
+                        onEdit={(p) => setProductToEdit(p)}
                     />
                     <CompareBar
                         compareList={compareList}
@@ -124,15 +147,17 @@ export default function WikiPage() {
                         compareList={compareList}
                     />
                 </>
-            ) : (
+            ) : activeSubTab === 'colorlab' ? (
                 <ColorLab />
+            ) : (
+                <LiveReportsTable />
             )}
 
             {/* Toast notification */}
             {pageToast && (
                 <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[300] px-5 py-3 rounded-2xl text-[13px] font-semibold shadow-xl transition-all
           ${pageToast.type === 'success'
-                        ? 'bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f]'
+                        ? 'bg-[#1d1d1f] text-white'
                         : 'bg-rose-600 text-white'}`}>
                     {pageToast.msg}
                 </div>

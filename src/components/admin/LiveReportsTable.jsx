@@ -66,33 +66,33 @@ export default function LiveReportsTable() {
                     </div>
                     <div>
                         <h3 className="text-[18px] font-black text-foreground">Báo Cáo Hiệu Suất Live</h3>
-                        <p className="text-[12px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">Dữ liệu từ hệ thống Firestore</p>
+                        <p className="text-[12px] text-slate-500 font-bold uppercase tracking-widest">Dữ liệu từ hệ thống Firestore</p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-1 p-1 bg-[#F5F5F7] dark:bg-white/5 rounded-2xl ring-1 ring-black/5 dark:ring-white/10">
+                <div className="flex items-center gap-1 p-1 bg-[#F5F5F7] rounded-2xl ring-1 ring-black/5">
                     <button
                         onClick={() => setViewMode('table')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all ${viewMode === 'table' ? 'bg-white dark:bg-white/10 shadow-sm text-teal-600' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all ${viewMode === 'table' ? 'bg-white shadow-sm text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
                     >
                         <LayoutList size={16} /> Bảng
                     </button>
                     <button
                         onClick={() => setViewMode('chart')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all ${viewMode === 'chart' ? 'bg-white dark:bg-white/10 shadow-sm text-teal-600' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all ${viewMode === 'chart' ? 'bg-white shadow-sm text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
                     >
                         <TrendingUp size={16} /> Biểu Đồ
                     </button>
-                    <div className="w-px h-6 bg-black/5 dark:bg-white/10 mx-1" />
+                    <div className="w-px h-6 bg-black/5 mx-1" />
                     <div className="px-3 text-[10px] font-black text-teal-600/50 uppercase tracking-widest">
                         {reports.length} Reports
                     </div>
                 </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-background p-5 rounded-[24px] ring-1 ring-black/5 dark:ring-white/5 shadow-sm">
+                <div className="bg-background p-5 rounded-[24px] ring-1 ring-black/5 shadow-sm">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                        <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                             <Users size={18} />
                         </div>
                         <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Tổng Lượt Xem</span>
@@ -101,9 +101,9 @@ export default function LiveReportsTable() {
                         {reports.reduce((acc, r) => acc + Number(r.views || 0), 0).toLocaleString('vi-VN')}
                     </div>
                 </div>
-                <div className="bg-background p-5 rounded-[24px] ring-1 ring-black/5 dark:ring-white/5 shadow-sm">
+                <div className="bg-background p-5 rounded-[24px] ring-1 ring-black/5 shadow-sm">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
                             <ShoppingBag size={18} />
                         </div>
                         <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Trung Bình CVR</span>
@@ -114,9 +114,9 @@ export default function LiveReportsTable() {
                             : 0}%
                     </div>
                 </div>
-                <div className="bg-background p-5 rounded-[24px] ring-1 ring-black/5 dark:ring-white/5 shadow-sm">
+                <div className="bg-background p-5 rounded-[24px] ring-1 ring-black/5 shadow-sm">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                        <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
                             <BarChart3 size={18} />
                         </div>
                         <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Tổng Doanh Thu</span>
@@ -125,9 +125,9 @@ export default function LiveReportsTable() {
                         {reports.reduce((acc, r) => acc + Number(r.revenue || 0), 0).toLocaleString('vi-VN')}đ
                     </div>
                 </div>
-                <div className="bg-background p-5 rounded-[24px] ring-1 ring-black/5 dark:ring-white/5 shadow-sm">
+                <div className="bg-background p-5 rounded-[24px] ring-1 ring-black/5 shadow-sm">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center text-violet-600 dark:text-violet-400">
+                        <div className="w-8 h-8 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
                             <Clock size={18} />
                         </div>
                         <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Tổng Phiên Live</span>
@@ -140,11 +140,11 @@ export default function LiveReportsTable() {
 
             {viewMode === 'table' ? (
                 /* Table */
-                <div className="bg-background rounded-[32px] ring-1 ring-black/5 dark:ring-white/5 shadow-lg overflow-hidden">
+                <div className="bg-background rounded-[32px] ring-1 ring-black/5 shadow-lg overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-[12px]">
                             <thead>
-                                <tr className="border-b border-black/5 dark:border-white/5 bg-[#F5F5F7]/30 dark:bg-white/2">
+                                <tr className="border-b border-black/5 bg-[#F5F5F7]/30">
                                     <th className="px-4 py-5 w-10">
                                         <input
                                             type="checkbox"
@@ -153,7 +153,7 @@ export default function LiveReportsTable() {
                                                 if (e.target.checked) setSelectedIds(reports.map(r => r.id));
                                                 else setSelectedIds([]);
                                             }}
-                                            className="w-4 h-4 rounded border-black/10 dark:border-white/10 text-teal-600 focus:ring-teal-500 bg-background transition-all"
+                                            className="w-4 h-4 rounded border-black/10 text-teal-600 focus:ring-teal-500 bg-background transition-all"
                                         />
                                     </th>
                                     <th className="px-4 py-5 font-black uppercase tracking-widest text-[#86868b] text-[10px]">Creator / Topic</th>
@@ -165,7 +165,7 @@ export default function LiveReportsTable() {
                                     {isDev && <th className="px-4 py-5 w-10"></th>}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-black/5 dark:divide-white/5">
+                            <tbody className="divide-y divide-black/5">
                                 {reports.map((report) => (
                                     <tr
                                         key={report.id}
@@ -187,19 +187,19 @@ export default function LiveReportsTable() {
                                                         setSelectedIds(selectedIds.filter(id => id !== report.id));
                                                     }
                                                 }}
-                                                className="w-4 h-4 rounded border-black/10 dark:border-white/10 text-teal-600 focus:ring-teal-500 bg-background transition-all"
+                                                className="w-4 h-4 rounded border-black/10 text-teal-600 focus:ring-teal-500 bg-background transition-all"
                                             />
                                         </td>
                                         <td className="px-4 py-5">
                                             <div className="flex flex-col gap-1">
                                                 <span className="font-extrabold text-foreground leading-tight">{report.userName || 'Alpha User'}</span>
-                                                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 line-clamp-1 italic">{report.topic || '(Không có chủ đề)'}</span>
+                                                <span className="text-[11px] font-bold text-slate-500 line-clamp-1 italic">{report.topic || '(Không có chủ đề)'}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-5">
                                             <div className="flex flex-col gap-0.5">
                                                 <div className="flex items-center gap-2">
-                                                    <span className={`text-[10px] font-black uppercase tracking-widest ${report.platform === 'TikTok' ? 'text-black dark:text-white' :
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest ${report.platform === 'TikTok' ? 'text-black' :
                                                         report.platform === 'Shopee' ? 'text-orange-600' : 'text-blue-600'
                                                         }`}>{report.platform || (report.platforms && report.platforms[0]?.name) || 'Live'}</span>
                                                     <span className="text-[10px] font-bold text-slate-400 whitespace-nowrap">
@@ -275,12 +275,12 @@ export default function LiveReportsTable() {
             {/* Comparison Bar */}
             {selectedIds.length >= 2 && (
                 <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[150] animate-slide-up">
-                    <div className="bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f] px-8 py-4 rounded-[32px] shadow-2xl flex items-center gap-8 ring-1 ring-white/10 dark:ring-black/10 backdrop-blur-xl">
+                    <div className="bg-[#1d1d1f] text-white px-8 py-4 rounded-[32px] shadow-2xl flex items-center gap-8 ring-1 ring-white/10 backdrop-blur-xl">
                         <div className="flex flex-col">
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">So sánh báo cáo</span>
                             <span className="text-[15px] font-black">{selectedIds.length}/4 đã chọn</span>
                         </div>
-                        <div className="h-8 w-px bg-white/10 dark:bg-black/10" />
+                        <div className="h-8 w-px bg-white/10" />
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setSelectedIds([])}

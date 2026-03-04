@@ -32,7 +32,7 @@ const initialNodes = [
         data: {
             label: 'Sony A7C II',
             subLabel: 'Cam Chính (Khách/Chủ)',
-            colorClass: 'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 ring-orange-500/20'
+            colorClass: 'bg-orange-50 text-orange-600 ring-orange-500/20'
         },
     },
     {
@@ -42,7 +42,7 @@ const initialNodes = [
         data: {
             label: 'Sony ZV-E10',
             subLabel: 'Cam Cận (Sản Phẩm)',
-            colorClass: 'bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 ring-teal-500/20'
+            colorClass: 'bg-teal-50 text-teal-600 ring-teal-500/20'
         },
     },
     // --- Capture Hub Node (Middle) ---
@@ -60,7 +60,7 @@ const initialNodes = [
         data: {
             label: 'Laptop Host OBS',
             subLabel: 'Cấu hình khủng (i7/M1+)',
-            colorClass: 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 ring-indigo-500/20',
+            colorClass: 'bg-indigo-50 text-indigo-600 ring-indigo-500/20',
             isMain: true
         },
     },
@@ -71,7 +71,7 @@ const initialNodes = [
         data: {
             label: 'Laptop Phụ',
             subLabel: 'Đọc cmt, quản lý đơn',
-            colorClass: 'bg-slate-100 dark:bg-white/5 text-[#1d1d1f] dark:text-white',
+            colorClass: 'bg-slate-100 text-[#1d1d1f]',
             isMain: false
         },
     }
@@ -183,8 +183,8 @@ function DiagramCanvas() {
 
     // --- Toolbar Handlers ---
     const addNode = (type, label, iconType) => {
-        let colorClass = 'bg-slate-100 dark:bg-white/5 text-[#1d1d1f] dark:text-white';
-        if (type === 'camera') colorClass = 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20';
+        let colorClass = 'bg-slate-100 text-[#1d1d1f]';
+        if (type === 'camera') colorClass = 'bg-blue-50 text-blue-600 ring-blue-500/20';
 
         const newNode = {
             id: getId(),
@@ -199,7 +199,7 @@ function DiagramCanvas() {
     };
 
     return (
-        <div className="w-full h-full min-h-[550px] lg:min-h-[700px] rounded-[32px] overflow-hidden bg-transparent border-t lg:border-t-0 border-black/5 dark:border-white/5 relative z-0" ref={reactFlowWrapper}>
+        <div className="w-full h-full min-h-[550px] lg:min-h-[700px] rounded-[32px] overflow-hidden bg-transparent border-t lg:border-t-0 border-black/5 relative z-0" ref={reactFlowWrapper}>
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -220,37 +220,37 @@ function DiagramCanvas() {
             >
                 <Background color="#86868b" gap={20} size={1} opacity={0.25} />
                 <Controls
-                    className="bg-white dark:bg-[#2c2c2e] shadow-lg border-none rounded-xl overflow-hidden fill-[#1d1d1f] dark:fill-white"
+                    className="bg-white shadow-lg border-none rounded-xl overflow-hidden fill-[#1d1d1f]"
                     showInteractive={false}
                 />
 
                 {/* --- Floating Toolbar --- */}
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-white/80 dark:bg-[#1d1d1f]/80 backdrop-blur-xl p-1.5 rounded-2xl shadow-lg ring-1 ring-black/5 dark:ring-white/10 flex items-center gap-1.5">
-                    <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-3 mr-1 hidden sm:block">Toolbar</span>
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-white/80 backdrop-blur-xl p-1.5 rounded-2xl shadow-lg ring-1 ring-black/5 flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-3 mr-1 hidden sm:block">Toolbar</span>
 
-                    <button onClick={() => addNode('camera', 'Camera Mới')} className="group flex items-center gap-2 px-3 py-2 bg-[#F5F5F7] hover:bg-orange-50 dark:bg-[#2c2c2e] dark:hover:bg-orange-500/10 rounded-xl transition-colors ring-1 ring-transparent hover:ring-orange-500/20 focus:outline-none">
-                        <Camera size={16} className="text-slate-500 dark:text-slate-400 group-hover:text-orange-500 transition-colors" />
-                        <span className="text-[12px] font-bold text-[#1d1d1f] dark:text-white hidden md:block">Camera</span>
+                    <button onClick={() => addNode('camera', 'Camera Mới')} className="group flex items-center gap-2 px-3 py-2 bg-[#F5F5F7] hover:bg-orange-50 rounded-xl transition-colors ring-1 ring-transparent hover:ring-orange-500/20 focus:outline-none">
+                        <Camera size={16} className="text-slate-500 group-hover:text-orange-500 transition-colors" />
+                        <span className="text-[12px] font-bold text-[#1d1d1f] hidden md:block">Camera</span>
                     </button>
 
-                    <button onClick={() => addNode('mic', 'Micro Mới')} className="group flex items-center gap-2 px-3 py-2 bg-[#F5F5F7] hover:bg-red-50 dark:bg-[#2c2c2e] dark:hover:bg-red-500/10 rounded-xl transition-colors ring-1 ring-transparent hover:ring-red-500/20 focus:outline-none">
-                        <RadioReceiver size={16} className="text-slate-500 dark:text-slate-400 group-hover:text-red-500 transition-colors" />
-                        <span className="text-[12px] font-bold text-[#1d1d1f] dark:text-white hidden md:block">Audio</span>
+                    <button onClick={() => addNode('mic', 'Micro Mới')} className="group flex items-center gap-2 px-3 py-2 bg-[#F5F5F7] hover:bg-red-50 rounded-xl transition-colors ring-1 ring-transparent hover:ring-red-500/20 focus:outline-none">
+                        <RadioReceiver size={16} className="text-slate-500 group-hover:text-red-500 transition-colors" />
+                        <span className="text-[12px] font-bold text-[#1d1d1f] hidden md:block">Audio</span>
                     </button>
 
-                    <button onClick={() => addNode('capture', 'Capture Card')} className="group flex items-center gap-2 px-3 py-2 bg-[#F5F5F7] hover:bg-indigo-50 dark:bg-[#2c2c2e] dark:hover:bg-indigo-500/10 rounded-xl transition-colors ring-1 ring-transparent hover:ring-indigo-500/20 focus:outline-none">
-                        <Video size={16} className="text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
-                        <span className="text-[12px] font-bold text-[#1d1d1f] dark:text-white hidden md:block">Capture</span>
+                    <button onClick={() => addNode('capture', 'Capture Card')} className="group flex items-center gap-2 px-3 py-2 bg-[#F5F5F7] hover:bg-indigo-50 rounded-xl transition-colors ring-1 ring-transparent hover:ring-indigo-500/20 focus:outline-none">
+                        <Video size={16} className="text-slate-500 group-hover:text-indigo-500 transition-colors" />
+                        <span className="text-[12px] font-bold text-[#1d1d1f] hidden md:block">Capture</span>
                     </button>
 
-                    <button onClick={() => addNode('laptop', 'Laptop Mới')} className="group flex items-center gap-2 px-3 py-2 bg-[#F5F5F7] hover:bg-teal-50 dark:bg-[#2c2c2e] dark:hover:bg-teal-500/10 rounded-xl transition-colors ring-1 ring-transparent hover:ring-teal-500/20 focus:outline-none">
-                        <Laptop size={16} className="text-slate-500 dark:text-slate-400 group-hover:text-teal-500 transition-colors" />
-                        <span className="text-[12px] font-bold text-[#1d1d1f] dark:text-white hidden md:block">PC</span>
+                    <button onClick={() => addNode('laptop', 'Laptop Mới')} className="group flex items-center gap-2 px-3 py-2 bg-[#F5F5F7] hover:bg-teal-50 rounded-xl transition-colors ring-1 ring-transparent hover:ring-teal-500/20 focus:outline-none">
+                        <Laptop size={16} className="text-slate-500 group-hover:text-teal-500 transition-colors" />
+                        <span className="text-[12px] font-bold text-[#1d1d1f] hidden md:block">PC</span>
                     </button>
                 </div>
 
                 <div className="absolute bottom-4 left-4 z-10 hidden sm:block">
-                    <div className="bg-white/80 dark:bg-[#1d1d1f]/80 backdrop-blur-xl px-3 py-1.5 rounded-lg shadow-sm ring-1 ring-black/5 dark:ring-white/10 flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                    <div className="bg-white/80 backdrop-blur-xl px-3 py-1.5 rounded-lg shadow-sm ring-1 ring-black/5 flex items-center gap-2 text-[10px] text-slate-500 font-medium">
                         <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
                         <span>Drag nodes or connections. Select & press Delete to remove wires.</span>
                     </div>

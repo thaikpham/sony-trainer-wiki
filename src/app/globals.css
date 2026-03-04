@@ -1,7 +1,4 @@
 @import "tailwindcss";
-@custom-variant dark (&:is(.dark *));
-
-
 
 :root {
   --background: #F5F5F7;
@@ -9,14 +6,6 @@
   --accent: #007aff;
   --accent-foreground: #ffffff;
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-
-.dark {
-  --background: #000000;
-  --foreground: #F5F5F7;
-  --accent: #0a84ff;
-  --accent-foreground: #ffffff;
-  color-scheme: dark;
 }
 
 @theme inline {
@@ -159,10 +148,6 @@ body {
   backdrop-filter: blur(24px);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.02);
   @apply bg-white/40 ring-1 ring-black/[0.03];
-}
-
-.dark .glass-panel {
-  @apply bg-black/20 ring-1 ring-white/10;
 }
 
 /* Modal specific hidden/hover scrollbar */

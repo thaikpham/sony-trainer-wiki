@@ -4,7 +4,7 @@ import HeroCyclingWord from '@/components/HeroCyclingWord';
 
 // Dynamic import for the heavier analytics component
 const AnalyticsDashboard = dynamic(() => import('./AnalyticsDashboard'), {
-    loading: () => <div className="w-full h-48 animate-pulse bg-black/5 dark:bg-white/5 rounded-[48px] mt-6 mb-10" />,
+    loading: () => <div className="w-full h-48 animate-pulse bg-black/5 rounded-[48px] mt-6 mb-10" />,
     ssr: false // Analytics often rely on client-side data/window
 });
 

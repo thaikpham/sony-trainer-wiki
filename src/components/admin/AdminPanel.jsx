@@ -117,37 +117,37 @@ export default function AdminPanel() {
         <div className="flex flex-col h-full p-6 gap-6">
 
             {/* Header & Tabs */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 flex-shrink-0 bg-white dark:bg-[#1d1d1f] p-4 rounded-[32px] ring-1 ring-black/5 dark:ring-white/5 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 flex-shrink-0 bg-white p-4 rounded-[32px] ring-1 ring-black/5 shadow-sm">
                 <div className="flex items-center gap-4">
                     <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br flex items-center justify-center shadow-lg transition-all ${activeTab === 'products' ? 'from-violet-500 to-indigo-600' : 'from-teal-500 to-emerald-600'}`}>
                         {activeTab === 'products' ? <Package size={22} className="text-white" /> : <BarChart3 size={22} className="text-white" />}
                     </div>
                     <div>
-                        <h1 className="text-[18px] font-black text-[#1d1d1f] dark:text-white tracking-tight">
+                        <h1 className="text-[18px] font-black text-[#1d1d1f] tracking-tight">
                             {activeTab === 'products' ? 'Quản lý Sản Phẩm' : 'Báo cáo Livestream'}
                         </h1>
-                        <p className="text-[12px] text-slate-500 dark:text-slate-400 font-medium">
+                        <p className="text-[12px] text-slate-500 font-medium">
                             Sony Training Wiki • Admin Panel
                         </p>
                     </div>
                 </div>
 
-                <div className="flex items-center bg-[#F5F5F7] dark:bg-white/5 p-1 rounded-2xl ring-1 ring-black/5 dark:ring-white/5 ml-auto sm:ml-0">
+                <div className="flex items-center bg-[#F5F5F7] p-1 rounded-2xl ring-1 ring-black/5 ml-auto sm:ml-0">
                     <button
                         onClick={() => setActiveTab('products')}
-                        className={`px-4 py-2 rounded-xl text-[12px] font-black transition-all ${activeTab === 'products' ? 'bg-white dark:bg-white/10 text-[#1d1d1f] dark:text-white shadow-sm ring-1 ring-black/5' : 'text-[#86868b] hover:text-[#1d1d1f] dark:hover:text-white'}`}
+                        className={`px-4 py-2 rounded-xl text-[12px] font-black transition-all ${activeTab === 'products' ? 'bg-white text-[#1d1d1f] shadow-sm ring-1 ring-black/5' : 'text-[#86868b] hover:text-[#1d1d1f]'}`}
                     >
                         Sản phẩm
                     </button>
                     <button
                         onClick={() => setActiveTab('reports')}
-                        className={`px-4 py-2 rounded-xl text-[12px] font-black transition-all ${activeTab === 'reports' ? 'bg-white dark:bg-white/10 text-[#1d1d1f] dark:text-white shadow-sm ring-1 ring-black/5' : 'text-[#86868b] hover:text-[#1d1d1f] dark:hover:text-white'}`}
+                        className={`px-4 py-2 rounded-xl text-[12px] font-black transition-all ${activeTab === 'reports' ? 'bg-white text-[#1d1d1f] shadow-sm ring-1 ring-black/5' : 'text-[#86868b] hover:text-[#1d1d1f]'}`}
                     >
                         Báo cáo Live
                     </button>
-                    <div className="w-px h-4 bg-black/10 dark:bg-white/10 mx-1"></div>
+                    <div className="w-px h-4 bg-black/10 mx-1"></div>
                     <button onClick={loadData} disabled={loading}
-                        className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-40">
+                        className="p-2 rounded-xl text-slate-500 hover:bg-black/5 transition-colors disabled:opacity-40">
                         <RefreshCw size={14} className={loading && activeTab === 'products' ? 'animate-spin' : ''} />
                     </button>
                     {isDev && activeTab === 'products' && (
@@ -155,7 +155,7 @@ export default function AdminPanel() {
                             onClick={handleBulkImport}
                             disabled={importing}
                             title="Import từ file dữ liệu chuẩn"
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-900/50 transition-colors disabled:opacity-40">
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-violet-100 text-violet-700 hover:bg-violet-200 transition-colors disabled:opacity-40">
                             <UploadCloud size={13} className={importing ? 'animate-bounce' : ''} />
                             {importing ? 'Importing...' : 'Import'}
                         </button>
@@ -196,7 +196,7 @@ export default function AdminPanel() {
             {toast && (
                 <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[300] px-5 py-3 rounded-2xl text-[13px] font-semibold shadow-xl transition-all
                     ${toast.type === 'success'
-                        ? 'bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f]'
+                        ? 'bg-[#1d1d1f] text-white'
                         : 'bg-rose-600 text-white'}`}>
                     {toast.msg}
                 </div>

@@ -31,8 +31,8 @@ const INDUSTRY_TEMPLATES = {
     'Điện Thoại': '- Màn hình: \n- Chipset: \n- RAM/ROM: \n- Camera sau: \n- Pin/Sạc: \n- Chống nước: '
 };
 
-const InputClass = 'w-full px-3 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-background text-[13px] text-foreground placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors';
-const LabelClass = 'block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5';
+const InputClass = 'w-full px-3 py-2.5 rounded-xl border border-black/10 bg-background text-[13px] text-foreground placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors';
+const LabelClass = 'block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5';
 
 export default function ProductFormModal({ product = null, onSave, onDelete, onClose, saving = false, globalTags = [], onUpdateTags }) {
     const isEdit = Boolean(product?.id);
@@ -61,15 +61,15 @@ export default function ProductFormModal({ product = null, onSave, onDelete, onC
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6" onClick={(e) => e.stopPropagation()}>
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/[0.02] dark:bg-white/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200" />
+            <div className="absolute inset-0 bg-black/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200" />
 
             {/* Modal */}
             <div
-                className="relative z-10 w-full max-w-6xl max-h-full overflow-y-auto custom-scrollbar rounded-[32px] bg-background border border-black/[0.07] dark:border-white/[0.08] shadow-2xl animate-in zoom-in-95 duration-200"
+                className="relative z-10 w-full max-w-6xl max-h-full overflow-y-auto custom-scrollbar rounded-[32px] bg-background border border-black/[0.07] shadow-2xl animate-in zoom-in-95 duration-200"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-background/90 backdrop-blur-xl border-b border-black/[0.06] dark:border-white/[0.06]">
+                <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-background/90 backdrop-blur-xl border-b border-black/[0.06]">
                     <div>
                         <h2 className="text-[16px] font-bold text-foreground">
                             {isEdit ? '✏️ Sửa sản phẩm' : '➕ Thêm sản phẩm mới'}
@@ -77,7 +77,7 @@ export default function ProductFormModal({ product = null, onSave, onDelete, onC
                         {isEdit && <p className="text-[11px] text-slate-400 mt-0.5">ID: {product.id}</p>}
                     </div>
                     <button type="button" onClick={onClose}
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-black/5 hover:bg-black/10 transition-colors">
                         <X size={15} />
                     </button>
                 </div>
@@ -163,7 +163,7 @@ export default function ProductFormModal({ product = null, onSave, onDelete, onC
                                                     set('highlights', INDUSTRY_TEMPLATES[type]);
                                                 }
                                             }}
-                                            className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-bold uppercase tracking-wider hover:bg-blue-500/20 transition-colors"
+                                            className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 text-[9px] font-bold uppercase tracking-wider hover:bg-blue-500/20 transition-colors"
                                         >
                                             Mẫu {type === 'Body' ? 'Máy ảnh' : type === 'Tai nghe' ? 'Audio' : type}
                                         </button>
@@ -203,7 +203,7 @@ export default function ProductFormModal({ product = null, onSave, onDelete, onC
                                     className={`${InputClass} flex-1`} placeholder="https://..." type="url" />
                                 {form.imageUrl && (
                                     <img src={form.imageUrl} alt="preview"
-                                        className="w-10 h-10 rounded-lg object-cover border border-black/10 dark:border-white/10 flex-shrink-0"
+                                        className="w-10 h-10 rounded-lg object-cover border border-black/10 flex-shrink-0"
                                         onError={e => { e.target.style.display = 'none'; }} />
                                 )}
                             </div>
@@ -243,8 +243,8 @@ export default function ProductFormModal({ product = null, onSave, onDelete, onC
                                 type="button"
                                 onClick={() => set('isAvailable', !form.isAvailable)}
                                 className={`w-full h-10 rounded-xl text-[12px] font-bold border transition-all ${form.isAvailable
-                                    ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700'
-                                    : 'bg-slate-100 dark:bg-slate-700/30 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-600'
+                                    ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                                    : 'bg-slate-100 text-slate-500 border-slate-200'
                                     }`}
                             >
                                 {form.isAvailable ? '✅ Đang bán' : '⏸ Ngừng bán'}
@@ -253,7 +253,7 @@ export default function ProductFormModal({ product = null, onSave, onDelete, onC
                     </div>
 
                     {/* Footer actions */}
-                    <div className="flex items-center justify-between pt-2 border-t border-black/[0.06] dark:border-white/[0.06]">
+                    <div className="flex items-center justify-between pt-2 border-t border-black/[0.06]">
                         {/* Delete */}
                         {isEdit && (
                             deleteConfirm
@@ -262,10 +262,10 @@ export default function ProductFormModal({ product = null, onSave, onDelete, onC
                                     <button type="button" onClick={() => onDelete(product.id)}
                                         className="px-3 py-1.5 rounded-lg bg-rose-600 text-white text-[12px] font-bold hover:bg-rose-700 transition-colors">Xóa</button>
                                     <button type="button" onClick={() => setDeleteConfirm(false)}
-                                        className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 text-[12px] font-bold hover:opacity-80 transition-opacity">Hủy</button>
+                                        className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-[12px] font-bold hover:opacity-80 transition-opacity">Hủy</button>
                                 </div>
                                 : <button type="button" onClick={() => setDeleteConfirm(true)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-[12px] font-semibold transition-colors">
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-rose-500 hover:bg-rose-50 text-[12px] font-semibold transition-colors">
                                     <Trash2 size={13} /> Xóa sản phẩm
                                 </button>
                         )}
@@ -274,7 +274,7 @@ export default function ProductFormModal({ product = null, onSave, onDelete, onC
                         {/* Save */}
                         <div className="flex items-center gap-2">
                             <button type="button" onClick={onClose}
-                                className="px-4 py-2 rounded-xl text-[13px] font-semibold text-slate-500 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                                className="px-4 py-2 rounded-xl text-[13px] font-semibold text-slate-500 hover:bg-black/5 transition-colors">
                                 Hủy
                             </button>
                             <button type="submit" disabled={saving}

@@ -30,7 +30,7 @@ export default function DevPage() {
 
     if (!isLoaded) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-[#F5F5F7] dark:bg-black">
+            <div className="flex items-center justify-center min-h-screen bg-[#F5F5F7]">
                 <Loader2 size={32} className="animate-spin text-slate-400" />
             </div>
         );

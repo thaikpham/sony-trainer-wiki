@@ -1,13 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Loader2, Info, ExternalLink, Download, Aperture, Camera, Activity, Fingerprint, Settings2 } from 'lucide-react';
+import { X, Loader2, Info, ExternalLink, Download, Aperture, Camera, Activity, Fingerprint, Settings2, Edit3 } from 'lucide-react';
 import { CategoryBadge } from './admin/SingleSelectField';
 import { toPng } from 'html-to-image';
+import { useUser } from '@clerk/nextjs';
+import { canManageData } from '@/lib/roles';
 
-export default function SpecModal({ isOpen, onClose, product, productName: propName, productType: propType }) {
+export default function SpecModal({ isOpen, onClose, product, productName: propName, productType: propType, onEdit }) {
     const [specs, setSpecs] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const modalRef = useRef(null);
+
+    const { user } = useUser();
+    const isDataMaster = canManageData(user?.primaryEmailAddress?.emailAddress);
 
     const productName = product?.name || propName;
     const productType = (product?.type?.toLowerCase()?.includes('body') || product?.type?.toLowerCase()?.includes('camera')) ? 'camera' : (product?.type?.toLowerCase() === 'lens' ? 'lens' : (propType || 'camera'));
@@ -15,10 +20,6 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
     const handleExport = async () => {
         const modalElement = modalRef.current;
         if (!modalElement) return;
-        const isDark = document.documentElement.classList.contains('dark');
-
-        // Force light mode
-        if (isDark) document.documentElement.classList.remove('dark');
 
         // Wait for styles
         await new Promise(resolve => setTimeout(resolve, 150));
@@ -50,8 +51,6 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
         } catch (err) {
             console.error('Export failed:', err);
             alert('Có lỗi xảy ra khi xuất thông số.');
-        } finally {
-            if (isDark) document.documentElement.classList.add('dark');
         }
     };
 
@@ -90,33 +89,47 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-            <div className="absolute inset-0 bg-black/[0.02] dark:bg-white/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200" onClick={onClose} />
+            <div className="absolute inset-0 bg-black/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200" onClick={onClose} />
 
             <div
                 ref={modalRef}
                 className="relative w-full max-w-2xl max-h-full flex flex-col bg-background rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200"
             >
                 {/* Header */}
-                <div className="px-8 py-6 border-b border-black/[0.05] dark:border-white/[0.05] flex items-center justify-between">
+                <div className="px-8 py-6 border-b border-black/[0.05] flex items-center justify-between">
                     <div>
                         <div className="flex items-center gap-2 mb-1">
                             <h2 className="text-2xl font-black text-foreground tracking-tight">
                                 {product?.name || productName}
                             </h2>
                             {isFromFirebase && (
-                                <span className="px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-full">
+                                <span className="px-2 py-0.5 bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-full">
                                     Hệ thống
                                 </span>
                             )}
                         </div>
                         <div className="flex items-center gap-3">
-                            <p className="text-slate-500 dark:text-slate-400 font-medium">{product?.model || productType}</p>
+                            <p className="text-slate-500 font-medium">{product?.model || productType}</p>
                             {product?.category && <CategoryBadge category={product.category} />}
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors text-slate-400">
-                        <X size={24} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        {isDataMaster && isFromFirebase && (
+                            <button
+                                onClick={() => {
+                                    if (onEdit) onEdit(product);
+                                    onClose();
+                                }}
+                                className="p-2 hover:bg-blue-50 rounded-full transition-colors text-blue-500"
+                                title="Sửa thông tin"
+                            >
+                                <Edit3 size={20} />
+                            </button>
+                        )}
+                        <button onClick={onClose} className="p-2 hover:bg-black/5 rounded-full transition-colors text-slate-400">
+                            <X size={24} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Content */}
@@ -127,38 +140,36 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
                             <p className="font-medium">Đang truy xuất thông số kĩ thuật...</p>
                         </div>
                     ) : error ? (
-                        <div className="p-6 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 rounded-2xl border border-red-100 dark:border-red-900/20 text-center">
+                        <div className="p-6 bg-red-50 text-red-600 rounded-2xl border border-red-100 text-center">
                             <p className="font-bold mb-1">Không thể tải thông số</p>
                             <p className="text-sm opacity-80">{error}</p>
                         </div>
                     ) : (
                         <div className="space-y-8">
-                            {/* Key Identity Card */}
                             <div className="grid grid-cols-2 gap-4">
                                 {product?.price && (
-                                    <div className="bg-black/5 dark:bg-white/5 rounded-2xl p-5 border border-black/[0.03] dark:border-white/[0.05]">
-                                        <p className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                    <div className="bg-black/5 rounded-2xl p-5 border border-black/[0.03]">
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Giá tham khảo
                                         </p>
-                                        <p className="text-xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
+                                        <p className="text-xl font-black text-blue-600 tracking-tight">
                                             {new Intl.NumberFormat('en-US').format(product.price)} ₫
                                         </p>
                                     </div>
                                 )}
                                 {product?.year && (
-                                    <div className="bg-black/5 dark:bg-white/5 rounded-2xl p-5 border border-black/[0.03] dark:border-white/[0.05]">
+                                    <div className="bg-black/5 rounded-2xl p-5 border border-black/[0.03]">
                                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Năm ra mắt</p>
                                         <p className="text-xl font-black text-foreground tracking-tight">{product.year}</p>
                                     </div>
                                 )}
                             </div>
 
-                            {/* Technical Specs Section */}
                             <div>
                                 <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                    <div className="h-px bg-black/10 dark:bg-white/10 flex-1" />
+                                    <div className="h-px bg-black/10 flex-1" />
                                     THÔNG SỐ KỸ THUẬT
-                                    <div className="h-px bg-black/10 dark:bg-white/10 flex-1" />
+                                    <div className="h-px bg-black/10 flex-1" />
                                 </h3>
 
                                 <div className="space-y-6">
@@ -172,32 +183,18 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
 
                                         const getCategory = (text) => {
                                             const tLow = text.toLowerCase();
-                                            // Image Quality hints
                                             if (tLow.includes('cảm biến') || tLow.includes('megapixel') || tLow.includes('bionz') || tLow.includes('iso') || tLow.includes('raw') || tLow.includes('chụp')) return "Chất lượng hình ảnh";
-                                            // Focus hints
                                             if (tLow.includes('lấy nét') || tLow.includes('af') || tLow.includes('nhận diện') || tLow.includes('tracking') || tLow.includes('điểm af')) return "Lấy Nét";
-                                            // Video hints
                                             if (tLow.includes('quay') || tLow.includes('video') || tLow.includes('4k') || tLow.includes('10-bit') || tLow.includes('s-log') || tLow.includes('âm thanh') || tLow.includes('mic')) return "Quay Phim & Âm thanh";
-                                            // Default: Operation
                                             return "Vận hành máy ảnh";
                                         };
 
                                         const rawData = product?.highlights || specs || "Dữ liệu đang được cập nhật...";
                                         const rawLines = rawData.split('\n').map(l => l.trim()).filter(Boolean);
 
-                                        let currentGroupName = "Vận hành máy ảnh";
-
                                         rawLines.forEach(line => {
                                             const isBullet = line.startsWith('-');
                                             const content = isBullet ? line.substring(1).trim() : line;
-
-                                            // If it looks like a manual category header from the old format
-                                            if (!content.includes(':') && content.length < 40 && !isBullet) {
-                                                currentGroupName = getCategory(content);
-                                                return; // Skip rendering the raw header, we use our own UI
-                                            }
-
-                                            // Determine group by content if we don't have a strong current context
                                             const matchedGroup = getCategory(content);
 
                                             if (content.includes(':')) {
@@ -209,10 +206,7 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
                                         });
 
                                         const activeGroups = Object.values(GROUPS).filter(g => g.items.length > 0);
-
-                                        if (activeGroups.length === 0) {
-                                            return <p className="text-slate-500 italic">Chưa có thông số chi tiết.</p>;
-                                        }
+                                        if (activeGroups.length === 0) return <p className="text-slate-500 italic text-center">Chưa có thông số chi tiết.</p>;
 
                                         return activeGroups.map((group, gIdx) => {
                                             let GroupIcon = Aperture;
@@ -222,28 +216,27 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
                                             else if (group.title === "Quay Phim & Âm thanh") GroupIcon = Settings2;
 
                                             return (
-                                                <div key={gIdx} className="bg-white dark:bg-[#1d1d1f] rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-sm">
-                                                    <div className="flex items-center gap-3 mb-5 border-b border-black/[0.05] dark:border-white/[0.05] pb-4">
-                                                        <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-white/5 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-inner">
+                                                <div key={gIdx} className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+                                                    <div className="flex items-center gap-3 mb-5 border-b border-black/[0.05] pb-4">
+                                                        <div className="w-10 h-10 rounded-2xl bg-slate-50 text-blue-600 flex items-center justify-center shrink-0 shadow-inner">
                                                             <GroupIcon size={20} strokeWidth={2.5} />
                                                         </div>
-                                                        <h4 className="text-[14px] font-black text-slate-800 dark:text-white uppercase tracking-widest">
+                                                        <h4 className="text-[14px] font-black text-slate-800 uppercase tracking-widest">
                                                             {group.title}
                                                         </h4>
                                                     </div>
-
                                                     <div className="space-y-1">
                                                         {group.items.map((item, idx) => (
-                                                            <div key={idx} className={`flex flex-col sm:flex-row sm:items-baseline ${item.value ? 'justify-between py-2 border-b border-black/[0.03] dark:border-white/[0.03] last:border-0' : 'py-1.5'}`}>
+                                                            <div key={idx} className={`flex flex-col sm:flex-row sm:items-baseline ${item.value ? 'justify-between py-2 border-b border-black/[0.03] last:border-0' : 'py-1.5'}`}>
                                                                 {item.value ? (
                                                                     <>
-                                                                        <span className="text-[13px] font-bold text-slate-500 dark:text-slate-400 w-full sm:w-1/2 pr-4 mb-1 sm:mb-0">{item.label}</span>
-                                                                        <span className="text-[14px] font-bold text-slate-900 dark:text-white sm:text-right w-full sm:w-1/2">{item.value}</span>
+                                                                        <span className="text-[13px] font-bold text-slate-500 w-full sm:w-1/2 pr-4 mb-1 sm:mb-0">{item.label}</span>
+                                                                        <span className="text-[14px] font-bold text-slate-900 sm:text-right w-full sm:w-1/2">{item.value}</span>
                                                                     </>
                                                                 ) : (
                                                                     <div className="flex items-start gap-3 group/item">
-                                                                        <div className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0 group-hover/item:bg-blue-500 transition-colors" />
-                                                                        <p className="text-[14px] font-medium text-slate-700 dark:text-slate-300 leading-relaxed">{item.label}</p>
+                                                                        <div className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0 group-hover/item:bg-blue-500 transition-colors" />
+                                                                        <p className="text-[14px] font-medium text-slate-700 leading-relaxed">{item.label}</p>
                                                                     </div>
                                                                 )}
                                                             </div>
@@ -253,14 +246,43 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
                                             );
                                         });
                                     })()}
+
+                                    {product?.quickSettingGuide && (
+                                        <div className="mt-8">
+                                            <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                                <div className="h-px bg-black/10 flex-1" />
+                                                HƯỚNG DẪN CÀI ĐẶT NHANH
+                                                <div className="h-px bg-black/10 flex-1" />
+                                            </h3>
+                                            <div className="bg-amber-50 rounded-3xl p-6 sm:p-8 border border-amber-100 shadow-sm">
+                                                <div className="flex items-center gap-3 mb-5 border-b border-amber-200/50 pb-4">
+                                                    <div className="w-10 h-10 rounded-2xl bg-white text-amber-600 flex items-center justify-center shrink-0 shadow-sm">
+                                                        <Settings2 size={20} strokeWidth={2.5} />
+                                                    </div>
+                                                    <h4 className="text-[14px] font-black text-amber-900 uppercase tracking-widest">
+                                                        Quick Settings
+                                                    </h4>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    {product.quickSettingGuide.split('\n').filter(Boolean).map((line, idx) => (
+                                                        <div key={idx} className="flex gap-3">
+                                                            <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                                                            <p className="text-[14px] font-medium text-amber-900 leading-relaxed">
+                                                                {line.startsWith('-') ? line.substring(1).trim() : line}
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* Footer */}
-                <div className="px-8 py-6 border-t border-black/[0.05] dark:border-white/[0.05] bg-black/[0.02] dark:bg-white/[0.02] flex items-center justify-between gap-4">
+                <div className="px-8 py-6 border-t border-black/[0.05] bg-black/[0.02] flex items-center justify-between gap-4">
                     <p className="text-[12px] text-slate-400 font-medium italic hidden sm:block">© Sony Training Wiki 2026</p>
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                         <button

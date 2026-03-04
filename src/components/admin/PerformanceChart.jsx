@@ -39,7 +39,7 @@ export default function PerformanceChart({ data }) {
         const isDark = document.documentElement.classList.contains('dark');
 
         // Force light mode
-        if (isDark) document.documentElement.classList.remove('dark');
+        // if (isDark) document.documentElement.classList.remove('dark');
 
         // Wait for styles
         await new Promise(resolve => setTimeout(resolve, 150));
@@ -69,7 +69,7 @@ export default function PerformanceChart({ data }) {
             console.error('Export failed:', err);
             alert('Có lỗi xảy ra khi xuất biểu đồ.');
         } finally {
-            if (isDark) document.documentElement.classList.add('dark');
+            // if (isDark) document.documentElement.classList.add('dark');
             setIsExporting(false);
         }
     };
@@ -77,7 +77,7 @@ export default function PerformanceChart({ data }) {
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-background p-4 rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10 border-0">
+                <div className="bg-background p-4 rounded-2xl shadow-2xl ring-1 ring-black/5 border-0">
                     <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-black/5 pb-2">{label}</p>
                     {payload.map((entry, index) => (
                         <div key={index} className="flex items-center justify-between gap-6 mb-1 last:mb-0">
@@ -98,24 +98,24 @@ export default function PerformanceChart({ data }) {
         <div className="flex flex-col gap-6 animate-fade-in">
             {/* Toolbar */}
             <div className="flex flex-wrap items-center justify-between gap-4 glass-panel p-4 rounded-[24px]">
-                <div className="flex items-center gap-2 bg-[#F5F5F7] dark:bg-white/5 p-1 rounded-xl">
+                <div className="flex items-center gap-2 bg-[#F5F5F7] p-1 rounded-xl">
                     <button
                         onClick={() => setChartType('bar')}
-                        className={`p-2 rounded-lg transition-all ${chartType === 'bar' ? 'bg-white dark:bg-white/10 shadow-sm text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
+                        className={`p-2 rounded-lg transition-all ${chartType === 'bar' ? 'bg-white shadow-sm text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
                         title="Dạng Cột"
                     >
                         <ChartBar size={18} />
                     </button>
                     <button
                         onClick={() => setChartType('line')}
-                        className={`p-2 rounded-lg transition-all ${chartType === 'line' ? 'bg-white dark:bg-white/10 shadow-sm text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
+                        className={`p-2 rounded-lg transition-all ${chartType === 'line' ? 'bg-white shadow-sm text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
                         title="Dạng Đường"
                     >
                         <ChartLine size={18} />
                     </button>
                     <button
                         onClick={() => setChartType('area')}
-                        className={`p-2 rounded-lg transition-all ${chartType === 'area' ? 'bg-white dark:bg-white/10 shadow-sm text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
+                        className={`p-2 rounded-lg transition-all ${chartType === 'area' ? 'bg-white shadow-sm text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
                         title="Dạng Vùng"
                     >
                         <ChartArea size={18} />
@@ -123,13 +123,13 @@ export default function PerformanceChart({ data }) {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-lg text-[11px] font-black uppercase tracking-wider">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-teal-500/10 text-teal-600 rounded-lg text-[11px] font-black uppercase tracking-wider">
                         <Maximize2 size={12} /> Aspect 16:9
                     </div>
                     <button
                         onClick={exportToImage}
                         disabled={isExporting}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f] rounded-xl text-[12px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg disabled:opacity-50"
+                        className="flex items-center gap-2 px-6 py-2.5 bg-[#1d1d1f] text-white rounded-xl text-[12px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg disabled:opacity-50"
                     >
                         {isExporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                         Xuất Image (16:9)
@@ -140,7 +140,7 @@ export default function PerformanceChart({ data }) {
             {/* Chart Container - Forced 16:9 Aspect Ratio */}
             <div
                 ref={chartRef}
-                className="w-full aspect-video bg-background rounded-[32px] ring-1 ring-black/5 dark:ring-white/5 shadow-2xl overflow-hidden p-10 flex flex-col min-h-[400px]"
+                className="w-full aspect-video bg-background rounded-[32px] ring-1 ring-black/5 shadow-2xl overflow-hidden p-10 flex flex-col min-h-[400px]"
             >
                 <div className="flex flex-col mb-8">
                     <div className="flex items-center gap-3 mb-1">
@@ -221,7 +221,7 @@ export default function PerformanceChart({ data }) {
                         </div>
                     </div>
                     <div className="flex items-center gap-2 scale-75 opacity-20 filter grayscale">
-                        <div className="text-[20px] font-black text-black dark:text-white italic tracking-tighter">SONY</div>
+                        <div className="text-[20px] font-black text-black italic tracking-tighter">SONY</div>
                         <div className="w-1.5 h-1.5 rounded-full bg-teal-500"></div>
                         <div className="text-[12px] font-black tracking-[0.3em] uppercase opacity-60">Sony Training Wiki</div>
                     </div>

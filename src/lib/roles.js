@@ -392,3 +392,22 @@ export function isAuthorizedForLiveReport(email) {
     const keys = getRoleKeys(email);
     return keys.some(k => k !== 'USER');
 }
+
+/**
+ * Returns true if the user has Data Master permissions (Edit/Add products).
+ * Includes: DEV, TRAINER, PM, DATA
+ */
+export function canManageData(email) {
+    if (!email) return false;
+    const keys = getRoleKeys(email);
+    return keys.some(k => ['DEV', 'TRAINER', 'PRODUCT_MARKETING', 'DATA'].includes(k));
+}
+
+/**
+ * Returns true if the user has Developer permissions (Delete products).
+ * Includes: DEV
+ */
+export function canDeleteData(email) {
+    if (!email) return false;
+    return getRoleKeys(email).includes('DEV');
+}

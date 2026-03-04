@@ -13,7 +13,7 @@ export default function SpecCard({ data, isRecommended, onViewSpecs, onToggleCom
         <div className={`group/card flex-none w-[88vw] md:w-auto md:flex-1 p-8 md:p-10 flex flex-col relative snap-center transition-all duration-700 rounded-[40px] overflow-hidden
       ${isRecommended
                 ? 'bg-slate-950 text-white shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/10 scale-[1.03] md:scale-[1.05] z-10'
-                : 'bg-background text-foreground shadow-[0_8px_30px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.05] dark:ring-white/[0.05] hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1'
+                : 'bg-background text-foreground shadow-[0_8px_30px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.05] hover:shadow-[0_20px_40_rgba(0,0,0,0.06)] hover:-translate-y-1'
             }`}>
 
             {/* Premium Animated Gradient Border for Recommended */}
@@ -28,7 +28,7 @@ export default function SpecCard({ data, isRecommended, onViewSpecs, onToggleCom
             <div className="flex justify-between items-start mb-12">
                 <div className={`flex flex-col gap-1`}>
                     <div className={`text-[10px] font-black tracking-[0.25em] uppercase px-3 py-1 rounded-lg w-fit
-            ${isRecommended ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400'}
+            ${isRecommended ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-100 text-slate-500'}
           `}>
                         {data.tierCode || 'ALPHA'}
                     </div>
@@ -62,30 +62,30 @@ export default function SpecCard({ data, isRecommended, onViewSpecs, onToggleCom
                             </button>
                         </div>
                         <div className="flex flex-col items-end gap-2">
-                            <span className={`text-[14px] font-black tabular-nums ${isRecommended ? 'text-blue-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                            <span className={`text-[14px] font-black tabular-nums ${isRecommended ? 'text-blue-400' : 'text-blue-600'}`}>
                                 {formatVND(data.camPrice)}
                             </span>
                             <button
                                 onClick={() => onToggleCompare && onToggleCompare(data.camName, 'camera')}
                                 className={`p-2 rounded-xl transition-all ${isCameraSelected
                                     ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
-                                    : 'bg-slate-100 dark:bg-white/5 text-slate-400 hover:bg-blue-500 hover:text-white'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-blue-500 hover:text-white'
                                     }`}
                             >
                                 {isCameraSelected ? <Check size={14} strokeWidth={3} /> : <Plus size={14} strokeWidth={3} />}
                             </button>
                         </div>
                     </div>
-                    <p className={`text-[14px] leading-relaxed line-clamp-2 font-medium ${isRecommended ? 'text-slate-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                    <p className={`text-[14px] leading-relaxed line-clamp-2 font-medium ${isRecommended ? 'text-slate-400' : 'text-slate-500'}`}>
                         {data.camDesc}
                     </p>
                 </div>
 
                 {/* Refined Divider */}
                 <div className="flex items-center gap-4">
-                    <div className={`h-px flex-grow ${isRecommended ? 'bg-white/10' : 'bg-slate-100 dark:bg-white/5'}`} />
-                    <div className={`w-1.5 h-1.5 rounded-full ${isRecommended ? 'bg-blue-500/40' : 'bg-slate-200 dark:bg-white/10'}`} />
-                    <div className={`h-px flex-grow ${isRecommended ? 'bg-white/10' : 'bg-slate-100 dark:bg-white/5'}`} />
+                    <div className={`h-px flex-grow ${isRecommended ? 'bg-white/10' : 'bg-slate-100'}`} />
+                    <div className={`w-1.5 h-1.5 rounded-full ${isRecommended ? 'bg-blue-500/40' : 'bg-slate-200'}`} />
+                    <div className={`h-px flex-grow ${isRecommended ? 'bg-white/10' : 'bg-slate-100'}`} />
                 </div>
 
                 {/* Lens Section */}
@@ -104,28 +104,28 @@ export default function SpecCard({ data, isRecommended, onViewSpecs, onToggleCom
                             </button>
                         </div>
                         <div className="flex flex-col items-end gap-2">
-                            <span className={`text-[14px] font-black tabular-nums ${isRecommended ? 'text-blue-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                            <span className={`text-[14px] font-black tabular-nums ${isRecommended ? 'text-blue-400' : 'text-blue-600'}`}>
                                 {formatVND(data.lensPrice)}
                             </span>
                             <button
                                 onClick={() => onToggleCompare && onToggleCompare(data.lensName, 'lens')}
                                 className={`p-2 rounded-xl transition-all ${isLensSelected
                                     ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
-                                    : 'bg-slate-100 dark:bg-white/5 text-slate-400 hover:bg-blue-500 hover:text-white'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-blue-500 hover:text-white'
                                     }`}
                             >
                                 {isLensSelected ? <Check size={14} strokeWidth={3} /> : <Plus size={14} strokeWidth={3} />}
                             </button>
                         </div>
                     </div>
-                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold ${isRecommended ? 'bg-white/5 text-blue-300' : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400'}`}>
+                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold ${isRecommended ? 'bg-white/5 text-blue-300' : 'bg-slate-100 text-slate-600'}`}>
                         {data.lensType}
                     </div>
                 </div>
             </div>
 
             {/* Impactful Total Footer */}
-            <div className={`mt-12 pt-10 border-t ${isRecommended ? 'border-white/10' : 'border-slate-100 dark:border-white/5'}`}>
+            <div className={`mt-12 pt-10 border-t ${isRecommended ? 'border-white/10' : 'border-slate-100'}`}>
                 <div className="flex justify-between items-end">
                     <div className="flex flex-col gap-1">
                         <div className={`text-[11px] font-black uppercase tracking-[0.2em] ${isRecommended ? 'text-slate-500' : 'text-slate-400'}`}>

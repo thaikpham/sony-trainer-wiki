@@ -38,7 +38,7 @@ function MultiRoleSelect({ value = [], onChange, options, placeholder }) {
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder={placeholder}
-                className="w-full px-3 py-2 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/5 text-[12px] focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                className="w-full px-3 py-2 rounded-xl border border-black/10 bg-white text-[12px] focus:outline-none focus:ring-2 focus:ring-violet-500/40"
             />
             {query && filtered.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
@@ -67,15 +67,15 @@ function UserRow({ user, onEdit }) {
     return (
         <button
             onClick={() => onEdit(user)}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors text-left group"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-black/[0.03] transition-colors text-left group"
         >
             <img
                 src={user.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff`}
                 alt={name}
-                className="w-9 h-9 rounded-full flex-shrink-0 ring-2 ring-black/5 dark:ring-white/5"
+                className="w-9 h-9 rounded-full flex-shrink-0 ring-2 ring-black/5"
             />
             <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-bold text-[#1d1d1f] dark:text-white truncate">{name}</p>
+                <p className="text-[13px] font-bold text-[#1d1d1f] truncate">{name}</p>
                 <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
             </div>
             <div className="flex flex-wrap gap-1 justify-end max-w-[240px]">
@@ -86,7 +86,7 @@ function UserRow({ user, onEdit }) {
             {user.hasOverride && (
                 <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-violet-500" title="Has override" />
             )}
-            <ChevronRight size={14} className="text-slate-300 dark:text-slate-600 flex-shrink-0 group-hover:text-slate-500 transition-colors" />
+            <ChevronRight size={14} className="text-slate-300 flex-shrink-0 group-hover:text-slate-500 transition-colors" />
         </button>
     );
 }
@@ -103,26 +103,26 @@ function EditModal({ user, onSave, onDelete, onClose, saving }) {
 
     return (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/20 dark:bg-black/50 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative z-10 w-full max-w-lg bg-white dark:bg-[#1c1c1e] rounded-[28px] shadow-2xl border border-black/[0.07] dark:border-white/[0.07] overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative z-10 w-full max-w-lg bg-white rounded-[28px] shadow-2xl border border-black/[0.07] overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="flex items-center gap-3 px-6 py-4 border-b border-black/[0.06] dark:border-white/[0.06]">
+                <div className="flex items-center gap-3 px-6 py-4 border-b border-black/[0.06]">
                     <img
                         src={user.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff`}
                         alt={name}
                         className="w-10 h-10 rounded-full ring-2 ring-black/5"
                     />
                     <div className="flex-1 min-w-0">
-                        <p className="text-[14px] font-bold text-[#1d1d1f] dark:text-white truncate">{name}</p>
+                        <p className="text-[14px] font-bold text-[#1d1d1f] truncate">{name}</p>
                         <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
                     </div>
-                    <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 text-slate-500">
+                    <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-full bg-black/5 hover:bg-black/10 text-slate-500">
                         <X size={14} />
                     </button>
                 </div>
 
                 {/* Source */}
-                <div className="px-6 py-3 bg-slate-50 dark:bg-white/[0.02] border-b border-black/[0.04] dark:border-white/[0.04]">
+                <div className="px-6 py-3 bg-slate-50 border-b border-black/[0.04]">
                     <div className="flex items-center gap-2 text-[11px] text-slate-400">
                         <Shield size={11} />
                         <span>Static roles (ROLE_EMAIL_MAP):</span>
@@ -138,7 +138,7 @@ function EditModal({ user, onSave, onDelete, onClose, saving }) {
                 <div className="px-6 py-5 space-y-5">
                     {/* Core Roles */}
                     <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Core Roles (Override)</label>
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Core Roles (Override)</label>
                         <MultiRoleSelect
                             value={roles}
                             onChange={setRoles}
@@ -149,7 +149,7 @@ function EditModal({ user, onSave, onDelete, onClose, saving }) {
 
                     {/* Achievement Badges */}
                     <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Achievement Badges</label>
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Achievement Badges</label>
                         <MultiRoleSelect
                             value={badges}
                             onChange={setBadges}
@@ -160,13 +160,13 @@ function EditModal({ user, onSave, onDelete, onClose, saving }) {
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between px-6 py-4 border-t border-black/[0.06] dark:border-white/[0.06]">
+                <div className="flex items-center justify-between px-6 py-4 border-t border-black/[0.06]">
                     {user.hasOverride ? (
                         deleteConfirm ? (
                             <div className="flex items-center gap-2">
                                 <span className="text-[11px] text-rose-600 font-semibold">Xóa override?</span>
                                 <button onClick={() => onDelete(user.email)} className="px-3 py-1.5 rounded-lg bg-rose-600 text-white text-[11px] font-bold">Xóa</button>
-                                <button onClick={() => setDeleteConfirm(false)} className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 text-[11px] font-bold">Hủy</button>
+                                <button onClick={() => setDeleteConfirm(false)} className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-[11px] font-bold">Hủy</button>
                             </div>
                         ) : (
                             <button onClick={() => setDeleteConfirm(true)} className="flex items-center gap-1.5 text-[12px] font-semibold text-rose-500 hover:text-rose-700 transition-colors">
@@ -175,7 +175,7 @@ function EditModal({ user, onSave, onDelete, onClose, saving }) {
                         )
                     ) : <div />}
                     <div className="flex gap-2">
-                        <button onClick={onClose} className="px-4 py-2 rounded-xl text-[13px] font-semibold text-slate-500 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">Hủy</button>
+                        <button onClick={onClose} className="px-4 py-2 rounded-xl text-[13px] font-semibold text-slate-500 hover:bg-black/5 transition-colors">Hủy</button>
                         <button
                             onClick={() => onSave(user.email, roles, badges)}
                             disabled={saving}
@@ -205,32 +205,32 @@ function AddOverrideForm({ onSave, saving }) {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06]">
+        <form onSubmit={handleSubmit} className="space-y-4 p-4 rounded-2xl bg-slate-50 border border-black/[0.06]">
             <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Email người dùng</label>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email người dùng</label>
                 <input
                     type="email"
                     required
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="user@example.com"
-                    className="w-full px-3 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/5 text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                    className="w-full px-3 py-2.5 rounded-xl border border-black/10 bg-white text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/40"
                 />
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Core Roles</label>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Core Roles</label>
                     <MultiRoleSelect value={roles} onChange={setRoles} options={CORE_ROLES} placeholder="Tìm role..." />
                 </div>
                 <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Achievement Badges</label>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Achievement Badges</label>
                     <MultiRoleSelect value={badges} onChange={setBadges} options={ACHIEVEMENT_BADGES} placeholder="Tìm badge..." />
                 </div>
             </div>
             <button
                 type="submit"
                 disabled={saving || !email}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f] text-[13px] font-bold hover:opacity-90 disabled:opacity-40 transition-all"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1d1d1f] text-white text-[13px] font-bold hover:opacity-90 disabled:opacity-40 transition-all"
             >
                 {saving ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
                 Thêm Override
@@ -247,10 +247,10 @@ function RolesCatalog() {
                 <h3 className="text-[12px] font-bold uppercase tracking-wider text-slate-500 mb-3">Core Roles</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {CORE_ROLES.map(r => (
-                        <div key={r.key} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05]">
+                        <div key={r.key} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-black/[0.05]">
                             <span className={`w-10 h-10 rounded-xl bg-gradient-to-br ${r.gradient} flex items-center justify-center text-xl shadow-sm flex-shrink-0`}>{r.emoji}</span>
                             <div className="min-w-0">
-                                <p className="text-[13px] font-bold text-[#1d1d1f] dark:text-white">{r.label} <span className="text-[10px] font-normal text-slate-400">({r.key})</span></p>
+                                <p className="text-[13px] font-bold text-[#1d1d1f]">{r.label} <span className="text-[10px] font-normal text-slate-400">({r.key})</span></p>
                                 <p className="text-[11px] text-slate-400 truncate">{r.description}</p>
                                 <div className="flex gap-2 mt-1">
                                     <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${r.rarity === 'Legendary' ? 'bg-amber-100 text-amber-700' : r.rarity === 'Epic' ? 'bg-purple-100 text-purple-700' : r.rarity === 'Rare' ? 'bg-blue-100 text-blue-700' : r.rarity === 'Uncommon' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{r.rarity}</span>
@@ -265,10 +265,10 @@ function RolesCatalog() {
                 <h3 className="text-[12px] font-bold uppercase tracking-wider text-slate-500 mb-3">Achievement Badges ({ACHIEVEMENT_BADGES.length})</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {ACHIEVEMENT_BADGES.map(r => (
-                        <div key={r.key} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/[0.04]">
+                        <div key={r.key} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-black/[0.04]">
                             <span className={`w-8 h-8 rounded-lg bg-gradient-to-br ${r.gradient} flex items-center justify-center text-base flex-shrink-0`}>{r.emoji}</span>
                             <div className="min-w-0">
-                                <p className="text-[12px] font-bold text-[#1d1d1f] dark:text-white truncate">{r.label}</p>
+                                <p className="text-[12px] font-bold text-[#1d1d1f] truncate">{r.label}</p>
                                 <p className="text-[10px] text-slate-400">{r.short} · {r.rarity}</p>
                             </div>
                         </div>
@@ -356,28 +356,27 @@ export default function DevUserPanel() {
 
     const overrideCount = users.filter(u => u.hasOverride).length;
 
-    const TAB_STYLE = (active) =>
-        `px-4 py-2 rounded-xl text-[12px] font-black transition-all ${active
-            ? 'bg-white dark:bg-white/10 text-[#1d1d1f] dark:text-white shadow-sm ring-1 ring-black/5'
-            : 'text-[#86868b] hover:text-[#1d1d1f] dark:hover:text-white'}`;
+    `px-4 py-2 rounded-xl text-[12px] font-black transition-all ${active
+        ? 'bg-white text-[#1d1d1f] shadow-sm ring-1 ring-black/5'
+        : 'text-[#86868b] hover:text-[#1d1d1f]'}`;
 
     return (
         <div className="flex flex-col h-full p-6 gap-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 flex-shrink-0 bg-white dark:bg-[#1d1d1f] p-4 rounded-[32px] ring-1 ring-black/5 dark:ring-white/5 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 flex-shrink-0 bg-white p-4 rounded-[32px] ring-1 ring-black/5 shadow-sm">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
                         <Shield size={22} className="text-white" />
                     </div>
                     <div>
-                        <h1 className="text-[18px] font-black text-[#1d1d1f] dark:text-white tracking-tight">Dev User Panel</h1>
-                        <p className="text-[12px] text-slate-500 dark:text-slate-400 font-medium">
+                        <h1 className="text-[18px] font-black text-[#1d1d1f] tracking-tight">Dev User Panel</h1>
+                        <p className="text-[12px] text-slate-500 font-medium">
                             {users.length} users · {overrideCount} overrides active ⚡
                         </p>
                     </div>
                 </div>
 
-                <div className="flex items-center bg-[#F5F5F7] dark:bg-white/5 p-1 rounded-2xl ring-1 ring-black/5 dark:ring-white/5 ml-auto sm:ml-0">
+                <div className="flex items-center bg-[#F5F5F7] p-1 rounded-2xl ring-1 ring-black/5 ml-auto sm:ml-0">
                     <button onClick={() => setActiveTab('users')} className={TAB_STYLE(activeTab === 'users')}>
                         <Users size={12} className="inline mr-1" />Users
                     </button>
@@ -387,8 +386,8 @@ export default function DevUserPanel() {
                     <button onClick={() => setActiveTab('add')} className={TAB_STYLE(activeTab === 'add')}>
                         <Plus size={12} className="inline mr-1" />Add Override
                     </button>
-                    <div className="w-px h-4 bg-black/10 dark:bg-white/10 mx-1" />
-                    <button onClick={loadUsers} disabled={loading} className="p-2 rounded-xl text-slate-500 hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-40">
+                    <div className="w-px h-4 bg-black/10 mx-1" />
+                    <button onClick={loadUsers} disabled={loading} className="p-2 rounded-xl text-slate-500 hover:bg-black/5 transition-colors disabled:opacity-40">
                         <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                     </button>
                 </div>
@@ -405,7 +404,7 @@ export default function DevUserPanel() {
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                                 placeholder="Tìm theo tên hoặc email..."
-                                className="w-full pl-9 pr-4 py-2.5 rounded-2xl border border-black/8 dark:border-white/8 bg-white dark:bg-white/[0.04] text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/40 shadow-sm"
+                                className="w-full pl-9 pr-4 py-2.5 rounded-2xl border border-black/8 bg-white text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/40 shadow-sm"
                             />
                         </div>
 
@@ -415,7 +414,7 @@ export default function DevUserPanel() {
                                 <Loader2 size={28} className="animate-spin text-slate-400" />
                             </div>
                         ) : (
-                            <div className="bg-white dark:bg-[#1d1d1f] rounded-[28px] ring-1 ring-black/5 dark:ring-white/5 shadow-sm overflow-hidden divide-y divide-black/[0.03] dark:divide-white/[0.03]">
+                            <div className="bg-white rounded-[28px] ring-1 ring-black/5 shadow-sm overflow-hidden divide-y divide-black/[0.03]">
                                 {filteredUsers.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-16 gap-2">
                                         <Users size={28} className="text-slate-300" />
@@ -435,9 +434,9 @@ export default function DevUserPanel() {
 
                 {activeTab === 'add' && (
                     <div className="max-w-2xl mx-auto">
-                        <div className="mb-4 p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 flex items-start gap-2">
+                        <div className="mb-4 p-3 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-2">
                             <AlertTriangle size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                            <p className="text-[12px] text-amber-700 dark:text-amber-400">
+                            <p className="text-[12px] text-amber-700">
                                 Override sẽ <strong>ghi đè</strong> ROLE_EMAIL_MAP tĩnh. Chỉ dùng khi user chưa có trong roles.js hoặc cần roles đặc biệt.
                             </p>
                         </div>
@@ -461,7 +460,7 @@ export default function DevUserPanel() {
             {toast && (
                 <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[400] px-5 py-3 rounded-2xl text-[13px] font-semibold shadow-xl transition-all
                     ${toast.type === 'success'
-                        ? 'bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f]'
+                        ? 'bg-[#1d1d1f] text-white'
                         : 'bg-rose-600 text-white'}`}>
                     {toast.msg}
                 </div>

@@ -69,7 +69,7 @@ export const EditableEdge = ({
                         value={localLabel}
                         placeholder="Tên dây cáp..."
                         onChange={onLabelChange}
-                        className="bg-[#F5F5F7]/90 dark:bg-[#1d1d1f]/90 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-bold text-[#86868b] dark:text-slate-400 outline-none border border-transparent focus:border-indigo-500/50 hover:bg-white text-center shadow-sm w-[100px] transition-colors"
+                        className="bg-[#F5F5F7]/90 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-bold text-[#86868b] outline-none border border-transparent focus:border-indigo-500/50 hover:bg-white text-center shadow-sm w-[100px] transition-colors"
                         style={{ cursor: 'text' }}
                     />
                 </div>

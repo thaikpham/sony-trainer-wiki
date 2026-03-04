@@ -114,8 +114,8 @@ export default function ColorLab() {
                 {subTab === 'profile' && (
                     <div className="flex flex-col gap-6">
                         <div className="text-center mb-4">
-                            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Cộng Đồng Picture Profile</h2>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm">Công thức màu cao cấp được nghiên cứu dành riêng cho hệ thống cảm biến Sony. Áp dụng ngay trên máy tính mà không cần qua hậu kỳ.</p>
+                            <h2 className="text-2xl font-black text-slate-900 mb-2">Cộng Đồng Picture Profile</h2>
+                            <p className="text-slate-500 text-sm">Công thức màu cao cấp được nghiên cứu dành riêng cho hệ thống cảm biến Sony. Áp dụng ngay trên máy tính mà không cần qua hậu kỳ.</p>
                         </div>
 
                         {loading ? (
@@ -134,8 +134,8 @@ export default function ColorLab() {
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {recipes.map(recipe => (
-                                    <div key={recipe.id} onClick={() => setSelectedRecipe(recipe)} className="border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-transform group bg-white dark:bg-[#2d2d2f]">
-                                        <div className="h-48 bg-slate-100 dark:bg-white/5 relative overflow-hidden">
+                                    <div key={recipe.id} onClick={() => setSelectedRecipe(recipe)} className="border border-slate-200 rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-transform group bg-white">
+                                        <div className="h-48 bg-slate-100 relative overflow-hidden">
                                             {recipe.images && recipe.images.length > 0 ? (
                                                 <img src={recipe.images[0]} alt={recipe.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                             ) : (
@@ -146,21 +146,21 @@ export default function ColorLab() {
                                         </div>
                                         <div className="p-5">
                                             <div className="flex justify-between items-start mb-2">
-                                                <h3 className="font-black text-lg text-slate-800 dark:text-white line-clamp-1">{recipe.name}</h3>
+                                                <h3 className="font-black text-lg text-slate-800 line-clamp-1">{recipe.name}</h3>
                                             </div>
                                             <div className="flex gap-2 mb-3">
-                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 uppercase">
+                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">
                                                     {recipe.contrast} contrast
                                                 </span>
-                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 uppercase">
+                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">
                                                     {recipe.type === 'bw' ? 'B&W' : 'Color'}
                                                 </span>
                                             </div>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-4">{recipe.description}</p>
+                                            <p className="text-sm text-slate-500 line-clamp-2 mb-4">{recipe.description}</p>
 
                                             <div className="flex gap-1.5 flex-wrap">
                                                 {recipe.tags && Array.isArray(recipe.tags) && recipe.tags.slice(0, 3).map(t => (
-                                                    <span key={t} className="text-[10px] bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 px-1.5 py-0.5 rounded-md font-medium border border-cyan-100/50 dark:border-cyan-800/50">#{t}</span>
+                                                    <span key={t} className="text-[10px] bg-cyan-50 text-cyan-600 px-1.5 py-0.5 rounded-md font-medium border border-cyan-100/50">#{t}</span>
                                                 ))}
                                             </div>
                                         </div>
@@ -173,24 +173,24 @@ export default function ColorLab() {
 
                 {subTab === 'creative' && (
                     <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-6 text-indigo-500 dark:text-indigo-400">
+                        <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-6 text-indigo-500">
                             <Palette size={32} />
                         </div>
-                        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-2">Sony Creative Look</h3>
-                        <p className="text-slate-500 dark:text-slate-400 max-w-md">Các hướng dẫn Mod màu tích hợp sẵn trong máy ảnh (FL, IN, SH, PT...) sẽ sớm được cập nhật tại đây.</p>
+                        <h3 className="text-2xl font-black text-slate-800 mb-2">Sony Creative Look</h3>
+                        <p className="text-slate-500 max-w-md">Các hướng dẫn Mod màu tích hợp sẵn trong máy ảnh (FL, IN, SH, PT...) sẽ sớm được cập nhật tại đây.</p>
                     </div>
                 )}
 
                 {subTab === 'lut' && (
                     <div className="flex flex-col gap-6">
                         <div className="text-center mb-6">
-                            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Alpha Universe LUT Library</h2>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm">Kho {LUT_LIBRARY.length} file LUT (.cube) chuẩn Cinematic để áp lên Footage quay S-Log3, HLG hoặc xem trên Monitor Preview.</p>
+                            <h2 className="text-2xl font-black text-slate-900 mb-2">Alpha Universe LUT Library</h2>
+                            <p className="text-slate-500 text-sm">Kho {LUT_LIBRARY.length} file LUT (.cube) chuẩn Cinematic để áp lên Footage quay S-Log3, HLG hoặc xem trên Monitor Preview.</p>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                             {LUT_LIBRARY.map(lut => (
-                                <div key={lut.id} className="group relative bg-white dark:bg-[#1d1d1f] rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
-                                    <div className="h-40 relative bg-slate-100 dark:bg-[#2d2d2f] overflow-hidden shrink-0">
+                                <div key={lut.id} className="group relative bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
+                                    <div className="h-40 relative bg-slate-100 overflow-hidden shrink-0">
                                         <img src={lut.coverImage} alt={lut.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                                         <span className="absolute top-3 left-3 bg-white/20 backdrop-blur-md text-white border border-white/20 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide">
@@ -199,10 +199,10 @@ export default function ColorLab() {
                                     </div>
                                     <div className="p-4 flex flex-col flex-1 justify-between">
                                         <div className="mb-4">
-                                            <h3 className="text-sm font-bold text-slate-800 dark:text-white leading-tight mb-1 truncate" title={lut.name}>{lut.name}</h3>
-                                            <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Cube File • {lut.size}</p>
+                                            <h3 className="text-sm font-bold text-slate-800 leading-tight mb-1 truncate" title={lut.name}>{lut.name}</h3>
+                                            <p className="text-[11px] font-medium text-slate-500">Cube File • {lut.size}</p>
                                         </div>
-                                        <a href={`/luts/${lut.filename}`} download className="w-full relative overflow-hidden bg-slate-100 dark:bg-white/10 hover:bg-emerald-50 dark:hover:bg-emerald-900/40 text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 font-bold text-xs py-2.5 rounded-xl border border-slate-200 dark:border-white/5 hover:border-emerald-200 dark:hover:border-emerald-800/50 transition-colors flex items-center justify-center gap-2 group/btn">
+                                        <a href={`/luts/${lut.filename}`} download className="w-full relative overflow-hidden bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 font-bold text-xs py-2.5 rounded-xl border border-slate-200 hover:border-emerald-200 transition-colors flex items-center justify-center gap-2 group/btn">
                                             <svg className="w-4 h-4 transition-transform group-hover/btn:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                             Phân Phối Bởi Sony
                                         </a>
@@ -216,13 +216,13 @@ export default function ColorLab() {
 
             {/* Premium Modal for Recipe Definition using React Portal */}
             {mounted && selectedRecipe && typeof document !== 'undefined' && createPortal(
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-12 bg-black/[0.02] dark:bg-white/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200" onClick={() => setSelectedRecipe(null)}>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-12 bg-black/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200" onClick={() => setSelectedRecipe(null)}>
                     <div className="relative w-full max-w-4xl max-h-full flex flex-col animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
 
-                        <div className="bg-white dark:bg-[#1d1d1f] rounded-[2rem] w-full h-full overflow-y-auto custom-scrollbar shadow-2xl flex flex-col border border-white dark:border-white/10 relative">
+                        <div className="bg-white rounded-[2rem] w-full h-full overflow-y-auto custom-scrollbar shadow-2xl flex flex-col border border-white relative">
                             {/* Hero Image */}
                             {selectedRecipe.images && selectedRecipe.images.length > 0 && (
-                                <div className="w-full h-64 sm:h-80 bg-slate-100 dark:bg-[#2d2d2f] shrink-0 relative group rounded-t-[2rem] overflow-hidden">
+                                <div className="w-full h-64 sm:h-80 bg-slate-100 shrink-0 relative group rounded-t-[2rem] overflow-hidden">
                                     <button
                                         onClick={() => setSelectedRecipe(null)}
                                         className="absolute z-50 top-4 right-4 sm:top-5 sm:right-5 w-8 h-8 sm:w-9 sm:h-9 bg-black/20 hover:bg-black/40 text-white/90 rounded-full flex items-center justify-center backdrop-blur-md border border-white/10"
@@ -241,57 +241,57 @@ export default function ColorLab() {
                                 </div>
                             )}
 
-                            <div className="p-6 sm:p-10 flex-1 bg-white dark:bg-[#1d1d1f] relative">
+                            <div className="p-6 sm:p-10 flex-1 bg-white relative">
                                 {/* Title fallback if no image */}
                                 {(!selectedRecipe.images || selectedRecipe.images.length === 0) && (
-                                    <div className="mb-8 pb-6 border-b border-slate-100 dark:border-white/10 relative">
+                                    <div className="mb-8 pb-6 border-b border-slate-100 relative">
                                         <button
                                             onClick={() => setSelectedRecipe(null)}
-                                            className="absolute z-50 top-0 right-0 w-8 h-8 sm:w-9 sm:h-9 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-500 dark:text-slate-300 rounded-full flex items-center justify-center"
+                                            className="absolute z-50 top-0 right-0 w-8 h-8 sm:w-9 sm:h-9 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full flex items-center justify-center"
                                             aria-label="Đóng"
                                         >
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
                                         </button>
-                                        <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-3 tracking-tight pr-12">{selectedRecipe.name}</h2>
+                                        <h2 className="text-4xl font-black text-slate-900 mb-3 tracking-tight pr-12">{selectedRecipe.name}</h2>
                                         <div className="flex items-center gap-3">
-                                            <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 uppercase tracking-widest border border-slate-200 dark:border-white/10">WB: {selectedRecipe.whiteBalance}</span>
+                                            <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 uppercase tracking-widest border border-slate-200">WB: {selectedRecipe.whiteBalance}</span>
                                         </div>
                                     </div>
                                 )}
 
-                                <p className="text-slate-600/90 dark:text-slate-300/90 leading-relaxed max-w-3xl text-[17px] mb-10 font-medium">{selectedRecipe.description}</p>
+                                <p className="text-slate-600 leading-relaxed max-w-3xl text-[17px] mb-10 font-medium">{selectedRecipe.description}</p>
 
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                     {selectedRecipe.recipeSettings?.settings && Object.keys(selectedRecipe.recipeSettings.settings).length > 0 && (
-                                        <div className="border border-slate-100/50 dark:border-white/10 rounded-3xl p-6 sm:p-8 bg-slate-50/50 dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10">
-                                            <h4 className="font-bold text-slate-800 dark:text-white text-lg mb-6 flex items-center gap-3"><span className="w-8 h-8 rounded-full bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center"><Sliders size={16} /></span> Main Settings</h4>
+                                        <div className="border border-slate-100 rounded-3xl p-6 sm:p-8 bg-slate-50 hover:bg-slate-50">
+                                            <h4 className="font-bold text-slate-800 text-lg mb-6 flex items-center gap-3"><span className="w-8 h-8 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center"><Sliders size={16} /></span> Main Settings</h4>
                                             <ul className="space-y-4 text-sm">
                                                 {Object.entries(selectedRecipe.recipeSettings.settings).map(([k, v]) => (
-                                                    <li key={k} className="flex justify-between items-center border-b border-slate-200/50 dark:border-white/10 pb-3 font-medium"><span className="text-slate-500 dark:text-slate-400 capitalize">{k.replace(/_/g, ' ')}</span> <span className="text-slate-800 dark:text-white bg-white dark:bg-[#2d2d2f] px-3 py-1 rounded-lg border border-slate-200/60 dark:border-white/10 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">{v}</span></li>
+                                                    <li key={k} className="flex justify-between items-center border-b border-slate-200 pb-3 font-medium"><span className="text-slate-500 capitalize">{k.replace(/_/g, ' ')}</span> <span className="text-slate-800 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">{v}</span></li>
                                                 ))}
                                             </ul>
                                         </div>
                                     )}
                                     <div className="space-y-8">
                                         {selectedRecipe.recipeSettings?.colorDepth && Object.keys(selectedRecipe.recipeSettings.colorDepth).length > 0 && (
-                                            <div className="border border-slate-100/50 dark:border-white/10 rounded-3xl p-6 sm:p-8 bg-slate-50/50 dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10">
-                                                <h4 className="font-bold text-slate-800 dark:text-white text-lg mb-6 flex items-center gap-3"><span className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center"><Palette size={16} /></span> Color Depth</h4>
+                                            <div className="border border-slate-100 rounded-3xl p-6 sm:p-8 bg-slate-50 hover:bg-slate-50">
+                                                <h4 className="font-bold text-slate-800 text-lg mb-6 flex items-center gap-3"><span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><Palette size={16} /></span> Color Depth</h4>
                                                 <div className="grid grid-cols-3 gap-3 text-center text-sm">
                                                     {Object.entries(selectedRecipe.recipeSettings.colorDepth).map(([k, v]) => (
-                                                        <div key={k} className="bg-white dark:bg-[#2d2d2f] p-3 py-4 rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
-                                                            <div className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mb-1.5">{k}</div>
-                                                            <div className="font-black text-slate-800 dark:text-white text-lg">{v > 0 ? `+${v}` : v}</div>
+                                                        <div key={k} className="bg-white p-3 py-4 rounded-2xl border border-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+                                                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1.5">{k}</div>
+                                                            <div className="font-black text-slate-800 text-lg">{v > 0 ? `+${v}` : v}</div>
                                                         </div>
                                                     ))}
                                                 </div>
                                             </div>
                                         )}
                                         {selectedRecipe.recipeSettings?.detailSettings && Object.keys(selectedRecipe.recipeSettings.detailSettings).length > 0 && (
-                                            <div className="border border-slate-100/50 dark:border-white/10 rounded-3xl p-6 sm:p-8 bg-slate-50/50 dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10">
-                                                <h4 className="font-bold text-slate-800 dark:text-white text-lg mb-6 flex items-center gap-3"><span className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><Info size={16} /></span> Detail Settings</h4>
+                                            <div className="border border-slate-100 rounded-3xl p-6 sm:p-8 bg-slate-50 hover:bg-slate-50">
+                                                <h4 className="font-bold text-slate-800 text-lg mb-6 flex items-center gap-3"><span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center"><Info size={16} /></span> Detail Settings</h4>
                                                 <ul className="space-y-4 text-sm">
                                                     {Object.entries(selectedRecipe.recipeSettings.detailSettings).map(([k, v]) => (
-                                                        <li key={k} className="flex justify-between items-center border-b border-slate-200/50 dark:border-white/10 pb-3 font-medium"><span className="text-slate-500 dark:text-slate-400 capitalize">{k.replace(/_/g, ' ')}</span> <span className="text-slate-800 dark:text-white bg-white dark:bg-[#2d2d2f] px-3 py-1 rounded-lg border border-slate-200/60 dark:border-white/10 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">{v}</span></li>
+                                                        <li key={k} className="flex justify-between items-center border-b border-slate-200 pb-3 font-medium"><span className="text-slate-500 capitalize">{k.replace(/_/g, ' ')}</span> <span className="text-slate-800 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">{v}</span></li>
                                                     ))}
                                                 </ul>
                                             </div>

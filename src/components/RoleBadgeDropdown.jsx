@@ -49,14 +49,14 @@ export default function RoleBadgeDropdown({ roleKeys = [] }) {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`flex items-center gap-1 p-1 pr-2 rounded-full transition-all duration-300 group ${isOpen
-                    ? 'bg-black/5 dark:bg-white/10 ring-1 ring-black/10 dark:ring-white/20'
-                    : 'hover:bg-black/5 dark:hover:bg-white/5'
+                    ? 'bg-black/5 ring-1 ring-black/10'
+                    : 'hover:bg-black/5'
                     }`}
             >
                 <RoleBadge roleKey={primaryKey} size="sm" />
 
                 {otherCount > 0 && (
-                    <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-full ring-1 ring-black/5 dark:ring-white/10 group-hover:text-blue-500 transition-colors">
+                    <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full ring-1 ring-black/5 group-hover:text-blue-500 transition-colors">
                         +{otherCount}
                     </span>
                 )}
@@ -70,7 +70,7 @@ export default function RoleBadgeDropdown({ roleKeys = [] }) {
             {/* Dropdown Menu */}
             {isOpen && (
                 <div className="absolute right-0 mt-3 w-64 z-50 animate-in fade-in zoom-in duration-200 origin-top-right">
-                    <div className="bg-white/80 dark:bg-[#1d1d1f]/90 backdrop-blur-xl rounded-3xl p-4 shadow-[0_20px_40px_rgba(0,0,0,0.15)] ring-1 ring-black/5 dark:ring-white/10 border border-white/20 dark:border-white/5 overflow-hidden">
+                    <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-4 shadow-[0_20px_40px_rgba(0,0,0,0.15)] ring-1 ring-black/5 border border-white/20 overflow-hidden">
                         <div className="flex items-center gap-2 mb-4 px-1">
                             <Trophy size={16} className="text-amber-500" />
                             <span className="text-[12px] font-black uppercase tracking-widest text-slate-400">Huy hiệu sở hữu</span>
@@ -82,14 +82,14 @@ export default function RoleBadgeDropdown({ roleKeys = [] }) {
                                 return (
                                     <div
                                         key={key}
-                                        className="group/item flex items-center justify-between p-2 rounded-2xl hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors border border-transparent hover:border-black/[0.05] dark:hover:border-white/[0.05]"
+                                        className="group/item flex items-center justify-between p-2 rounded-2xl hover:bg-black/[0.03] transition-colors border border-transparent hover:border-black/[0.05]"
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${role.gradient} flex items-center justify-center text-[16px] shadow-sm transform group-hover/item:scale-110 transition-transform`}>
                                                 {role.emoji}
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-[13px] font-bold text-[#1d1d1f] dark:text-white leading-none mb-1">{role.label}</span>
+                                                <span className="text-[13px] font-bold text-[#1d1d1f] leading-none mb-1">{role.label}</span>
                                                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{role.rarity}</span>
                                             </div>
                                         </div>
@@ -98,7 +98,7 @@ export default function RoleBadgeDropdown({ roleKeys = [] }) {
                             })}
                         </div>
 
-                        <div className="mt-4 pt-4 border-t border-black/[0.05] dark:border-white/[0.05] flex justify-center">
+                        <div className="mt-4 pt-4 border-t border-black/[0.05] flex justify-center">
                             <button
                                 onClick={() => {
                                     setIsOpen(false);

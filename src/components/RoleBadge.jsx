@@ -15,7 +15,7 @@ export default function RoleBadge({ roleKey, size = 'sm' }) {
 
     return (
         <span
-            className={`inline-flex items-center gap-1.5 ${padding} ${fontSize} font-black rounded-full bg-gradient-to-r ${role.gradient} ${role.textColor} leading-none tracking-wide whitespace-nowrap select-none border border-white/20 dark:border-white/10 backdrop-blur-md transition-all duration-300 hover:scale-105 active:scale-95 group relative overflow-hidden`}
+            className={`inline-flex items-center gap-1.5 ${padding} ${fontSize} font-black rounded-full bg-gradient-to-r ${role.gradient} ${role.textColor} leading-none tracking-wide whitespace-nowrap select-none border border-white/20 backdrop-blur-md transition-all duration-300 hover:scale-105 active:scale-95 group relative overflow-hidden`}
             style={{
                 boxShadow: `0 4px 12px ${role.glow}`,
                 textShadow: '0 1px 2px rgba(0,0,0,0.1)'

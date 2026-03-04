@@ -1,16 +1,18 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Filter, Plus, ShoppingCart, Info, Activity, Box, Aperture, Layers, Fingerprint, ExternalLink, Loader2, AlertCircle, Camera, Settings2, Trash2, X } from 'lucide-react';
-import { getProducts, deleteProduct } from '../services/db';
+import { Search, Filter, Plus, ShoppingCart, Info, Activity, Box, Aperture, Layers, Fingerprint, ExternalLink, Loader2, AlertCircle, Camera, Settings2, Trash2, X, Edit3 } from 'lucide-react';
+import { getProducts, deleteProduct, addProduct, updateProduct, getGlobalTags, updateGlobalTags } from '../services/db';
 import { trackFeatureUsage } from '@/services/analytics';
 import FeatureStar from './FeatureStar';
 import { CategoryBadge } from './admin/SingleSelectField';
+import ProductFormModal from './admin/ProductFormModal';
 import { useUser } from '@clerk/nextjs';
-import { getRoleKeys } from '@/lib/roles';
+import { getRoleKeys, canManageData, canDeleteData } from '@/lib/roles';
 
-export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggleCompare }) {
+export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggleCompare, editProduct = null, onClearEdit = () => { } }) {
     const { user } = useUser();
-    const userRoleKeys = getRoleKeys(user?.primaryEmailAddress?.emailAddress);
-    const isDev = userRoleKeys.includes('DEV');
+    const email = user?.primaryEmailAddress?.emailAddress;
+    const isDataMaster = canManageData(email);
+    const isDev = canDeleteData(email);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [mainCategory, setMainCategory] = useState('Tất cả');
@@ -25,6 +27,26 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
 
     // Quick Settings Modal
     const [quickSettingGuide, setQuickSettingGuide] = useState(null);
+
+    // Admin management state
+    const [modalProduct, setModalProduct] = useState(null);
+
+    // Sync external edit request
+    useEffect(() => {
+        if (editProduct) {
+            setModalProduct(editProduct);
+            onClearEdit();
+        }
+    }, [editProduct, onClearEdit]);
+
+    const [saving, setSaving] = useState(false);
+    const [globalTags, setGlobalTags] = useState([]);
+    const [toast, setToast] = useState(null);
+
+    const showToast = (msg) => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 3000);
+    };
 
     const handleDelete = async (e, id, name) => {
         e.stopPropagation();
@@ -61,9 +83,13 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
         let isMounted = true;
         const fetchData = async () => {
             try {
-                const result = await getProducts();
+                const [result, tags] = await Promise.all([
+                    getProducts(),
+                    getGlobalTags()
+                ]);
                 if (isMounted) {
                     setData(result || []);
+                    setGlobalTags(tags || []);
                 }
             } catch (err) {
                 console.error("Firebase fetch error:", err);
@@ -79,6 +105,36 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
         fetchData();
         return () => { isMounted = false; };
     }, []);
+
+    const handleSaveProduct = async (formData) => {
+        setSaving(true);
+        try {
+            if (formData.id) {
+                const { id, createdAt, updatedAt, ...rest } = formData;
+                await updateProduct(id, rest);
+                showToast(`✅ Đã cập nhật "${formData.name}"`);
+                setData(prev => prev.map(p => p.id === id ? { ...p, ...rest, updatedAt: new Date() } : p));
+            } else {
+                const newId = await addProduct(formData);
+                showToast(`✅ Đã thêm "${formData.name}"`);
+                setData(prev => [{ ...formData, id: newId, createdAt: new Date() }, ...prev]);
+            }
+            setModalProduct(null);
+        } catch (e) {
+            alert('Lỗi: ' + e.message);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleUpdateTags = async (newTags) => {
+        try {
+            await updateGlobalTags(newTags);
+            setGlobalTags(newTags);
+        } catch (e) {
+            console.error("Error updating tags:", e);
+        }
+    };
 
     const availableTags = useMemo(() => {
         const tagSet = new Set();
@@ -123,7 +179,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
         if (name.includes('GM') || name.includes('G Master')) {
             badges.push(<span key="gm" className="bg-[#ff4500] text-white text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wide leading-none" title="G Master">GM</span>);
         } else if (/\bG\b/.test(name)) {
-            badges.push(<span key="g" className="bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f] text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wide leading-none" title="G Lens">G</span>);
+            badges.push(<span key="g" className="bg-[#1d1d1f] text-white text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wide leading-none" title="G Lens">G</span>);
         }
         // Zeiss badges removed per Sony Vietnam's current product line
         return badges;
@@ -133,20 +189,30 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
         <div className="w-full flex flex-col gap-6 animate-slide-up relative z-10">
 
             {/* Header & Controls */}
-            <div className="flex flex-col gap-6 bg-white/60 dark:bg-white/5 backdrop-blur-xl p-6 sm:p-8 rounded-[32px] ring-1 ring-black/[0.04] dark:ring-white/[0.05] shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+            <div className="flex flex-col gap-6 bg-white/60 backdrop-blur-xl p-6 sm:p-8 rounded-[32px] ring-1 ring-black/[0.04] shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
 
                 {/* Search Row & View Toggle */}
-                <div className="flex gap-4 w-full">
-                    <div className="relative flex-1 max-w-md">
-                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#86868b] dark:text-slate-400" />
+                <div className="flex flex-col sm:flex-row gap-4 w-full items-center justify-between">
+                    <div className="relative flex-1 max-w-md w-full">
+                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#86868b]" />
                         <input
                             type="text"
-                            className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl text-[15px] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all placeholder:text-[#86868b] dark:placeholder:text-slate-500 font-medium"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-black/[0.08] rounded-2xl text-[15px] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all placeholder:text-[#86868b] font-medium"
                             placeholder="Tìm kiếm sản phẩm, model hoặc tính năng..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+
+                    {isDataMaster && (
+                        <button
+                            onClick={() => setModalProduct({})}
+                            className="flex items-center gap-2 px-6 py-3.5 bg-[#1d1d1f] text-white rounded-2xl text-[13px] font-bold hover:bg-black transition-all shadow-lg hover:shadow-black/20"
+                        >
+                            <Plus size={18} />
+                            Thêm sản phẩm
+                        </button>
+                    )}
                 </div>
 
                 {/* Main Category Row */}
@@ -156,8 +222,8 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                             key={cat}
                             onClick={() => handleMainCategoryChange(cat)}
                             className={`px-5 py-2.5 rounded-2xl text-[13px] font-semibold transition-all duration-300 whitespace-nowrap flex-shrink-0 ${mainCategory === cat
-                                ? 'bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f] shadow-[0_4px_14px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_14px_rgba(255,255,255,0.1)]'
-                                : 'bg-white dark:bg-white/5 ring-1 ring-black/5 dark:ring-white/[0.05] text-[#86868b] dark:text-slate-400 hover:bg-[#F5F5F7] dark:hover:bg-white/10 hover:text-[#1d1d1f] dark:hover:text-white'
+                                ? 'bg-[#1d1d1f] text-white shadow-[0_4px_14px_rgba(0,0,0,0.1)]'
+                                : 'bg-white ring-1 ring-black/5 text-[#86868b] hover:bg-[#F5F5F7] hover:text-[#1d1d1f]'
                                 }`}
                         >
                             {cat === 'Tất cả' ? 'Tất cả' : cat}
@@ -167,8 +233,8 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
 
                 {/* Dynamic Sub-Tags Row */}
                 <div className="flex flex-wrap gap-2 items-center w-full min-h-[36px]">
-                    <span className="text-[11px] font-bold text-[#86868b] dark:text-slate-500 uppercase tracking-wider mr-2">Bộ lọc phụ:</span>
-                    {availableTags.length === 0 && <span className="text-[13px] text-[#86868b] dark:text-slate-500 italic">Không có tags cho phân khúc này</span>}
+                    <span className="text-[11px] font-bold text-[#86868b] uppercase tracking-wider mr-2">Bộ lọc phụ:</span>
+                    {availableTags.length === 0 && <span className="text-[13px] text-[#86868b] italic">Không có tags cho phân khúc này</span>}
                     {availableTags.map(tag => {
                         const isActive = activeTags.includes(tag);
                         return (
@@ -176,8 +242,8 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                 key={tag}
                                 onClick={() => toggleTag(tag)}
                                 className={`px-4 py-1.5 rounded-xl text-[13px] font-medium transition-all duration-300 ${isActive
-                                    ? 'bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f] shadow-[0_2px_8px_rgba(0,0,0,0.08)] ring-1 ring-[#1d1d1f] dark:ring-white'
-                                    : 'bg-white dark:bg-white/5 ring-1 ring-black/5 dark:ring-white/[0.05] text-[#86868b] dark:text-slate-400 hover:bg-[#F5F5F7] dark:hover:bg-white/10 hover:text-[#1d1d1f] dark:hover:text-white'
+                                    ? 'bg-[#1d1d1f] text-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] ring-1 ring-[#1d1d1f]'
+                                    : 'bg-white ring-1 ring-black/5 text-[#86868b] hover:bg-[#F5F5F7] hover:text-[#1d1d1f]'
                                     }`}
                             >
                                 {tag}
@@ -187,11 +253,11 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-[#1d1d1f] ring-1 ring-black/[0.04] dark:ring-white/[0.05] rounded-[32px] shadow-[0_8px_30px_rgba(0,0,0,0.02)] overflow-hidden w-full max-w-full">
+            <div className="bg-white ring-1 ring-black/[0.04] rounded-[32px] shadow-[0_8px_30px_rgba(0,0,0,0.02)] overflow-hidden w-full max-w-full">
                 <div className="overflow-x-auto custom-scrollbar min-h-[500px] w-full max-w-full">
                     <table className="w-full text-left border-collapse whitespace-nowrap table-fixed">
                         <thead>
-                            <tr className="bg-[#F5F5F7]/80 dark:bg-white/5 border-b border-black/[0.04] dark:border-white/[0.05] text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-wider">
+                            <tr className="bg-[#F5F5F7]/80 border-b border-black/[0.04] text-[11px] font-bold text-[#86868b] uppercase tracking-wider">
                                 {isDev && (
                                     <th className="px-3 py-5 w-[40px]">
                                         <input
@@ -201,21 +267,21 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                 if (e.target.checked) setSelectedIds(filteredData.map(r => r.id));
                                                 else setSelectedIds([]);
                                             }}
-                                            className="w-4 h-4 rounded border-black/10 dark:border-white/10 text-teal-600 focus:ring-teal-500 bg-background transition-all"
+                                            className="w-4 h-4 rounded border-black/10 text-teal-600 focus:ring-teal-500 bg-background transition-all"
                                         />
                                     </th>
                                 )}
                                 <th className="px-4 py-5 font-bold w-[250px]">
-                                    <div className="flex items-center gap-2"><Fingerprint size={14} className="text-[#86868b] dark:text-slate-500" /> SẢN PHẨM</div>
+                                    <div className="flex items-center gap-2"><Fingerprint size={14} className="text-[#86868b]" /> SẢN PHẨM</div>
                                 </th>
-                                <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest w-[120px]">Model</th>
-                                <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest w-[200px]">Thông số & Tính năng</th>
-                                <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest w-[100px]">Giá tham khảo</th>
-                                <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] dark:text-slate-400 uppercase tracking-widest w-[80px]">Năm</th>
+                                <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] uppercase tracking-widest w-[120px]">Model</th>
+                                <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] uppercase tracking-widest w-[200px]">Thông số & Tính năng</th>
+                                <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] uppercase tracking-widest w-[100px]">Giá tham khảo</th>
+                                <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] uppercase tracking-widest w-[80px]">Năm</th>
                                 <th className="px-4 py-5 font-bold text-center w-[150px]">HÀNH ĐỘNG</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-black/[0.02] dark:divide-white/[0.05] text-[14px]">
+                        <tbody className="divide-y divide-black/[0.02] text-[14px]">
                             {loading ? (
                                 <tr>
                                     <td colSpan={isDev ? "10" : "9"} className="px-6 py-32 text-center text-slate-500">
@@ -244,7 +310,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                 onOpenSpecs(item);
                                                 trackFeatureUsage(`prod_${item.name.replace(/\s+/g, '_')}`, item.name);
                                             }}
-                                            className={`group cursor-pointer transition-colors duration-300 hover:bg-[#F5F5F7]/80 dark:hover:bg-white/5 ${selectedIds.includes(item.id) ? 'bg-orange-500/5' : ''}`}
+                                            className={`group cursor-pointer transition-colors duration-300 hover:bg-[#F5F5F7]/80 ${selectedIds.includes(item.id) ? 'bg-orange-500/5' : ''}`}
                                             style={{ animationDelay: `${idx * 50}ms` }}
                                         >
                                             {isDev && (
@@ -256,12 +322,12 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                             if (e.target.checked) setSelectedIds([...selectedIds, item.id]);
                                                             else setSelectedIds(selectedIds.filter(id => id !== item.id));
                                                         }}
-                                                        className="w-4 h-4 rounded border-black/10 dark:border-white/10 text-orange-600 focus:ring-orange-500 bg-background transition-all"
+                                                        className="w-4 h-4 rounded border-black/10 text-orange-600 focus:ring-orange-500 bg-background transition-all"
                                                     />
                                                 </td>
                                             )}
-                                            <td className="px-4 py-4 font-semibold text-[#1d1d1f] dark:text-white flex items-center gap-2 truncate">
-                                                <div className="bg-[#F5F5F7] dark:bg-white/10 p-1.5 rounded-xl text-[#86868b] dark:text-slate-400 group-hover:bg-white dark:group-hover:bg-white/20 group-hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] dark:group-hover:shadow-[0_2px_8px_rgba(255,255,255,0.08)] group-hover:text-[#1d1d1f] dark:group-hover:text-white transition-all w-8 h-8 flex items-center justify-center flex-shrink-0">
+                                            <td className="px-4 py-4 font-semibold text-[#1d1d1f] flex items-center gap-2 truncate">
+                                                <div className="bg-[#F5F5F7] p-1.5 rounded-xl text-[#86868b] group-hover:bg-white group-hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] group-hover:text-[#1d1d1f] transition-all w-8 h-8 flex items-center justify-center flex-shrink-0">
                                                     <Aperture size={14} />
                                                 </div>
                                                 <div className="flex items-center gap-1.5 overflow-hidden">
@@ -275,7 +341,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                                 trackFeatureUsage(`guide_${item.name.replace(/\s+/g, '_')}`, item.name);
                                                             }}
                                                             title="Quick Setting Guide"
-                                                            className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-orange-100 text-orange-600 hover:bg-orange-500 hover:text-white dark:bg-orange-900/40 dark:text-orange-400 dark:hover:bg-orange-600 dark:hover:text-white transition-all text-[9px] font-bold uppercase tracking-wide border border-orange-200 dark:border-orange-500/30 flex-shrink-0"
+                                                            className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-orange-100 text-orange-600 hover:bg-orange-500 hover:text-white transition-all text-[9px] font-bold uppercase tracking-wide border border-orange-200 flex-shrink-0"
                                                         >
                                                             <Settings2 size={10} /> Guide
                                                         </button>
@@ -283,16 +349,16 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                     <FeatureStar featureId={`prod_${item.name.replace(/\s+/g, '_')}`} />
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 text-[#424245] dark:text-slate-300 font-mono text-[12px] truncate" title={item.model}>
+                                            <td className="px-4 py-4 text-[#424245] font-mono text-[12px] truncate" title={item.model}>
                                                 {item.model || '—'}
                                             </td>
-                                            <td className="px-4 py-4 text-slate-500 dark:text-slate-400 text-[12px] truncate group-hover:text-[#1d1d1f] dark:group-hover:text-white transition-colors" title={item.highlights}>
+                                            <td className="px-4 py-4 text-slate-500 text-[12px] truncate group-hover:text-[#1d1d1f] transition-colors" title={item.highlights}>
                                                 {item.highlights || '—'}
                                             </td>
-                                            <td className="px-4 py-4 font-black text-blue-600 dark:text-blue-400 tabular-nums truncate" title={item.price ? new Intl.NumberFormat('en-US').format(item.price) + ' ₫' : '—'}>
+                                            <td className="px-4 py-4 font-black text-blue-600 tabular-nums truncate" title={item.price ? new Intl.NumberFormat('en-US').format(item.price) + ' ₫' : '—'}>
                                                 {item.price ? new Intl.NumberFormat('en-US').format(item.price) + ' ₫' : '—'}
                                             </td>
-                                            <td className="px-4 py-4 text-slate-500 dark:text-slate-400 tabular-nums font-medium truncate">
+                                            <td className="px-4 py-4 text-slate-500 tabular-nums font-medium truncate">
                                                 {item.year || '—'}
                                             </td>
                                             <td className="px-6 py-4 text-center">
@@ -300,11 +366,11 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            const type = item.type.toLowerCase().includes('body') || item.type.toLowerCase().includes('camera') ? 'camera' : 'lens';
+                                                            const type = item.type?.toLowerCase().includes('body') || item.type?.toLowerCase().includes('camera') ? 'camera' : 'lens';
                                                             if (onToggleCompare) onToggleCompare(item.name, type);
                                                             trackFeatureUsage(`prod_${item.name.replace(/\s+/g, '_')}`, item.name);
                                                         }}
-                                                        className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-all ${isSelected ? 'bg-green-500 text-white hover:bg-red-500' : 'bg-[#F5F5F7] dark:bg-white/10 text-[#1d1d1f] dark:text-white hover:bg-[#1d1d1f] dark:hover:bg-white hover:text-white dark:hover:text-[#1d1d1f]'}`}
+                                                        className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-all ${isSelected ? 'bg-green-500 text-white hover:bg-red-500' : 'bg-[#F5F5F7] text-[#1d1d1f] hover:bg-[#1d1d1f] hover:text-white'}`}
                                                     >
                                                         {isSelected ? 'Bỏ chọn' : 'So sánh'}
                                                     </button>
@@ -314,11 +380,23 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             onClick={(e) => e.stopPropagation()}
-                                                            className="inline-flex items-center justify-center p-1.5 rounded-full text-[#86868b] dark:text-slate-500 hover:text-[#1d1d1f] dark:hover:text-white hover:bg-[#F5F5F7] dark:hover:bg-white/10 transition-all group/link"
+                                                            className="inline-flex items-center justify-center p-1.5 rounded-full text-[#86868b] hover:text-[#1d1d1f] hover:bg-[#F5F5F7] transition-all group/link"
                                                             title="Xem trên Sony.com.vn"
                                                         >
                                                             <ExternalLink size={16} className="group-hover/link:scale-110 transition-transform" />
                                                         </a>
+                                                    )}
+                                                    {isDataMaster && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setModalProduct(item);
+                                                            }}
+                                                            className="p-1.5 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-full transition-all duration-300 shadow-sm"
+                                                            title="Sửa sản phẩm"
+                                                        >
+                                                            <Edit3 size={16} />
+                                                        </button>
                                                     )}
                                                     {isDev && (
                                                         <button
@@ -350,12 +428,12 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
             {/* DEV Bulk Action Bar */}
             {selectedIds.length > 0 && isDev && (
                 <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[150] animate-slide-up">
-                    <div className="bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f] px-8 py-4 rounded-[32px] shadow-2xl flex items-center gap-8 ring-1 ring-white/10 dark:ring-black/10 backdrop-blur-xl">
+                    <div className="bg-[#1d1d1f] text-white px-8 py-4 rounded-[32px] shadow-2xl flex items-center gap-8 ring-1 ring-white/10 backdrop-blur-xl">
                         <div className="flex flex-col">
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Xóa sản phẩm</span>
                             <span className="text-[15px] font-black">{selectedIds.length} đã chọn</span>
                         </div>
-                        <div className="h-8 w-px bg-white/10 dark:bg-black/10" />
+                        <div className="h-8 w-px bg-white/10" />
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setSelectedIds([])}
@@ -377,28 +455,28 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
             {/* Quick Setting Guide Modal */}
             {quickSettingGuide && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
-                    <div className="absolute inset-0 bg-black/[0.02] dark:bg-white/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200" onClick={() => setQuickSettingGuide(null)} />
-                    <div className="relative w-full max-w-4xl bg-white dark:bg-[#151515] rounded-[32px] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] flex flex-col ring-1 ring-black/5 dark:ring-white/10 m-4 sm:m-6 max-h-[90vh]">
+                    <div className="absolute inset-0 bg-black/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200" onClick={() => setQuickSettingGuide(null)} />
+                    <div className="relative w-full max-w-4xl bg-white rounded-[32px] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] flex flex-col ring-1 ring-black/5 m-4 sm:m-6 max-h-[90vh]">
                         {/* Header */}
-                        <div className="relative px-8 pt-10 pb-6 shrink-0 bg-white dark:bg-[#151515]">
-                            <button onClick={() => setQuickSettingGuide(null)} className="absolute top-8 right-8 p-2 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-all active:scale-95">
+                        <div className="relative px-8 pt-10 pb-6 shrink-0 bg-white">
+                            <button onClick={() => setQuickSettingGuide(null)} className="absolute top-8 right-8 p-2 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 transition-all active:scale-95">
                                 <X size={20} />
                             </button>
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center">
-                                    <span className="px-3 py-1 bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400 text-[10px] font-black uppercase tracking-[0.15em] rounded-full flex items-center gap-1.5 ring-1 ring-teal-500/20">
+                                    <span className="px-3 py-1 bg-teal-50 text-teal-600 text-[10px] font-black uppercase tracking-[0.15em] rounded-full flex items-center gap-1.5 ring-1 ring-teal-500/20">
                                         <Settings2 size={12} strokeWidth={2.5} />
                                         Quick Setting Guide
                                     </span>
                                 </div>
-                                <h2 className="text-3xl sm:text-4xl font-black text-[#1d1d1f] dark:text-white tracking-tight leading-tight">
+                                <h2 className="text-3xl sm:text-4xl font-black text-[#1d1d1f] tracking-tight leading-tight">
                                     {quickSettingGuide.name}
                                 </h2>
                             </div>
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 overflow-y-auto px-8 pb-10 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10 scrollbar-track-transparent">
+                        <div className="flex-1 overflow-y-auto px-8 pb-10 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
                             <div className="flex flex-col gap-10">
                                 {(() => {
                                     const rawLines = quickSettingGuide.guide.split('\n').map(l => l.trim()).filter(Boolean);
@@ -462,10 +540,10 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                         return (
                                             <div key={idx} className="flex flex-col gap-4">
                                                 <div className="flex items-center gap-3 mb-1">
-                                                    <div className="w-8 h-8 rounded-full bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+                                                    <div className="w-8 h-8 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
                                                         <SectionIcon size={16} />
                                                     </div>
-                                                    <h3 className="text-[13.5px] font-black text-[#1d1d1f] dark:text-white uppercase tracking-widest">
+                                                    <h3 className="text-[13.5px] font-black text-[#1d1d1f] uppercase tracking-widest">
                                                         {section.title}
                                                     </h3>
                                                 </div>
@@ -475,15 +553,15 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                 {section.items.length > 0 && (
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                                                         {section.items.map((item, itemIdx) => (
-                                                            <div key={itemIdx} className={`bg-white dark:bg-[#1d1d1f] border border-slate-200 dark:border-white/10 rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col justify-center transition-shadow hover:shadow-md ${item.isNote ? 'md:col-span-2 items-center justify-center text-center bg-slate-50 dark:bg-white/5' : ''}`}>
+                                                            <div key={itemIdx} className={`bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col justify-center transition-shadow hover:shadow-md ${item.isNote ? 'md:col-span-2 items-center justify-center text-center bg-slate-50' : ''}`}>
                                                                 {item.isNote ? (
-                                                                    <span className="text-[14px] font-medium text-slate-600 dark:text-slate-300 italic w-full">
+                                                                    <span className="text-[14px] font-medium text-slate-600 italic w-full">
                                                                         {item.value}
                                                                     </span>
                                                                 ) : (
                                                                     <>
-                                                                        <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">{item.key}</span>
-                                                                        <span className="text-[14px] sm:text-[14.5px] font-bold text-[#1d1d1f] dark:text-slate-200 leading-relaxed text-balance">{item.value}</span>
+                                                                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">{item.key}</span>
+                                                                        <span className="text-[14px] sm:text-[14.5px] font-bold text-[#1d1d1f] leading-relaxed text-balance">{item.value}</span>
                                                                     </>
                                                                 )}
                                                             </div>
@@ -500,6 +578,26 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                 </div>
             )}
 
+            {/* Admin/Data Master Product Modal */}
+            {modalProduct !== null && (
+                <ProductFormModal
+                    product={Object.keys(modalProduct).length === 0 ? null : modalProduct}
+                    globalTags={globalTags}
+                    onUpdateTags={handleUpdateTags}
+                    onSave={handleSaveProduct}
+                    onDelete={handleDelete}
+                    onClose={() => setModalProduct(null)}
+                    saving={saving}
+                />
+            )}
+
+            {/* In-page Toast */}
+            {toast && (
+                <div className="fixed bottom-10 right-10 z-[200] bg-[#1d1d1f] text-white px-6 py-3 rounded-2xl shadow-2xl animate-slide-up flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[13px] font-bold">{toast}</span>
+                </div>
+            )}
         </div>
     );
 }

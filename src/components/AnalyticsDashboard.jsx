@@ -14,14 +14,14 @@ export default function AnalyticsDashboard() {
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2 mb-2">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Live System Performance</span>
+                        <span className="text-[11px] font-black text-emerald-600 uppercase tracking-widest">Live System Performance</span>
                     </div>
                     <h2 className="text-3xl md:text-4xl font-black text-foreground tracking-tight">Thống kê Thời gian thực</h2>
                 </div>
 
-                <div className="flex items-center gap-6 bg-white dark:bg-white/5 p-4 sm:p-6 rounded-[32px] ring-1 ring-black/5 dark:ring-white/10 shadow-lg">
+                <div className="flex items-center gap-6 bg-white p-4 sm:p-6 rounded-[32px] ring-1 ring-black/5 shadow-lg">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-500/10 flex items-center justify-center text-teal-600">
+                        <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600">
                             <Users size={24} />
                         </div>
                         <div className="flex flex-col">
@@ -32,7 +32,7 @@ export default function AnalyticsDashboard() {
                             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Active Members</span>
                         </div>
                     </div>
-                    <div className="w-px h-10 bg-black/5 dark:bg-white/10"></div>
+                    <div className="w-px h-10 bg-black/5"></div>
                     <div className="flex items-center gap-3">
                         <div className="flex flex-col text-right">
                             <span className="text-[11px] font-black text-emerald-500 uppercase">Stable</span>
@@ -53,7 +53,7 @@ export default function AnalyticsDashboard() {
                         <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600">
                             <TrendingUp size={20} />
                         </div>
-                        <h3 className="text-[18px] font-black text-[#1d1d1f] dark:text-white">Top 10 Xu Hướng</h3>
+                        <h3 className="text-[18px] font-black text-[#1d1d1f]">Top 10 Xu Hướng</h3>
                     </div>
 
                     <div className="space-y-4 relative z-10">
@@ -102,7 +102,7 @@ export default function AnalyticsDashboard() {
 
                         <div className="inline-flex items-center gap-2 bg-blue-500/10 px-4 py-2 rounded-2xl mb-8 ring-1 ring-blue-500/20 backdrop-blur-md">
                             <Star size={14} className="text-blue-500 fill-blue-500 animate-pulse" />
-                            <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest text-shadow-glow">Community Milestone</span>
+                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest text-shadow-glow">Community Milestone</span>
                         </div>
 
                         <div className="flex flex-col items-center mb-6">
@@ -113,7 +113,7 @@ export default function AnalyticsDashboard() {
                             <h4 className="text-[14px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-2">Tổng số thành viên Alpha</h4>
                         </div>
 
-                        <div className="flex items-center gap-3 py-3 px-6 rounded-2xl bg-black/5 dark:bg-white/5 backdrop-blur-md ring-1 ring-black/5 dark:ring-white/10 group-hover:scale-105 transition-transform duration-500">
+                        <div className="flex items-center gap-3 py-3 px-6 rounded-2xl bg-black/5 backdrop-blur-md ring-1 ring-black/5 group-hover:scale-105 transition-transform duration-500">
                             <div className="w-2 h-2 rounded-full bg-blue-400 animate-ping"></div>
                             <span className="text-[12px] font-black text-foreground tracking-tight uppercase">Verified Alpha Network</span>
                         </div>
@@ -138,7 +138,7 @@ export default function AnalyticsDashboard() {
                         </div>
 
                         {/* Premium Progress Bar */}
-                        <div className="w-full h-4 bg-slate-100 dark:bg-white/5 rounded-full p-1 relative overflow-hidden">
+                        <div className="w-full h-4 bg-slate-100 rounded-full p-1 relative overflow-hidden">
                             <div className="h-full bg-gradient-to-r from-blue-600 via-indigo-500 to-cyan-400 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.4)] animate-shimmer" style={{ width: `${Math.min((totalUsersCount / 1000) * 100, 100)}%` }}></div>
                             <div className="absolute top-0 right-0 h-full w-24 bg-gradient-to-r from-transparent to-white/20 -skew-x-12 translate-x-full animate-shimmer-fast"></div>
                         </div>
