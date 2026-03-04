@@ -53,8 +53,8 @@ export default function ReportComparisonModal({ selectedReports, onClose }) {
     const COLORS = ['#14b8a6', '#8b5cf6', '#f59e0b', '#3b82f6'];
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-[#1d1d1f]/80 backdrop-blur-xl animate-fade-in">
-            <div className="bg-background w-full max-w-6xl max-h-[95vh] rounded-[48px] shadow-2xl overflow-hidden ring-1 ring-white/10 flex flex-col animate-slide-up">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-black/[0.02] dark:bg-white/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200">
+            <div className="bg-background w-full max-w-6xl max-h-full rounded-[40px] shadow-2xl overflow-hidden ring-1 ring-white/10 flex flex-col animate-in zoom-in-95 duration-200">
 
                 {/* Header */}
                 <div className="p-8 border-b border-white/5 flex items-center justify-between shrink-0">

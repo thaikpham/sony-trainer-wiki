@@ -7,7 +7,7 @@ import SingleSelectField, { CategoryBadge } from './SingleSelectField';
 const formatPrice = (price) => {
     const n = Number(price);
     if (!price || isNaN(n) || n <= 0) return '—';
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(n);
+    return new Intl.NumberFormat('en-US').format(n) + ' ₫';
 };
 
 /** Renders a sortable <th> — defined at module scope to avoid recreation on every render. */
@@ -30,7 +30,7 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
     const [search, setSearch] = useState('');
     const [sortKey, setSortKey] = useState('name');
     const [sortDir, setSortDir] = useState('asc');
-    const [filterCategory, setFilterCategory] = useState('Tất cả danh mục');
+    const [filterCategory, setFilterCategory] = useState('Tất cả ngành hàng');
 
     const categories = useMemo(() => {
         const cats = [...new Set(products.map(p => p.category).filter(Boolean))];
@@ -48,7 +48,7 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
                 p.tags?.some(t => t.toLowerCase().includes(q))
             );
         }
-        if (filterCategory && filterCategory !== 'Tất cả danh mục') list = list.filter(p => p.category === filterCategory);
+        if (filterCategory && filterCategory !== 'Tất cả ngành hàng') list = list.filter(p => p.category === filterCategory);
         list.sort((a, b) => {
             let va = a[sortKey] ?? '';
             let vb = b[sortKey] ?? '';
@@ -87,7 +87,7 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
                         value={filterCategory}
                         onChange={setFilterCategory}
                         options={[
-                            { label: 'Tất cả danh mục', color: 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300' },
+                            { label: 'Tất cả ngành hàng', color: 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300' },
                             ...categories.map(c => ({ label: c, color: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' }))
                         ]}
                     />
@@ -122,8 +122,9 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
                             <tr>
                                 <th className="px-4 py-3 text-left w-14" />
                                 <SortHeader label="Tên sản phẩm" colKey="name" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
-                                <SortHeader label="Model" colKey="model" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
-                                <SortHeader label="Danh mục" colKey="category" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                                <SortHeader label="Model Name" colKey="model" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                                <SortHeader label="Màu sắc" colKey="color" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                                <SortHeader label="Ngành hàng" colKey="category" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                                 <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-[150px] truncate">Tags</th>
                                 <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-[200px] truncate">Thông số & Tính năng</th>
                                 <SortHeader label="Giá" colKey="price" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
@@ -156,6 +157,11 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
                                     {/* Model */}
                                     <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 font-mono text-[11px] truncate max-w-[150px]" title={product.model}>
                                         {product.model || '—'}
+                                    </td>
+
+                                    {/* Color */}
+                                    <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 font-medium text-[12px] truncate max-w-[100px]" title={product.color}>
+                                        {product.color || '—'}
                                     </td>
 
                                     {/* Category */}

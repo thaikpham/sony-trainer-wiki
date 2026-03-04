@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 
 // Predefined color palette for tags
 export const TAG_COLORS = [
@@ -49,7 +49,7 @@ export function TagPill({ tag, onRemove }) {
  *   suggestions?: string[]   — predefined option list
  *   placeholder?: string
  */
-export default function MultiSelectField({ value = [], onChange, suggestions = [], placeholder = 'Thêm tag...' }) {
+export default function MultiSelectField({ value = [], onChange, suggestions = [], onAddSuggestion, onRemoveSuggestion, placeholder = 'Thêm tag...' }) {
     const [input, setInput] = useState('');
     const [open, setOpen] = useState(false);
     const inputRef = useRef(null);
@@ -65,7 +65,11 @@ export default function MultiSelectField({ value = [], onChange, suggestions = [
             onChange([...value, trimmed]);
         }
         setInput('');
-        setOpen(false);
+
+        // Re-focus input to keep dropdown naturally open
+        setTimeout(() => {
+            if (inputRef.current) inputRef.current.focus();
+        }, 0);
     };
 
     const removeTag = (tag) => onChange(value.filter(v => v !== tag));
@@ -73,6 +77,9 @@ export default function MultiSelectField({ value = [], onChange, suggestions = [
     const handleKeyDown = (e) => {
         if ((e.key === 'Enter' || e.key === ',') && input.trim()) {
             e.preventDefault();
+            if (onAddSuggestion && !suggestions.includes(input.trim())) {
+                onAddSuggestion(input.trim());
+            }
             addTag(input);
         } else if (e.key === 'Backspace' && !input && value.length > 0) {
             removeTag(value[value.length - 1]);
@@ -109,17 +116,31 @@ export default function MultiSelectField({ value = [], onChange, suggestions = [
             </div>
 
             {/* Dropdown */}
-            {open && (filtered.length > 0 || input.trim()) && (
-                <div className="absolute z-50 mt-1 w-full rounded-xl border border-black/[0.08] dark:border-white/10 bg-white dark:bg-[#1c1c1e] shadow-xl overflow-hidden">
+            {open && (filtered.length > 0) && (
+                <div className="absolute z-50 mt-1 w-full max-h-60 overflow-y-auto custom-scrollbar rounded-xl border border-black/[0.08] dark:border-white/10 bg-white dark:bg-[#1c1c1e] shadow-xl py-1">
                     {filtered.map(s => (
-                        <button key={s} type="button" onMouseDown={() => addTag(s)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-left hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${getTagColor(s).dot}`} />
-                            {s}
-                        </button>
+                        <div key={s} className="w-full flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); addTag(s); }}
+                                className="flex-1 flex items-center gap-2 px-3 py-2 text-[13px] text-left">
+                                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${getTagColor(s).dot}`} />
+                                {s}
+                            </button>
+                            {onRemoveSuggestion && (
+                                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemoveSuggestion(s); }}
+                                    className="px-3 py-2 text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Trash2 size={13} />
+                                </button>
+                            )}
+                        </div>
                     ))}
                     {input.trim() && !value.includes(input.trim()) && (
-                        <button type="button" onMouseDown={() => addTag(input)}
+                        <button type="button" onClick={(e) => {
+                            e.preventDefault();
+                            if (onAddSuggestion && !suggestions.includes(input.trim())) {
+                                onAddSuggestion(input.trim());
+                            }
+                            addTag(input);
+                        }}
                             className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-left text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-t border-black/[0.05] dark:border-white/5 transition-colors">
                             <span className="text-blue-400">+</span>
                             Tạo tag &quot;<strong>{input.trim()}</strong>&quot;

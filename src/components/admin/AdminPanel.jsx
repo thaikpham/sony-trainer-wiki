@@ -1,21 +1,22 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { Database, RefreshCw, BarChart3, Package } from 'lucide-react';
+import { Database, RefreshCw, BarChart3, Package, UploadCloud } from 'lucide-react';
 import ProductTable from './ProductTable';
 import ProductFormModal from './ProductFormModal';
 import LiveReportsTable from './LiveReportsTable';
-import { getAllProductsAdmin, addProduct, updateProduct, deleteProduct } from '@/services/db';
+import { getAllProductsAdmin, addProduct, updateProduct, deleteProduct, getGlobalTags, updateGlobalTags } from '@/services/db';
 import { useUser } from '@clerk/nextjs';
 import { getRoleKeys } from '@/lib/roles';
-import DemoDataLoader from '../DemoDataLoader';
 
 export default function AdminPanel() {
     const [activeTab, setActiveTab] = useState('products'); // 'products' or 'reports'
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [importing, setImporting] = useState(false);
     const [modalProduct, setModalProduct] = useState(null); // null = closed; {} = new; {...product} = edit
     const [toast, setToast] = useState(null); // { type: 'success'|'error', msg }
+    const [globalTags, setGlobalTags] = useState([]);
 
     const { user } = useUser();
     const userRoleKeys = getRoleKeys(user?.primaryEmailAddress?.emailAddress);
@@ -26,11 +27,15 @@ export default function AdminPanel() {
         setTimeout(() => setToast(null), 3000);
     };
 
-    const loadProducts = useCallback(async () => {
+    const loadData = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await getAllProductsAdmin();
+            const [data, tags] = await Promise.all([
+                getAllProductsAdmin(),
+                getGlobalTags()
+            ]);
             setProducts(data);
+            setGlobalTags(tags);
         } catch (e) {
             showToast('error', 'Không tải được dữ liệu: ' + e.message);
         } finally {
@@ -39,8 +44,18 @@ export default function AdminPanel() {
     }, []);
 
     useEffect(() => {
-        if (activeTab === 'products') loadProducts();
-    }, [loadProducts, activeTab]);
+        if (activeTab === 'products') loadData();
+    }, [loadData, activeTab]);
+
+    const handleUpdateTags = async (newTags) => {
+        try {
+            await updateGlobalTags(newTags);
+            setGlobalTags(newTags);
+            showToast('success', 'Đã lưu danh sách tags');
+        } catch (e) {
+            showToast('error', 'Lỗi lưu tags: ' + e.message);
+        }
+    };
 
     const handleSave = async (formData) => {
         setSaving(true);
@@ -54,7 +69,7 @@ export default function AdminPanel() {
                 showToast('success', `✅ Đã thêm "${formData.name}"`);
             }
             setModalProduct(null);
-            await loadProducts();
+            await loadData();
         } catch (e) {
             showToast('error', '❌ Lỗi: ' + e.message);
         } finally {
@@ -68,11 +83,33 @@ export default function AdminPanel() {
             await deleteProduct(id);
             showToast('success', '🗑 Đã xóa sản phẩm');
             setModalProduct(null);
-            await loadProducts();
+            await loadData();
         } catch (e) {
             showToast('error', '❌ Lỗi xóa: ' + e.message);
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleBulkImport = async () => {
+        if (!window.confirm('Bạn có chắc chắn muốn import dữ liệu sản phẩm? Sản phẩm trùng lập có thể xuất hiện nếu chạy lại nhiều lần.')) return;
+        setImporting(true);
+        try {
+            const res = await fetch('/importData.json');
+            if (!res.ok) throw new Error('Không tải được importData.json');
+            const data = await res.json();
+            let count = 0;
+            for (const product of data) {
+                await addProduct(product);
+                count++;
+                if (count % 10 === 0) showToast('success', `ℹ️ Đang import... ${count}/${data.length}`);
+            }
+            showToast('success', `✅ Import hoàn tất! Đã thêm ${count} sản phẩm.`);
+            await loadData();
+        } catch (e) {
+            showToast('error', '❌ Lỗi import: ' + e.message);
+        } finally {
+            setImporting(false);
         }
     };
 
@@ -109,10 +146,20 @@ export default function AdminPanel() {
                         Báo cáo Live
                     </button>
                     <div className="w-px h-4 bg-black/10 dark:bg-white/10 mx-1"></div>
-                    <button onClick={loadProducts} disabled={loading}
+                    <button onClick={loadData} disabled={loading}
                         className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-40">
                         <RefreshCw size={14} className={loading && activeTab === 'products' ? 'animate-spin' : ''} />
                     </button>
+                    {isDev && activeTab === 'products' && (
+                        <button
+                            onClick={handleBulkImport}
+                            disabled={importing}
+                            title="Import từ file dữ liệu chuẩn"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-900/50 transition-colors disabled:opacity-40">
+                            <UploadCloud size={13} className={importing ? 'animate-bounce' : ''} />
+                            {importing ? 'Importing...' : 'Import'}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -120,7 +167,6 @@ export default function AdminPanel() {
             <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 {activeTab === 'products' ? (
                     <div className="flex flex-col gap-4">
-                        {isDev && <DemoDataLoader />}
                         <ProductTable
                             products={products}
                             loading={loading}
@@ -137,6 +183,8 @@ export default function AdminPanel() {
             {modalProduct !== null && (
                 <ProductFormModal
                     product={Object.keys(modalProduct).length === 0 ? null : modalProduct}
+                    globalTags={globalTags}
+                    onUpdateTags={handleUpdateTags}
                     onSave={handleSave}
                     onDelete={handleDelete}
                     onClose={() => setModalProduct(null)}

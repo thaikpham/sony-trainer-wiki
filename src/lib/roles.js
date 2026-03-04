@@ -85,6 +85,19 @@ export const ROLES = {
         adminAccess: false,
         priority: 5,
     },
+    SALESMAN: {
+        label: 'Sales Expert',
+        short: 'Sales',
+        emoji: '💼',
+        description: 'Chuyên gia kinh doanh — am hiểu sản phẩm, thành thạo kỹ năng tư vấn và chốt đơn.',
+        rarity: 'Uncommon',
+        category: 'core',
+        gradient: 'from-emerald-400 to-green-600',
+        glow: 'rgba(52,211,153,0.35)',
+        textColor: 'text-white',
+        adminAccess: false,
+        priority: 6,
+    },
     // Achievement Badges
     AI_ENTHUSIAST: {
         label: 'Chiến thần AI',
@@ -336,6 +349,8 @@ export const ROLE_EMAIL_MAP = {
     'thaikpham.art@gmail.com': ['DEV', 'TRAINER', 'PRODUCT_MARKETING', 'DATA'],
     'trungnguyen.fwr@gmail.com': ['TRAINER', 'DATA'],
     'nhanlt.luunhan@gmail.com': ['TRAINER', 'DATA'],
+    'buingockieuanhwork@gmail.com': ['DATA', 'SALESMAN'],
+    'minhtranduy.sony@gmail.com': ['DATA', 'SALESMAN'],
     // Examples — update with real emails:
     // 'trainer@sony.com': ['TRAINER'],
     // 'marketing@sony.com': ['PRODUCT_MARKETING'],

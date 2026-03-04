@@ -136,7 +136,7 @@ export default function AIPage() {
     }, [step]);
 
     const stages = [
-        { id: 'category', label: 'DANH MỤC' },
+        { id: 'category', label: 'NGÀNH HÀNG' },
         { id: 'configure', label: 'THIẾT LẬP' },
         { id: 'analyzing', label: 'PHÂN TÍCH' },
         { id: 'result', label: 'BÁO CÁO' }
@@ -146,17 +146,17 @@ export default function AIPage() {
         const activeIndex = stages.findIndex(s => s.id === currentStepId);
         return (
             <div className="w-full flex justify-center mb-8">
-                <nav className="flex items-center space-x-1 sm:space-x-2 bg-white/60 dark:bg-white/5 backdrop-blur-xl p-1.5 rounded-full border border-black/[0.04] dark:border-white/5 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                <nav className="flex items-center space-x-1 sm:space-x-2 bg-white/60 dark:bg-white/5 backdrop-blur-xl p-1.5 rounded-full border border-black/[0.04] dark:border-white/5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-x-auto scrollbar-hide max-w-full">
                     {stages.map((s, idx) => {
                         const isActive = idx === activeIndex;
                         const isPast = idx < activeIndex;
                         return (
                             <div key={s.id} className={`flex items-center flex-shrink-0 ${isPast ? 'cursor-pointer hover:opacity-70 transition-opacity' : ''}`}
                                 onClick={() => { if (isPast) setStep(s.id); }}>
-                                <div className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-[11px] sm:text-[13px] font-semibold transition-all duration-300 ${isActive ? 'bg-white dark:bg-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-[#1d1d1f] dark:text-white' : isPast ? 'text-[#86868b] dark:text-slate-400' : 'text-slate-400 dark:text-slate-500 opacity-60'}`}>
+                                <div className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-[11px] sm:text-[13px] whitespace-nowrap font-semibold transition-all duration-300 ${isActive ? 'bg-white dark:bg-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-[#1d1d1f] dark:text-white' : isPast ? 'text-[#86868b] dark:text-slate-400' : 'text-slate-400 dark:text-slate-500 opacity-60'}`}>
                                     {s.label}
                                 </div>
-                                {idx < stages.length - 1 && (<ChevronRight size={14} className={`mx-1 sm:mx-2 ${isPast ? 'text-[#1d1d1f] dark:text-slate-300' : 'text-slate-300 dark:text-slate-600'}`} />)}
+                                {idx < stages.length - 1 && (<ChevronRight size={14} className={`mx-1 sm:mx-2 flex-shrink-0 ${isPast ? 'text-[#1d1d1f] dark:text-slate-300' : 'text-slate-300 dark:text-slate-600'}`} />)}
                             </div>
                         );
                     })}
@@ -191,7 +191,7 @@ export default function AIPage() {
                 <div className="w-full animate-slide-up flex flex-col gap-6 mx-auto">
                     {renderStageNavigation('category')}
                     <div className="mb-2 text-center px-2">
-                        <h2 className="text-3xl md:text-4xl font-bold text-[#1d1d1f] dark:text-white tracking-tight mb-3">Chọn Danh Mục Sản Phẩm</h2>
+                        <h2 className="text-3xl md:text-4xl font-bold text-[#1d1d1f] dark:text-white tracking-tight mb-3">Chọn Ngành Hàng Sản Phẩm</h2>
                         <p className="text-[15px] text-[#86868b] dark:text-slate-400 font-medium">Chọn dòng sản phẩm Sony bạn muốn được tư vấn.</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

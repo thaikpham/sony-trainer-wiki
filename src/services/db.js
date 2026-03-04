@@ -60,6 +60,36 @@ export async function getColorProfile(id) {
 }
 
 // ============================================
+// Global Tags (Settings)
+// ============================================
+export async function getGlobalTags() {
+    const docRef = doc(db, 'settings', 'tags');
+    const snap = await getDoc(docRef);
+    if (snap.exists() && snap.data().list) {
+        return snap.data().list;
+    }
+    const defaultTags = [
+        // Máy Ảnh & Máy Quay Film tags (từ Airtable DI)
+        'Full-Frame', 'APS-C', '1-inch', 'Compact', 'ZV', 'Cinemaline',
+        'Ống kính rời', '4K 120p', '8K', 'Mirrorless', 'S-Log3', 'S-Cinetone',
+        // Ống kính
+        'G Master', 'G Lens', 'OSS', 'Zeiss', 'Macro', 'Cinema',
+        // Âm thanh & Tai nghe
+        'Noise Cancelling', 'LDAC', 'Hi-Res Audio', '360 RA',
+        // Tivi
+        'Bravia XR', 'OLED', 'Mini LED', '4K HDR',
+        // Khác
+        '5G Ready', 'IP68', 'ZEISS Optics',
+    ];
+    await setDoc(docRef, { list: defaultTags });
+    return defaultTags;
+}
+
+export async function updateGlobalTags(tags) {
+    await setDoc(doc(db, 'settings', 'tags'), { list: tags });
+}
+
+// ============================================
 // CRUD cho Livestream Tutorials
 // ============================================
 
@@ -206,4 +236,48 @@ export async function getAllLiveReportsAdmin() {
 export async function deleteLiveReport(id) {
     const docRef = doc(db, 'live_reports', id);
     await deleteDoc(docRef);
+}
+
+// ============================================
+// CRUD cho User Overrides (Dev Panel)
+// Lưu override roles/badges theo email vào Firestore
+// ============================================
+
+/**
+ * Lấy override roles/badges của 1 email (nếu có).
+ */
+export async function getUserOverride(email) {
+    const id = email.replace(/[@.]/g, '_');
+    const docRef = doc(db, 'user_overrides', id);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) return { id: snap.id, email, ...snap.data() };
+    return null;
+}
+
+/**
+ * Lưu (hoặc cập nhật) override roles/badges cho 1 email.
+ * data: { roles: string[], badges: string[] }
+ */
+export async function setUserOverride(email, data) {
+    const id = email.replace(/[@.]/g, '_');
+    const docRef = doc(db, 'user_overrides', id);
+    await setDoc(docRef, { email, ...data, updatedAt: serverTimestamp() }, { merge: true });
+}
+
+/**
+ * Xóa override (khôi phục về ROLE_EMAIL_MAP defaults).
+ */
+export async function deleteUserOverride(email) {
+    const id = email.replace(/[@.]/g, '_');
+    const docRef = doc(db, 'user_overrides', id);
+    await deleteDoc(docRef);
+}
+
+/**
+ * Lấy toàn bộ overrides (dành cho Dev Panel).
+ */
+export async function getAllUserOverrides() {
+    const col = collection(db, 'user_overrides');
+    const snapshot = await getDocs(col);
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 }

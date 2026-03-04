@@ -31,7 +31,7 @@ export function CategoryBadge({ category }) {
 /**
  * SingleSelectField — styled dropdown for selecting a single category with color preview.
  */
-export default function SingleSelectField({ value, onChange, options = CATEGORY_OPTIONS, placeholder = 'Chọn danh mục...' }) {
+export default function SingleSelectField({ value, onChange, options = CATEGORY_OPTIONS, placeholder = 'Chọn ngành hàng...' }) {
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
 

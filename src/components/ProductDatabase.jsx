@@ -55,7 +55,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
         }
     };
 
-    const ALL_TYPES = ['Body', 'Lens', 'Tai nghe', 'Loa', 'TV', 'Soundbar', 'Điện Thoại', 'Phụ kiện'];
+    const ALL_TYPES = ['Máy Ảnh', 'Ống Kính', 'Tai Nghe', 'Loa & Âm Thanh', 'Tivi Bravia', 'PlayStation', 'Điện Thoại Xperia', 'Máy Quay Film', 'Phụ Kiện'];
 
     useEffect(() => {
         let isMounted = true;
@@ -83,7 +83,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
     const availableTags = useMemo(() => {
         const tagSet = new Set();
         data.forEach(item => {
-            if (mainCategory !== 'Tất cả' && item.type !== mainCategory) return;
+            if (mainCategory !== 'Tất cả' && item.category !== mainCategory) return;
             if (item.tags && Array.isArray(item.tags)) {
                 item.tags.forEach(tag => tagSet.add(tag));
             }
@@ -100,7 +100,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                 (item.highlights && item.highlights.toLowerCase().includes(searchLower)) ||
                 (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchLower)));
 
-            const matchesMainCat = mainCategory === 'Tất cả' ? true : item.type === mainCategory;
+            const matchesMainCat = mainCategory === 'Tất cả' ? true : item.category === mainCategory;
             const matchesType = activeTags.length === 0 ? true : activeTags.every(tag => item.tags && item.tags.includes(tag));
             return matchesSearch && matchesMainCat && matchesType;
         });
@@ -160,7 +160,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                 : 'bg-white dark:bg-white/5 ring-1 ring-black/5 dark:ring-white/[0.05] text-[#86868b] dark:text-slate-400 hover:bg-[#F5F5F7] dark:hover:bg-white/10 hover:text-[#1d1d1f] dark:hover:text-white'
                                 }`}
                         >
-                            {cat === 'Body' ? 'Máy ảnh' : cat === 'Lens' ? 'Ống kính' : cat === 'Tất cả' ? 'Tất cả' : cat}
+                            {cat === 'Tất cả' ? 'Tất cả' : cat}
                         </button>
                     ))}
                 </div>
@@ -289,8 +289,8 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                             <td className="px-4 py-4 text-slate-500 dark:text-slate-400 text-[12px] truncate group-hover:text-[#1d1d1f] dark:group-hover:text-white transition-colors" title={item.highlights}>
                                                 {item.highlights || '—'}
                                             </td>
-                                            <td className="px-4 py-4 font-black text-blue-600 dark:text-blue-400 tabular-nums truncate" title={item.price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(item.price) : '—'}>
-                                                {item.price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(item.price) : '—'}
+                                            <td className="px-4 py-4 font-black text-blue-600 dark:text-blue-400 tabular-nums truncate" title={item.price ? new Intl.NumberFormat('en-US').format(item.price) + ' ₫' : '—'}>
+                                                {item.price ? new Intl.NumberFormat('en-US').format(item.price) + ' ₫' : '—'}
                                             </td>
                                             <td className="px-4 py-4 text-slate-500 dark:text-slate-400 tabular-nums font-medium truncate">
                                                 {item.year || '—'}
@@ -376,102 +376,130 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
 
             {/* Quick Setting Guide Modal */}
             {quickSettingGuide && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setQuickSettingGuide(null)} />
-                    <div className="relative w-full max-w-2xl bg-background rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
-                        <div className="px-8 py-6 border-b border-black/[0.05] dark:border-white/[0.05] flex items-center justify-between bg-orange-500/5 dark:bg-orange-500/10">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-500/20 flex items-center justify-center text-orange-600 dark:text-orange-400">
-                                    <Settings2 size={20} />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-black text-foreground tracking-tight">Quick Setting Guide</h2>
-                                    <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{quickSettingGuide.name}</p>
-                                </div>
-                            </div>
-                            <button onClick={() => setQuickSettingGuide(null)} className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors text-slate-400">
-                                <X size={24} />
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
+                    <div className="absolute inset-0 bg-black/[0.02] dark:bg-white/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200" onClick={() => setQuickSettingGuide(null)} />
+                    <div className="relative w-full max-w-4xl bg-white dark:bg-[#151515] rounded-[32px] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] flex flex-col ring-1 ring-black/5 dark:ring-white/10 m-4 sm:m-6 max-h-[90vh]">
+                        {/* Header */}
+                        <div className="relative px-8 pt-10 pb-6 shrink-0 bg-white dark:bg-[#151515]">
+                            <button onClick={() => setQuickSettingGuide(null)} className="absolute top-8 right-8 p-2 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-all active:scale-95">
+                                <X size={20} />
                             </button>
+                            <div className="flex flex-col gap-3">
+                                <div className="flex items-center">
+                                    <span className="px-3 py-1 bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400 text-[10px] font-black uppercase tracking-[0.15em] rounded-full flex items-center gap-1.5 ring-1 ring-teal-500/20">
+                                        <Settings2 size={12} strokeWidth={2.5} />
+                                        Quick Setting Guide
+                                    </span>
+                                </div>
+                                <h2 className="text-3xl sm:text-4xl font-black text-[#1d1d1f] dark:text-white tracking-tight leading-tight">
+                                    {quickSettingGuide.name}
+                                </h2>
+                            </div>
                         </div>
-                        <div className="px-6 py-6 max-h-[75vh] overflow-y-auto scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10 scrollbar-track-transparent">
-                            <div className="flex flex-col gap-6">
+
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto px-8 pb-10 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10 scrollbar-track-transparent">
+                            <div className="flex flex-col gap-10">
                                 {(() => {
                                     const rawLines = quickSettingGuide.guide.split('\n').map(l => l.trim()).filter(Boolean);
-                                    const sections = [];
-                                    let currentSection = null;
+
+                                    const GROUPS = {
+                                        "Vận hành máy ảnh": { title: "Vận hành máy ảnh", items: [] },
+                                        "Chất lượng hình ảnh": { title: "Chất lượng hình ảnh", items: [] },
+                                        "Lấy Nét": { title: "Lấy Nét", items: [] },
+                                        "Quay Phim & Âm thanh": { title: "Quay Phim & Âm thanh", items: [] }
+                                    };
+
+                                    const getCategory = (title) => {
+                                        const tLow = title.toLowerCase();
+                                        if (tLow.includes('chất lượng') || tLow.includes('hình ảnh') || tLow.includes('image') || tLow.includes('màu sắc') || tLow.includes('color')) return "Chất lượng hình ảnh";
+                                        if (tLow.includes('lấy nét') || tLow.includes('focus') || tLow.includes('af') || tLow.includes('tracking')) return "Lấy Nét";
+                                        if (tLow.includes('quay') || tLow.includes('video') || tLow.includes('âm thanh') || tLow.includes('audio') || tLow.includes('movie')) return "Quay Phim & Âm thanh";
+                                        return "Vận hành máy ảnh";
+                                    };
+
+                                    let currentGroupName = "Vận hành máy ảnh";
 
                                     rawLines.forEach(line => {
-                                        // Detect section headers (all caps or starts with "PHẦN")
-                                        if (line.match(/^([📸🖼️🎯💡🎥]\s*)?PHẦN\s+\d+|^[A-Z\s&()]+$/)) {
-                                            if (currentSection) sections.push(currentSection);
-                                            currentSection = { title: line, items: [], description: '' };
-                                        }
-                                        else if (currentSection) {
-                                            // Handle key-value pairs separated by colon
-                                            if (line.includes(':')) {
-                                                const [key, ...rest] = line.split(':');
-                                                currentSection.items.push({ key: key.trim(), value: rest.join(':').trim() });
-                                            } else {
-                                                // Handle descriptions or sub-headers that aren't key-value pairs
-                                                if (currentSection.items.length === 0) {
-                                                    // This is probably a description under the title before any settings
-                                                    currentSection.description += (currentSection.description ? ' ' : '') + line;
-                                                } else {
-                                                    // It's just an extra floating line, treat as full-width note
-                                                    currentSection.items.push({ key: '', value: line, isNote: true });
-                                                }
-                                            }
+                                        const isUppercaseHeader = /^[A-ZẮẰẲẴẶĂẤẦẨẪẬÂÁÀÃẢẠĐẾỀỂỄỆÊÉÈẺẼẸÍÌỈĨỊỐỒỔỖỘÔỚỜỞỠỢƠÓÒÕỎỌỨỪỬỮỰƯÚÙỦŨỤÝỲỶỸỴ\s&()\-]+$/.test(line);
+                                        const hasPhan = /^([📸🖼️🎯💡🎥]\s*)?PHẦN\s+\d+/.test(line);
+                                        const isHeader = hasPhan || (isUppercaseHeader && line.length < 50 && !line.includes(':'));
+
+                                        if (isHeader) {
+                                            let cleanTitle = line.replace(/^[📸🖼️🎯💡🎥]\s*/, '').replace(/^PHẦN\s+\d+:\s*/i, '').replace(/^PHẦN\s+\d+\s*/i, '');
+                                            currentGroupName = getCategory(cleanTitle);
                                         } else {
-                                            // Fallback if no sections were started yet
-                                            currentSection = { title: 'Thông tin chung', items: [], description: line };
+                                            const currentSection = GROUPS[currentGroupName];
+
+                                            if (line.includes(':')) {
+                                                const firstColonIndex = line.indexOf(':');
+                                                const key = line.substring(0, firstColonIndex).trim();
+                                                const value = line.substring(firstColonIndex + 1).trim();
+
+                                                if (key.length > 50) {
+                                                    // Note
+                                                    currentSection.items.push({ key: '', value: line, isNote: true });
+                                                } else {
+                                                    // Valid Key-Value
+                                                    currentSection.items.push({ key: key, value: value });
+                                                }
+                                            } else {
+                                                // Note
+                                                currentSection.items.push({ key: '', value: line, isNote: true });
+                                            }
                                         }
                                     });
-                                    if (currentSection) sections.push(currentSection);
 
-                                    return sections.map((section, idx) => (
-                                        <div key={idx} className="bg-white dark:bg-white/5 rounded-2xl border border-black/[0.04] dark:border-white/[0.04] shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden">
-                                            <div className="bg-slate-50 dark:bg-black/20 px-5 py-3.5 border-b border-black/[0.04] dark:border-white/[0.04]">
-                                                <h3 className="font-bold text-[14px] text-[#1d1d1f] dark:text-white flex items-center gap-2">
-                                                    {section.title}
-                                                </h3>
-                                                {section.description && (
-                                                    <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1">{section.description}</p>
-                                                )}
-                                            </div>
-                                            <div className="divide-y divide-black/[0.04] dark:divide-white/[0.04]">
-                                                {section.items.map((item, itemIdx) => (
-                                                    <div key={itemIdx} className={`px-5 py-3 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors ${item.isNote ? 'bg-orange-50/50 dark:bg-orange-900/10' : 'flex items-start gap-4'}`}>
-                                                        {item.isNote ? (
-                                                            <p className="text-[13px] text-slate-600 dark:text-slate-300 italic">{item.value}</p>
-                                                        ) : (
-                                                            <>
-                                                                <div className="w-1/3 flex-shrink-0 text-[13px] font-semibold text-slate-700 dark:text-slate-200">
-                                                                    {item.key}
-                                                                </div>
-                                                                <div className="w-2/3 text-[13px] text-slate-500 dark:text-slate-400">
-                                                                    {item.value}
-                                                                </div>
-                                                            </>
-                                                        )}
+                                    const activeSections = Object.values(GROUPS).filter(g => g.items.length > 0);
+
+                                    return activeSections.map((section, idx) => {
+                                        let SectionIcon = Aperture;
+                                        if (section.title === "Chất lượng hình ảnh") SectionIcon = Camera;
+                                        else if (section.title === "Vận hành máy ảnh") SectionIcon = Activity;
+                                        else if (section.title === "Lấy Nét") SectionIcon = Fingerprint;
+                                        else if (section.title === "Quay Phim & Âm thanh") SectionIcon = Settings2;
+
+                                        return (
+                                            <div key={idx} className="flex flex-col gap-4">
+                                                <div className="flex items-center gap-3 mb-1">
+                                                    <div className="w-8 h-8 rounded-full bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+                                                        <SectionIcon size={16} />
                                                     </div>
-                                                ))}
-                                                {section.items.length === 0 && !section.description && (
-                                                    <div className="px-5 py-4 text-[13px] text-slate-400 italic text-center">Không có dữ liệu chi tiết</div>
+                                                    <h3 className="text-[13.5px] font-black text-[#1d1d1f] dark:text-white uppercase tracking-widest">
+                                                        {section.title}
+                                                    </h3>
+                                                </div>
+
+
+
+                                                {section.items.length > 0 && (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                                                        {section.items.map((item, itemIdx) => (
+                                                            <div key={itemIdx} className={`bg-white dark:bg-[#1d1d1f] border border-slate-200 dark:border-white/10 rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col justify-center transition-shadow hover:shadow-md ${item.isNote ? 'md:col-span-2 items-center justify-center text-center bg-slate-50 dark:bg-white/5' : ''}`}>
+                                                                {item.isNote ? (
+                                                                    <span className="text-[14px] font-medium text-slate-600 dark:text-slate-300 italic w-full">
+                                                                        {item.value}
+                                                                    </span>
+                                                                ) : (
+                                                                    <>
+                                                                        <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">{item.key}</span>
+                                                                        <span className="text-[14px] sm:text-[14.5px] font-bold text-[#1d1d1f] dark:text-slate-200 leading-relaxed text-balance">{item.value}</span>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 )}
                                             </div>
-                                        </div>
-                                    ));
+                                        )
+                                    });
                                 })()}
                             </div>
-                        </div>
-                        <div className="px-8 py-6 border-t border-black/[0.05] dark:border-white/[0.05] bg-black/[0.02] dark:bg-white/[0.02] flex items-center justify-end">
-                            <button onClick={() => setQuickSettingGuide(null)} className="bg-foreground text-background px-6 py-2.5 rounded-full text-[13px] font-black hover:opacity-90 transition-all">
-                                Đóng
-                            </button>
                         </div>
                     </div>
                 </div>
             )}
+
         </div>
     );
 }

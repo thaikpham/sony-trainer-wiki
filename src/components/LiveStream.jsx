@@ -372,75 +372,77 @@ export default function LiveStream() {
                     <div className="absolute top-0 left-0 w-64 h-64 bg-teal-500/5 blur-[100px] -z-10"></div>
                     <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[100px] -z-10"></div>
 
-                    {/* Navigation Container */}
-                    <div className="relative flex justify-between items-center max-w-5xl mx-auto">
-                        {/* Progress Line Container */}
-                        <div className="absolute top-[24px] sm:top-[28px] left-0 right-0 h-[2px] z-0 mx-6 sm:mx-[28px]">
-                            {/* Background Line */}
-                            <div className="absolute inset-0 bg-slate-200 dark:bg-white/5 rounded-full"></div>
-                            {/* Dynamic Active Progress Line */}
-                            <div
-                                className="absolute inset-y-0 left-0 bg-gradient-to-r from-teal-500 to-emerald-400 z-0 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] rounded-full shadow-[0_0_15px_rgba(20,184,166,0.3)]"
-                                style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
-                            ></div>
-                        </div>
+                    {/* Navigation Container with horizontal scroll for Mobile */}
+                    <div className="overflow-x-auto scrollbar-hide py-4 -my-4">
+                        <div className="relative flex justify-between items-center min-w-[600px] sm:min-w-0 max-w-5xl mx-auto px-4 mt-2">
+                            {/* Progress Line Container */}
+                            <div className="absolute top-[24px] sm:top-[28px] left-0 right-0 h-[2px] z-0 mx-6 sm:mx-[28px]">
+                                {/* Background Line */}
+                                <div className="absolute inset-0 bg-slate-200 dark:bg-white/5 rounded-full"></div>
+                                {/* Dynamic Active Progress Line */}
+                                <div
+                                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-teal-500 to-emerald-400 z-0 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] rounded-full shadow-[0_0_15px_rgba(20,184,166,0.3)]"
+                                    style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+                                ></div>
+                            </div>
 
-                        {steps.map((step) => {
-                            const Icon = step.icon;
-                            const isActive = currentStep === step.id;
-                            const isPast = currentStep > step.id;
-                            const isFuture = currentStep < step.id;
+                            {steps.map((step) => {
+                                const Icon = step.icon;
+                                const isActive = currentStep === step.id;
+                                const isPast = currentStep > step.id;
+                                const isFuture = currentStep < step.id;
 
-                            return (
-                                <button
-                                    key={step.id}
-                                    onClick={() => setCurrentStep(step.id)}
-                                    className={`relative z-10 flex flex-col items-center group transition-all duration-500 ${isActive ? 'scale-110' : 'hover:scale-105'}`}
-                                >
-                                    {/* Icon Container */}
-                                    <div className={`
+                                return (
+                                    <button
+                                        key={step.id}
+                                        onClick={() => setCurrentStep(step.id)}
+                                        className={`relative z-10 flex flex-col items-center group transition-all duration-500 ${step.id === 2 ? 'hidden md:flex' : ''} ${isActive ? 'scale-110' : 'hover:scale-105'}`}
+                                    >
+                                        {/* Icon Container */}
+                                        <div className={`
                                         w-12 h-12 sm:w-14 sm:h-14 rounded-[20px] flex items-center justify-center transition-all duration-500 relative
                                         ${isActive
-                                            ? 'bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f] shadow-[0_15px_30px_rgba(0,0,0,0.2)] dark:shadow-[0_15px_30px_rgba(255,255,255,0.1)] scale-110'
-                                            : isPast
-                                                ? 'bg-white dark:bg-[#1d1d1f] text-teal-600 dark:text-teal-400 ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm'
-                                                : 'bg-white dark:bg-[#1d1d1f] text-slate-400 dark:text-slate-600 ring-1 ring-black/5 dark:ring-white/5 shadow-sm group-hover:ring-slate-300 dark:group-hover:ring-white/20'
-                                        }
+                                                ? 'bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f] shadow-[0_15px_30px_rgba(0,0,0,0.2)] dark:shadow-[0_15px_30px_rgba(255,255,255,0.1)] scale-110'
+                                                : isPast
+                                                    ? 'bg-white dark:bg-[#1d1d1f] text-teal-600 dark:text-teal-400 ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm'
+                                                    : 'bg-white dark:bg-[#1d1d1f] text-slate-400 dark:text-slate-600 ring-1 ring-black/5 dark:ring-white/5 shadow-sm group-hover:ring-slate-300 dark:group-hover:ring-white/20'
+                                            }
                                     `}>
-                                        {/* Status Glow for Active */}
-                                        {isActive && (
-                                            <div className="absolute inset-0 rounded-[20px] bg-teal-500/20 animate-ping -z-10"></div>
-                                        )}
+                                            {/* Status Glow for Active */}
+                                            {isActive && (
+                                                <div className="absolute inset-0 rounded-[20px] bg-teal-500/20 animate-ping -z-10"></div>
+                                            )}
 
-                                        <Icon size={isActive ? 24 : 20} strokeWidth={isActive ? 2.5 : 2} className="transition-transform duration-500" />
+                                            <Icon size={isActive ? 24 : 20} strokeWidth={isActive ? 2.5 : 2} className="transition-transform duration-500" />
 
-                                        {/* Completed Checkmark Overlay */}
-                                        {isPast && (
-                                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white ring-2 ring-white dark:ring-[#1d1d1f] shadow-lg animate-fade-in-up">
-                                                <CheckCircle2 size={12} strokeWidth={3} />
-                                            </div>
-                                        )}
-                                    </div>
+                                            {/* Completed Checkmark Overlay */}
+                                            {isPast && (
+                                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white ring-2 ring-white dark:ring-[#1d1d1f] shadow-lg animate-fade-in-up">
+                                                    <CheckCircle2 size={12} strokeWidth={3} />
+                                                </div>
+                                            )}
+                                        </div>
 
-                                    {/* Label Text */}
-                                    <div className="mt-4 flex flex-col items-center">
-                                        <span className={`
+                                        {/* Label Text */}
+                                        <div className="mt-4 flex flex-col items-center">
+                                            <span className={`
                                             text-[10px] sm:text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-500 whitespace-nowrap
                                             ${isActive
-                                                ? 'text-[#1d1d1f] dark:text-white translate-y-0 opacity-100'
-                                                : isPast
-                                                    ? 'text-teal-600/80 dark:text-teal-400/80 opacity-80'
-                                                    : 'text-slate-400 dark:text-slate-600 opacity-60 group-hover:opacity-100'
-                                            }
+                                                    ? 'text-[#1d1d1f] dark:text-white translate-y-0 opacity-100'
+                                                    : isPast
+                                                        ? 'text-teal-600/80 dark:text-teal-400/80 opacity-80'
+                                                        : 'text-slate-400 dark:text-slate-600 opacity-60 group-hover:opacity-100'
+                                                }
                                         `}>
-                                            {step.title}
-                                        </span>
-                                        {/* Active underline indicator */}
-                                        <div className={`h-[3px] rounded-full bg-teal-500 transition-all duration-700 mt-1.5 ${isActive ? 'w-4 opacity-100' : 'w-0 opacity-0'}`}></div>
-                                    </div>
-                                </button>
-                            );
-                        })}
+                                                {step.title}
+                                            </span>
+                                            {/* Active underline indicator */}
+                                            <div className={`h-[3px] rounded-full bg-teal-500 transition-all duration-700 mt-1.5 ${isActive ? 'w-4 opacity-100' : 'w-0 opacity-0'}`}></div>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
 

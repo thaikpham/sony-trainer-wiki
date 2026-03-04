@@ -7,6 +7,7 @@ import SingleSelectField from './SingleSelectField';
 const EMPTY_PRODUCT = {
     name: '',
     model: '',
+    color: '',
     category: '',
     tags: [],
     highlights: '',
@@ -18,18 +19,11 @@ const EMPTY_PRODUCT = {
     isAvailable: true,
 };
 
-const TAG_SUGGESTIONS = [
-    'Full-frame', 'APS-C', '4K 120p', '8K', 'Mirrorless', 'Cinema Line',
-    'G Master', 'G Lens', 'E-mount', 'FE-mount', 'Vlog', 'Compact',
-    'Noise Cancelling', 'LDAC', 'Hi-Res Audio', '360 RA',
-    'Bravia XR', 'OLED', 'Mini LED', '4K HDR',
-    'DualSense', 'SSD Speed', 'Ray Tracing',
-    '5G Ready', 'IP68', 'ZEISS Optics',
-];
+// Removed static TAG_SUGGESTIONS
 
 const INDUSTRY_TEMPLATES = {
-    'Body': '- Cảm biến: \n- Bộ xử lý: \n- Hệ thống lấy nét: \n- Video: \n- ISO: \n- Trọng lượng: ',
-    'Lens': '- Tiêu cự: \n- Khẩu độ: \n- Ngàm: \n- Khoảng cách lấy nét gần nhất: \n- Đường kính filter: \n- Trọng lượng: ',
+    'Body': '- Cảm biến: \n- Bộ xử lý: \n- Hệ thống lấy nét: \n- Video: \n- ISO: \n- Tính năng nổi bật: ',
+    'Lens': '- Tiêu cự: \n- Khẩu độ: \n- Motor lấy nét:\n- Khoảng cách lấy nét gần nhất: \n- Đường kính filter: \n- Trọng lượng: ',
     'TV': '- Độ phân giải: \n- Tấm nền: \n- Bộ xử lý hình ảnh: \n- Tần số quét: \n- Công nghệ âm thanh: \n- Tính năng Game: ',
     'Soundbar': '- Số kênh: \n- Công suất: \n- Công nghệ âm thanh: \n- Kết nối: \n- Loa subwoofer: ',
     'Tai nghe': '- Loại: \n- Driver: \n- Chống ồn: \n- Thời lượng pin: \n- Kết nối: \n- Trọng lượng: ',
@@ -40,7 +34,7 @@ const INDUSTRY_TEMPLATES = {
 const InputClass = 'w-full px-3 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-background text-[13px] text-foreground placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors';
 const LabelClass = 'block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5';
 
-export default function ProductFormModal({ product = null, onSave, onDelete, onClose, saving = false }) {
+export default function ProductFormModal({ product = null, onSave, onDelete, onClose, saving = false, globalTags = [], onUpdateTags }) {
     const isEdit = Boolean(product?.id);
     const [form, setForm] = useState(isEdit ? { ...EMPTY_PRODUCT, ...product } : { ...EMPTY_PRODUCT });
     const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -65,13 +59,13 @@ export default function ProductFormModal({ product = null, onSave, onDelete, onC
     };
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6" onClick={(e) => e.stopPropagation()}>
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-black/[0.02] dark:bg-white/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200" />
 
             {/* Modal */}
             <div
-                className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-background border border-black/[0.07] dark:border-white/[0.08] shadow-2xl"
+                className="relative z-10 w-full max-w-6xl max-h-full overflow-y-auto custom-scrollbar rounded-[32px] bg-background border border-black/[0.07] dark:border-white/[0.08] shadow-2xl animate-in zoom-in-95 duration-200"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
@@ -91,107 +85,143 @@ export default function ProductFormModal({ product = null, onSave, onDelete, onC
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
 
-                    {/* Row: Name + Model */}
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Row: Name + Model + Color */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         <div>
                             <label className={LabelClass}>Tên sản phẩm *</label>
                             <input required value={form.name} onChange={e => set('name', e.target.value)}
                                 className={InputClass} placeholder="VD: Sony ZV-E10 II" />
                         </div>
                         <div>
-                            <label className={LabelClass}>Model số</label>
+                            <label className={LabelClass}>Model Name</label>
                             <input value={form.model} onChange={e => set('model', e.target.value)}
                                 className={InputClass} placeholder="VD: ILCE-7RM5" />
                         </div>
+                        <div>
+                            <label className={LabelClass}>Màu sắc (Color)</label>
+                            <input value={form.color} onChange={e => set('color', e.target.value)}
+                                className={InputClass} placeholder="VD: Đen, Bạc..." />
+                        </div>
                     </div>
 
-                    {/* Category */}
-                    <div>
-                        <label className={LabelClass}>Danh mục *</label>
-                        <SingleSelectField value={form.category} onChange={v => set('category', v)} />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Category */}
+                        <div>
+                            <label className={LabelClass}>Ngành hàng *</label>
+                            <SingleSelectField value={form.category} onChange={v => {
+                                setForm(f => {
+                                    const next = { ...f, category: v };
+                                    const mapping = {
+                                        'Máy Ảnh': 'Body',
+                                        'Ống Kính': 'Lens',
+                                        'Tivi Bravia': 'TV',
+                                        'Loa & Âm Thanh': 'Loa',
+                                        'Tai Nghe': 'Tai nghe',
+                                        'Điện Thoại Xperia': 'Điện Thoại',
+                                        'Máy Quay Film': 'Body'
+                                    };
+                                    const templateKey = mapping[v];
+                                    if (templateKey && INDUSTRY_TEMPLATES[templateKey]) {
+                                        const tpl = INDUSTRY_TEMPLATES[templateKey];
+                                        // Chỉ tự điền template nếu chưa có chữ nào hoặc đang là 1 template trắng khác
+                                        if (!f.highlights || Object.values(INDUSTRY_TEMPLATES).includes(f.highlights)) {
+                                            next.highlights = tpl;
+                                        }
+                                    }
+                                    return next;
+                                });
+                            }} />
+                        </div>
+
+                        {/* Tags */}
+                        <div>
+                            <label className={LabelClass}>Tính năng / Tags</label>
+                            <MultiSelectField
+                                value={form.tags}
+                                onChange={v => set('tags', v)}
+                                suggestions={globalTags}
+                                onAddSuggestion={(newTag) => onUpdateTags([...new Set([...globalTags, newTag])])}
+                                onRemoveSuggestion={(tagToRemove) => onUpdateTags(globalTags.filter(t => t !== tagToRemove))}
+                                placeholder="Thêm tính năng nổi bật..."
+                            />
+                            <p className="mt-1 text-[11px] text-slate-400">Gõ + Enter để thêm. Gợi ý từ: {(globalTags || []).slice(0, 4).join(', ')}...</p>
+                        </div>
                     </div>
 
-                    {/* Tags */}
-                    <div>
-                        <label className={LabelClass}>Tính năng / Tags</label>
-                        <MultiSelectField
-                            value={form.tags}
-                            onChange={v => set('tags', v)}
-                            suggestions={TAG_SUGGESTIONS}
-                            placeholder="Thêm tính năng nổi bật..."
-                        />
-                        <p className="mt-1 text-[11px] text-slate-400">Gõ + Enter để thêm. Gợi ý từ: {TAG_SUGGESTIONS.slice(0, 4).join(', ')}...</p>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Highlights */}
+                        <div className="flex flex-col h-full">
+                            <div className="flex items-center justify-between mb-1.5">
+                                <label className={LabelClass}>Thông số & Tính năng nổi bật</label>
+                                <div className="flex gap-2">
+                                    {Object.keys(INDUSTRY_TEMPLATES).map(type => (
+                                        <button
+                                            key={type}
+                                            type="button"
+                                            onClick={() => {
+                                                if (confirm(`Áp dụng mẫu ${type}? Nội dung hiện tại sẽ bị ghi đè.`)) {
+                                                    set('highlights', INDUSTRY_TEMPLATES[type]);
+                                                }
+                                            }}
+                                            className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-bold uppercase tracking-wider hover:bg-blue-500/20 transition-colors"
+                                        >
+                                            Mẫu {type === 'Body' ? 'Máy ảnh' : type === 'Tai nghe' ? 'Audio' : type}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <textarea
+                                value={form.highlights}
+                                onChange={e => set('highlights', e.target.value)}
+                                className={`${InputClass} resize-none font-medium leading-relaxed flex-1`}
+                                style={{ minHeight: '200px' }}
+                                placeholder="- Cảm biến 33MP Full-frame : BIONZ XR&#10;- Lấy nét : Điểm AF nhận diện mắt&#10;- Quay video : 4K 60p 10-bit 4:2:2"
+                            />
+                            <p className="mt-1.5 text-[11px] text-slate-400 font-medium italic">Mẹo: Dùng gạch đầu dòng. Sẽ tự gộp 4 nhóm (Vận hành, Hình ảnh, Lấy nét, Quay phim).</p>
+                        </div>
+
+                        {/* Quick Setting Guide */}
+                        <div className="flex flex-col h-full">
+                            <label className={LabelClass}>Quick Setting Guide (Auto Grouping)</label>
+                            <textarea
+                                value={form.quickSettingGuide || ''}
+                                onChange={e => set('quickSettingGuide', e.target.value)}
+                                className={`${InputClass} resize-none font-medium leading-relaxed flex-1`}
+                                style={{ minHeight: '200px' }}
+                                placeholder="Nhập: P (Program): Máy tự lo... Hệ thống sẽ tự gộp nhóm."
+                            />
+                            <p className="mt-1.5 text-[11px] text-slate-400 font-medium italic opacity-0 pointer-events-none">Spacer</p>
+                        </div>
                     </div>
 
-                    {/* Highlights */}
-                    <div>
-                        <div className="flex items-center justify-between mb-1.5">
-                            <label className={LabelClass}>Thông số & Tính năng nổi bật (Dùng gạch đầu dòng)</label>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Image URL */}
+                        <div>
+                            <label className={LabelClass}>Link ảnh sản phẩm</label>
                             <div className="flex gap-2">
-                                {Object.keys(INDUSTRY_TEMPLATES).map(type => (
-                                    <button
-                                        key={type}
-                                        type="button"
-                                        onClick={() => {
-                                            if (confirm(`Áp dụng mẫu ${type}? Nội dung hiện tại sẽ bị ghi đè.`)) {
-                                                set('highlights', INDUSTRY_TEMPLATES[type]);
-                                            }
-                                        }}
-                                        className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-bold uppercase tracking-wider hover:bg-blue-500/20 transition-colors"
-                                    >
-                                        Mẫu {type === 'Body' ? 'Máy ảnh' : type === 'Tai nghe' ? 'Audio' : type}
-                                    </button>
-                                ))}
+                                <input value={form.imageUrl} onChange={e => set('imageUrl', e.target.value)}
+                                    className={`${InputClass} flex-1`} placeholder="https://..." type="url" />
+                                {form.imageUrl && (
+                                    <img src={form.imageUrl} alt="preview"
+                                        className="w-10 h-10 rounded-lg object-cover border border-black/10 dark:border-white/10 flex-shrink-0"
+                                        onError={e => { e.target.style.display = 'none'; }} />
+                                )}
                             </div>
                         </div>
-                        <textarea
-                            value={form.highlights}
-                            onChange={e => set('highlights', e.target.value)}
-                            rows={8}
-                            className={`${InputClass} resize-none font-medium leading-relaxed`}
-                            placeholder="- Cảm biến 33MP Full-frame&#10;- Lấy nét AI thời thực&#10;- Quay 4K 60p 10-bit 4:2:2"
-                        />
-                        <p className="mt-1.5 text-[11px] text-slate-400 italic">Mẹo: Nhập theo dạng danh sách để hiển thị đẹp nhất trên Wiki.</p>
-                    </div>
 
-                    {/* Quick Setting Guide */}
-                    <div>
-                        <label className={LabelClass}>Quick Setting Guide (Khuyến nghị cài đặt)</label>
-                        <textarea
-                            value={form.quickSettingGuide || ''}
-                            onChange={e => set('quickSettingGuide', e.target.value)}
-                            rows={6}
-                            className={`${InputClass} resize-none font-medium leading-relaxed`}
-                            placeholder="Nhập hướng dẫn cài đặt nhanh dành cho Trainers..."
-                        />
-                    </div>
-
-                    {/* Image URL */}
-                    <div>
-                        <label className={LabelClass}>Link ảnh sản phẩm</label>
-                        <div className="flex gap-2">
-                            <input value={form.imageUrl} onChange={e => set('imageUrl', e.target.value)}
-                                className={`${InputClass} flex-1`} placeholder="https://..." type="url" />
-                            {form.imageUrl && (
-                                <img src={form.imageUrl} alt="preview"
-                                    className="w-10 h-10 rounded-lg object-cover border border-black/10 dark:border-white/10 flex-shrink-0"
-                                    onError={e => { e.target.style.display = 'none'; }} />
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Spec URL */}
-                    <div>
-                        <label className={LabelClass}>Link trang sản phẩm / Spec sheet</label>
-                        <div className="relative">
-                            <input value={form.specUrl} onChange={e => set('specUrl', e.target.value)}
-                                className={`${InputClass} pr-10`} placeholder="https://sony.com/..." type="url" />
-                            {form.specUrl && (
-                                <a href={form.specUrl} target="_blank" rel="noreferrer"
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors">
-                                    <ExternalLink size={14} />
-                                </a>
-                            )}
+                        {/* Spec URL */}
+                        <div>
+                            <label className={LabelClass}>Link trang sản phẩm / Spec sheet</label>
+                            <div className="relative">
+                                <input value={form.specUrl} onChange={e => set('specUrl', e.target.value)}
+                                    className={`${InputClass} pr-10`} placeholder="https://sony.com/..." type="url" />
+                                {form.specUrl && (
+                                    <a href={form.specUrl} target="_blank" rel="noreferrer"
+                                        className="absolute right-3 top-[1.2rem] -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors">
+                                        <ExternalLink size={14} />
+                                    </a>
+                                )}
+                            </div>
                         </div>
                     </div>
 

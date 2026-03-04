@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Loader2, Info, ExternalLink, Download } from 'lucide-react';
+import { X, Loader2, Info, ExternalLink, Download, Aperture, Camera, Activity, Fingerprint, Settings2 } from 'lucide-react';
 import { CategoryBadge } from './admin/SingleSelectField';
 import { toPng } from 'html-to-image';
 
@@ -89,12 +89,12 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
     const isFromFirebase = Boolean(product);
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+            <div className="absolute inset-0 bg-black/[0.02] dark:bg-white/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200" onClick={onClose} />
 
             <div
                 ref={modalRef}
-                className="relative w-full max-w-2xl bg-background rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300"
+                className="relative w-full max-w-2xl max-h-full flex flex-col bg-background rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200"
             >
                 {/* Header */}
                 <div className="px-8 py-6 border-b border-black/[0.05] dark:border-white/[0.05] flex items-center justify-between">
@@ -120,7 +120,7 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
                 </div>
 
                 {/* Content */}
-                <div className="px-8 py-8 max-h-[70vh] overflow-y-auto scrollbar-thin">
+                <div className="flex-1 px-8 py-8 overflow-y-auto custom-scrollbar">
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-12 text-slate-400">
                             <Loader2 className="animate-spin mb-4" size={32} />
@@ -141,7 +141,7 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
                                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Giá tham khảo
                                         </p>
                                         <p className="text-xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
-                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(product.price)}
+                                            {new Intl.NumberFormat('en-US').format(product.price)} ₫
                                         </p>
                                     </div>
                                 )}
@@ -161,31 +161,98 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
                                     <div className="h-px bg-black/10 dark:bg-white/10 flex-1" />
                                 </h3>
 
-                                <div className="space-y-4">
-                                    {(product?.highlights || specs || "Dữ liệu đang được cập nhật...")
-                                        .split('\n')
-                                        .filter(line => line.trim())
-                                        .map((line, idx) => {
-                                            const isBullet = line.trim().startsWith('-');
-                                            const content = isBullet ? line.trim().substring(1).trim() : line.trim();
-                                            const [label, value] = content.split(':').map(s => s.trim());
+                                <div className="space-y-6">
+                                    {(() => {
+                                        const GROUPS = {
+                                            "Vận hành máy ảnh": { title: "Vận hành máy ảnh", items: [] },
+                                            "Chất lượng hình ảnh": { title: "Chất lượng hình ảnh", items: [] },
+                                            "Lấy Nét": { title: "Lấy Nét", items: [] },
+                                            "Quay Phim & Âm thanh": { title: "Quay Phim & Âm thanh", items: [] }
+                                        };
+
+                                        const getCategory = (text) => {
+                                            const tLow = text.toLowerCase();
+                                            // Image Quality hints
+                                            if (tLow.includes('cảm biến') || tLow.includes('megapixel') || tLow.includes('bionz') || tLow.includes('iso') || tLow.includes('raw') || tLow.includes('chụp')) return "Chất lượng hình ảnh";
+                                            // Focus hints
+                                            if (tLow.includes('lấy nét') || tLow.includes('af') || tLow.includes('nhận diện') || tLow.includes('tracking') || tLow.includes('điểm af')) return "Lấy Nét";
+                                            // Video hints
+                                            if (tLow.includes('quay') || tLow.includes('video') || tLow.includes('4k') || tLow.includes('10-bit') || tLow.includes('s-log') || tLow.includes('âm thanh') || tLow.includes('mic')) return "Quay Phim & Âm thanh";
+                                            // Default: Operation
+                                            return "Vận hành máy ảnh";
+                                        };
+
+                                        const rawData = product?.highlights || specs || "Dữ liệu đang được cập nhật...";
+                                        const rawLines = rawData.split('\n').map(l => l.trim()).filter(Boolean);
+
+                                        let currentGroupName = "Vận hành máy ảnh";
+
+                                        rawLines.forEach(line => {
+                                            const isBullet = line.startsWith('-');
+                                            const content = isBullet ? line.substring(1).trim() : line;
+
+                                            // If it looks like a manual category header from the old format
+                                            if (!content.includes(':') && content.length < 40 && !isBullet) {
+                                                currentGroupName = getCategory(content);
+                                                return; // Skip rendering the raw header, we use our own UI
+                                            }
+
+                                            // Determine group by content if we don't have a strong current context
+                                            const matchedGroup = getCategory(content);
+
+                                            if (content.includes(':')) {
+                                                const [label, value] = content.split(':').map(s => s.trim());
+                                                GROUPS[matchedGroup].items.push({ label, value });
+                                            } else {
+                                                GROUPS[matchedGroup].items.push({ label: content, value: null });
+                                            }
+                                        });
+
+                                        const activeGroups = Object.values(GROUPS).filter(g => g.items.length > 0);
+
+                                        if (activeGroups.length === 0) {
+                                            return <p className="text-slate-500 italic">Chưa có thông số chi tiết.</p>;
+                                        }
+
+                                        return activeGroups.map((group, gIdx) => {
+                                            let GroupIcon = Aperture;
+                                            if (group.title === "Chất lượng hình ảnh") GroupIcon = Camera;
+                                            else if (group.title === "Vận hành máy ảnh") GroupIcon = Activity;
+                                            else if (group.title === "Lấy Nét") GroupIcon = Fingerprint;
+                                            else if (group.title === "Quay Phim & Âm thanh") GroupIcon = Settings2;
 
                                             return (
-                                                <div key={idx} className={`flex ${value ? 'justify-between py-3 border-b border-black/[0.03] dark:border-white/[0.04]' : 'py-1'}`}>
-                                                    {value ? (
-                                                        <>
-                                                            <span className="text-[13px] font-bold text-slate-500 dark:text-slate-400">{label}</span>
-                                                            <span className="text-[13px] font-bold text-foreground text-right ml-4">{value}</span>
-                                                        </>
-                                                    ) : (
-                                                        <div className="flex items-start gap-3 group">
-                                                            <div className="mt-2 w-1.5 h-1.5 rounded-full bg-foreground/20 shrink-0 group-hover:bg-blue-500 transition-colors" />
-                                                            <p className="text-[14px] font-medium text-foreground leading-relaxed">{content}</p>
+                                                <div key={gIdx} className="bg-white dark:bg-[#1d1d1f] rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-sm">
+                                                    <div className="flex items-center gap-3 mb-5 border-b border-black/[0.05] dark:border-white/[0.05] pb-4">
+                                                        <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-white/5 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-inner">
+                                                            <GroupIcon size={20} strokeWidth={2.5} />
                                                         </div>
-                                                    )}
+                                                        <h4 className="text-[14px] font-black text-slate-800 dark:text-white uppercase tracking-widest">
+                                                            {group.title}
+                                                        </h4>
+                                                    </div>
+
+                                                    <div className="space-y-1">
+                                                        {group.items.map((item, idx) => (
+                                                            <div key={idx} className={`flex flex-col sm:flex-row sm:items-baseline ${item.value ? 'justify-between py-2 border-b border-black/[0.03] dark:border-white/[0.03] last:border-0' : 'py-1.5'}`}>
+                                                                {item.value ? (
+                                                                    <>
+                                                                        <span className="text-[13px] font-bold text-slate-500 dark:text-slate-400 w-full sm:w-1/2 pr-4 mb-1 sm:mb-0">{item.label}</span>
+                                                                        <span className="text-[14px] font-bold text-slate-900 dark:text-white sm:text-right w-full sm:w-1/2">{item.value}</span>
+                                                                    </>
+                                                                ) : (
+                                                                    <div className="flex items-start gap-3 group/item">
+                                                                        <div className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0 group-hover/item:bg-blue-500 transition-colors" />
+                                                                        <p className="text-[14px] font-medium text-slate-700 dark:text-slate-300 leading-relaxed">{item.label}</p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             );
-                                        })}
+                                        });
+                                    })()}
                                 </div>
                             </div>
                         </div>

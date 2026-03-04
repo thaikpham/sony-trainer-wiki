@@ -71,14 +71,14 @@ export default function LiveReportDetailModal({ report, onClose }) {
     };
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);
+        return new Intl.NumberFormat('en-US').format(amount || 0) + ' ₫';
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-[#1d1d1f]/60 backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/[0.02] dark:bg-white/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200">
             <div
                 ref={modalRef}
-                className="bg-background w-full max-w-4xl max-h-[90vh] rounded-[40px] shadow-2xl overflow-hidden ring-1 ring-black/5 dark:ring-white/10 flex flex-col animate-slide-up"
+                className="bg-background w-full max-w-4xl max-h-full rounded-[40px] shadow-2xl overflow-hidden ring-1 ring-black/5 dark:ring-white/10 flex flex-col animate-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}

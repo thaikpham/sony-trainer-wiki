@@ -1,11 +1,12 @@
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Noto_Sans, JetBrains_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
-const inter = Inter({
+const notoSans = Noto_Sans({
   variable: "--font-sans",
   subsets: ["latin", "vietnamese"],
+  weight: ['400', '500', '600', '700', '900'],
   display: "swap",
 });
 
@@ -25,9 +26,9 @@ export default function RootLayout({ children }) {
     <ClerkProvider>
       <html lang="vi" suppressHydrationWarning>
         <body
-          className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
+          className={`${notoSans.variable} ${jetbrainsMono.variable} antialiased`}
         >
-          <ThemeProvider attribute="class" defaultTheme="light">
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             {children}
           </ThemeProvider>
         </body>

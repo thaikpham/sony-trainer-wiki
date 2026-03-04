@@ -11,4 +11,4 @@ export const NEEDS_DICT = {
     'travel': { label: 'Đa dụng / Du lịch', icon: Camera, desc: 'Cơ động, nhỏ gọn, cân bằng hoàn hảo.' }
 };
 
-export const formatVND = (amount) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+export const formatVND = (amount) => new Intl.NumberFormat('en-US').format(amount) + ' ₫';

@@ -3,7 +3,7 @@ import FeatureStar from './FeatureStar';
 
 /** Format a number as Vietnamese Dong (VND) currency. */
 const formatVND = (value) =>
-    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value ?? 0);
+    new Intl.NumberFormat('en-US').format(value ?? 0) + ' ₫';
 
 export default function SpecCard({ data, isRecommended, onViewSpecs, onToggleCompare, compareList = [] }) {
     const isCameraSelected = compareList.some(item => item.productName === data.camName);

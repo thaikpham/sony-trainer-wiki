@@ -216,10 +216,10 @@ export default function ColorLab() {
 
             {/* Premium Modal for Recipe Definition using React Portal */}
             {mounted && selectedRecipe && typeof document !== 'undefined' && createPortal(
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-12 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md animate-fade-in" onClick={() => setSelectedRecipe(null)}>
-                    <div className="relative w-full max-w-4xl max-h-[95vh] flex flex-col animate-scale-up" onClick={e => e.stopPropagation()}>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-12 bg-black/[0.02] dark:bg-white/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] animate-in fade-in duration-200" onClick={() => setSelectedRecipe(null)}>
+                    <div className="relative w-full max-w-4xl max-h-full flex flex-col animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
 
-                        <div className="bg-white dark:bg-[#1d1d1f] rounded-[2rem] w-full h-full overflow-y-auto modal-scrollbar shadow-2xl flex flex-col border border-white dark:border-white/10 relative">
+                        <div className="bg-white dark:bg-[#1d1d1f] rounded-[2rem] w-full h-full overflow-y-auto custom-scrollbar shadow-2xl flex flex-col border border-white dark:border-white/10 relative">
                             {/* Hero Image */}
                             {selectedRecipe.images && selectedRecipe.images.length > 0 && (
                                 <div className="w-full h-64 sm:h-80 bg-slate-100 dark:bg-[#2d2d2f] shrink-0 relative group rounded-t-[2rem] overflow-hidden">

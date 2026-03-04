@@ -135,7 +135,7 @@ export default function CompareModal({ isOpen, onClose, compareList }) {
     // Format helpers
     const formatCurrency = (amount) => {
         if (amount === 0) return 'Đang cập nhật';
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        return new Intl.NumberFormat('en-US').format(amount) + ' ₫';
     };
 
     const formatWeight = (grams) => {
@@ -147,7 +147,7 @@ export default function CompareModal({ isOpen, onClose, compareList }) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm transition-opacity animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/[0.02] dark:bg-white/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%] transition-opacity animate-in fade-in duration-200">
             <div className="w-full max-w-6xl max-h-[90vh] bg-white dark:bg-[#1d1d1f] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ring-1 ring-black/5 dark:ring-white/10">
 
                 {/* Header */}
