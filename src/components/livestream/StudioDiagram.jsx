@@ -114,7 +114,7 @@ const initialEdges = [
         id: 'e-cam3-hub',
         source: 'cam3',
         target: 'hub1',
-        targetHandle: 'cam2',
+        targetHandle: 'cam3',
         type: 'editable',
         animated: true,
         data: { label: 'Micro HDMI' },

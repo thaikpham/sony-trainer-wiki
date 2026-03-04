@@ -120,7 +120,7 @@ export const CaptureCardNode = ({ id, data, isConnectable, selected }) => {
                 type="target"
                 position={Position.Top}
                 id="cam1"
-                style={{ left: '30%' }}
+                style={{ left: '20%' }}
                 isConnectable={isConnectable}
                 className="w-3 h-3 bg-indigo-500 border-2 border-[#1d1d1f] top-[-6px]"
             />
@@ -128,7 +128,23 @@ export const CaptureCardNode = ({ id, data, isConnectable, selected }) => {
                 type="target"
                 position={Position.Top}
                 id="cam2"
-                style={{ left: '70%' }}
+                style={{ left: '40%' }}
+                isConnectable={isConnectable}
+                className="w-3 h-3 bg-indigo-500 border-2 border-[#1d1d1f] top-[-6px]"
+            />
+            <Handle
+                type="target"
+                position={Position.Top}
+                id="cam3"
+                style={{ left: '60%' }}
+                isConnectable={isConnectable}
+                className="w-3 h-3 bg-indigo-500 border-2 border-[#1d1d1f] top-[-6px]"
+            />
+            <Handle
+                type="target"
+                position={Position.Top}
+                id="cam4"
+                style={{ left: '80%' }}
                 isConnectable={isConnectable}
                 className="w-3 h-3 bg-indigo-500 border-2 border-[#1d1d1f] top-[-6px]"
             />
