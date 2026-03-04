@@ -21,26 +21,36 @@ const initialNodes = [
     {
         id: 'mic1',
         type: 'mic',
-        position: { x: 300, y: 50 },
-        data: { label: 'Sony ECM-W3', subLabel: 'Gắn chui mic camera chính' },
+        position: { x: 350, y: 50 },
+        data: { label: 'Sony ECM-G1', subLabel: 'Gắn chui mic camera chính' },
     },
     // --- Camera Nodes (Middle-Top) ---
     {
         id: 'cam1',
         type: 'camera',
-        position: { x: 100, y: 150 },
+        position: { x: 100, y: 200 },
         data: {
-            label: 'Sony A7C II',
-            subLabel: 'Cam Chính (Khách/Chủ)',
+            label: 'Alpha 7 IV + 28-70 GM',
+            subLabel: 'Cam Cận (Sản Phẩm)',
             colorClass: 'bg-orange-50 text-orange-600 ring-orange-500/20'
         },
     },
     {
         id: 'cam2',
         type: 'camera',
-        position: { x: 450, y: 150 },
+        position: { x: 350, y: 200 },
         data: {
-            label: 'Sony ZV-E10',
+            label: 'FX30 + 12-24 G',
+            subLabel: 'Cam Chính (Khách/Chủ)',
+            colorClass: 'bg-blue-50 text-blue-600 ring-blue-500/20'
+        },
+    },
+    {
+        id: 'cam3',
+        type: 'camera',
+        position: { x: 600, y: 200 },
+        data: {
+            label: 'Sony ZV-E10L',
             subLabel: 'Cam Cận (Sản Phẩm)',
             colorClass: 'bg-teal-50 text-teal-600 ring-teal-500/20'
         },
@@ -49,30 +59,19 @@ const initialNodes = [
     {
         id: 'hub1',
         type: 'capture',
-        position: { x: 250, y: 300 },
+        position: { x: 350, y: 380 },
         data: { label: 'Blackmagic ATEM', subLabel: '(Hoặc Elgato Camlink 4K)' },
     },
     // --- Computer Nodes (Bottom) ---
     {
         id: 'pc1',
         type: 'laptop',
-        position: { x: 100, y: 550 },
+        position: { x: 350, y: 550 },
         data: {
-            label: 'Laptop Host OBS',
-            subLabel: 'Cấu hình khủng (i7/M1+)',
+            label: 'Laptop + Tiktok Live Studio',
+            subLabel: 'Máy chính phụ trách Stream',
             colorClass: 'bg-indigo-50 text-indigo-600 ring-indigo-500/20',
             isMain: true
-        },
-    },
-    {
-        id: 'pc2',
-        type: 'laptop',
-        position: { x: 450, y: 550 },
-        data: {
-            label: 'Laptop Phụ',
-            subLabel: 'Đọc cmt, quản lý đơn',
-            colorClass: 'bg-slate-100 text-[#1d1d1f]',
-            isMain: false
         },
     }
 ];
@@ -80,11 +79,12 @@ const initialNodes = [
 // Vertical Flow Edges
 const initialEdges = [
     {
-        id: 'e-mic-cam1',
+        id: 'e-mic-cam2',
         source: 'mic1',
-        target: 'cam1',
+        target: 'cam2',
         type: 'editable',
         animated: true,
+        data: { label: 'Hotshoe' },
         style: { stroke: '#ef4444', strokeWidth: 2, strokeDasharray: '4 4' },
         markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' }
     },
@@ -95,13 +95,24 @@ const initialEdges = [
         targetHandle: 'cam1',
         type: 'editable',
         animated: true,
-        data: { label: 'Micro HDMI' },
+        data: { label: 'HDMI' },
         style: { stroke: '#f97316', strokeWidth: 2, cursor: 'pointer' },
         markerEnd: { type: MarkerType.ArrowClosed, color: '#f97316' },
     },
     {
         id: 'e-cam2-hub',
         source: 'cam2',
+        target: 'hub1',
+        targetHandle: 'cam2',
+        type: 'editable',
+        animated: true,
+        data: { label: 'HDMI' },
+        style: { stroke: '#3b82f6', strokeWidth: 2, cursor: 'pointer' },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#3b82f6' },
+    },
+    {
+        id: 'e-cam3-hub',
+        source: 'cam3',
         target: 'hub1',
         targetHandle: 'cam2',
         type: 'editable',
@@ -225,7 +236,7 @@ function DiagramCanvas() {
                 />
 
                 {/* --- Floating Toolbar --- */}
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-white/80 backdrop-blur-xl p-1.5 rounded-2xl shadow-lg ring-1 ring-black/5 flex items-center gap-1.5">
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-white/80 backdrop-blur-xl p-1.5 rounded-2xl shadow-lg ring-1 ring-black/5 flex items-center gap-1.5">
                     <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-3 mr-1 hidden sm:block">Toolbar</span>
 
                     <button onClick={() => addNode('camera', 'Camera Mới')} className="group flex items-center gap-2 px-3 py-2 bg-[#F5F5F7] hover:bg-orange-50 rounded-xl transition-colors ring-1 ring-transparent hover:ring-orange-500/20 focus:outline-none">

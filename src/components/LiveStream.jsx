@@ -537,9 +537,9 @@ export default function LiveStream() {
                 )}
 
                 {currentStep === 2 && (
-                    <div className="flex flex-col lg:flex-row gap-6 w-full animate-fade-in">
+                    <div className="flex flex-col lg:flex-row gap-6 w-full animate-fade-in relative z-10">
                         {/* Visual Studio (Camera Preview) */}
-                        <div className="w-full lg:w-1/3 flex flex-col gap-6">
+                        <div className="w-full lg:w-[360px] xl:w-[400px] shrink-0 flex flex-col gap-6">
                             <div className="glass-panel p-6 sm:p-8 rounded-[40px] flex flex-col flex-grow">
                                 <div className="flex flex-col gap-4 mb-5">
                                     <div className="flex items-center gap-3">
@@ -598,8 +598,8 @@ export default function LiveStream() {
                                     {cameraError ? (
                                         <div className="text-red-500 text-[13px] font-medium px-6 text-center">{cameraError}</div>
                                     ) : !isStreaming ? (
-                                        <div className="flex flex-col items-center justify-center text-[#86868b]">
-                                            <Camera size={40} className="mb-3 opacity-30" />
+                                        <div className="flex flex-col items-center justify-center text-[#86868b] text-center p-4">
+                                            <Camera size={40} className="mb-3 opacity-30 mx-auto" />
                                             <p className="text-[14px] font-medium">Camera đang tắt. Vui lòng kết nối Sony Imaging Edge Webcam.</p>
                                         </div>
                                     ) : (
@@ -664,9 +664,10 @@ export default function LiveStream() {
                         </div> {/* End of w-1/3 Visual Studio column */}
 
                         {/* Equipment Status / Diagram Panel */}
-                        <div className="w-full lg:w-2/3 glass-panel p-6 lg:p-10 rounded-[40px] flex flex-col relative overflow-hidden">
+                        {/* Only visible on lg screens and up since diagram is hard to use on mobile */}
+                        <div className="hidden lg:flex flex-1 glass-panel p-6 lg:p-10 rounded-[40px] flex-col relative overflow-hidden min-w-0">
 
-                            <div className="flex items-center justify-between mb-2 z-10 w-full shrink-0">
+                            <div className="flex items-center justify-between mb-0 z-10 w-full shrink-0">
                                 <h3 className="text-[18px] font-bold text-[#1d1d1f] flex items-center gap-2">
                                     <Cable size={20} className="text-indigo-500" /> Sơ đồ kết nối tiêu chuẩn
                                 </h3>
