@@ -4,7 +4,8 @@ import { useUser, SignOutButton } from "@clerk/nextjs";
 import { ArrowLeft, Hexagon, LogOut, Settings, Award, ShieldCheck, Box, Bookmark, Camera, Trophy, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import BadgeShowcase from '@/components/BadgeShowcase';
-import { getRoleKeys, ROLES, isAuthorizedForLiveReport } from '@/lib/roles';
+import { getRoleKeys, ROLES } from '@/lib/roles';
+import { useRoleAccess } from '@/components/RoleProvider';
 import { getLiveReports } from '@/services/db';
 import { useState, useEffect } from 'react';
 
@@ -26,6 +27,17 @@ export default function Dashboard() {
                 }
             };
             fetchReports();
+
+            // Track dashboard view action
+            fetch('/api/track_action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'dashboard_views' })
+            }).then(r => r.json()).then(data => {
+                if (data.unlockedBadges && data.unlockedBadges.length > 0) {
+                    window.dispatchEvent(new CustomEvent('badge-unlocked', { detail: { unlockedBadges: data.unlockedBadges } }));
+                }
+            }).catch(e => console.error("Failed to track dashboard view", e));
         }
     }, [isSignedIn, user]);
 
@@ -39,6 +51,7 @@ export default function Dashboard() {
 
     const email = user.primaryEmailAddress?.emailAddress;
     const roleKeys = getRoleKeys(email);
+    const { canViewReport } = useRoleAccess();
     // Any of these roles consider as employee for the UI purposes here
     const isEmployee = roleKeys.some(k => ['DEV', 'TRAINER', 'PRODUCT_MARKETING', 'DATA'].includes(k));
 
@@ -152,7 +165,7 @@ export default function Dashboard() {
                         </Link>
 
                         {/* Livestream History - Only for Authorized Roles */}
-                        {isAuthorizedForLiveReport(user?.primaryEmailAddress?.emailAddress) && (
+                        {canViewReport && (
                             <div className="bg-white rounded-[32px] p-6 sm:p-8 flex flex-col ring-1 ring-black/5 shadow-sm relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/5 blur-3xl -z-0"></div>
                                 <div className="flex items-center justify-between mb-6 relative z-10">

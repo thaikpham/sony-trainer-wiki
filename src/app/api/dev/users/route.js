@@ -56,23 +56,34 @@ export async function GET() {
     }
 }
 
-// PATCH /api/dev/users  { email, roles, badges }
+// PATCH /api/dev/users  { emails: [], roles, badges } // also supports legacy { email, roles, badges }
 export async function PATCH(request) {
     try {
-        const email = await getCallerEmail();
-        if (!email || !isDevEmail(email)) {
+        const callerEmail = await getCallerEmail();
+        if (!callerEmail || !isDevEmail(callerEmail)) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         const body = await request.json();
-        const { email: targetEmail, roles, badges } = body;
+        const { email: singleEmail, emails: emailArray, roles, badges } = body;
 
-        if (!targetEmail) {
-            return NextResponse.json({ error: 'Missing email' }, { status: 400 });
+        let targetEmails = [];
+        if (Array.isArray(emailArray) && emailArray.length > 0) {
+            targetEmails = emailArray;
+        } else if (singleEmail) {
+            targetEmails = [singleEmail];
         }
 
-        await setUserOverride(targetEmail, { roles: roles ?? [], badges: badges ?? [] });
-        return NextResponse.json({ success: true });
+        if (targetEmails.length === 0) {
+            return NextResponse.json({ error: 'Missing emails' }, { status: 400 });
+        }
+
+        // Apply override to all emails concurrently
+        await Promise.all(targetEmails.map(targetEmail =>
+            setUserOverride(targetEmail, { roles: roles ?? [], badges: badges ?? [] })
+        ));
+
+        return NextResponse.json({ success: true, count: targetEmails.length });
     } catch (err) {
         console.error('[PATCH /api/dev/users]', err);
         return NextResponse.json({ error: err.message }, { status: 500 });

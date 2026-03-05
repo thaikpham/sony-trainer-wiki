@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Loader2, Info, ExternalLink, Download, Aperture, Camera, Activity, Fingerprint, Settings2, Edit3 } from 'lucide-react';
 import { CategoryBadge } from './admin/SingleSelectField';
 import { toPng } from 'html-to-image';
-import { useUser } from '@clerk/nextjs';
-import { canManageData } from '@/lib/roles';
+import { useRoleAccess } from '@/components/RoleProvider';
 
 export default function SpecModal({ isOpen, onClose, product, productName: propName, productType: propType, onEdit }) {
     const [specs, setSpecs] = useState(null);
@@ -11,8 +10,18 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
     const [error, setError] = useState(null);
     const modalRef = useRef(null);
 
-    const { user } = useUser();
-    const isDataMaster = canManageData(user?.primaryEmailAddress?.emailAddress);
+    // Close on Escape key
+    useEffect(() => {
+        const handleEsc = (e) => {
+            if (e.key === 'Escape') onClose();
+        };
+        if (isOpen) {
+            document.addEventListener('keydown', handleEsc);
+        }
+        return () => document.removeEventListener('keydown', handleEsc);
+    }, [isOpen, onClose]);
+
+    const { isDataMaster } = useRoleAccess();
 
     const productName = product?.name || propName;
     const productType = (product?.type?.toLowerCase()?.includes('body') || product?.type?.toLowerCase()?.includes('camera')) ? 'camera' : (product?.type?.toLowerCase() === 'lens' ? 'lens' : (propType || 'camera'));
@@ -80,6 +89,28 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
             } else if (product) {
                 setSpecs(null); // Use product data directly
             }
+
+            fetch('/api/track_action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'wiki_reads' })
+            }).then(r => r.json()).then(data => {
+                const b1 = data.unlockedBadges || [];
+
+                // Track specific product type view
+                fetch('/api/track_action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: productType === 'lens' ? 'lens_views' : 'camera_views' })
+                }).then(r2 => r2.json()).then(data2 => {
+                    const b2 = data2.unlockedBadges || [];
+                    const allBadges = [...b1, ...b2];
+                    if (allBadges.length > 0) {
+                        window.dispatchEvent(new CustomEvent('badge-unlocked', { detail: { unlockedBadges: allBadges } }));
+                    }
+                }).catch(e => console.error("Failed to track specific product view action", e));
+
+            }).catch(e => console.error("Failed to track wiki read action", e));
         }
     }, [isOpen, productName, productType, product]);
 

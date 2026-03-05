@@ -24,7 +24,28 @@ export default function DevPage() {
 
     useEffect(() => {
         if (isLoaded && !isDev) {
+            // They peeked! Track the failed/curious attempt
+            fetch('/api/track_action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'dev_panel_views' })
+            }).then(r => r.json()).then(data => {
+                if (data.unlockedBadges && data.unlockedBadges.length > 0) {
+                    window.dispatchEvent(new CustomEvent('badge-unlocked', { detail: { unlockedBadges: data.unlockedBadges } }));
+                }
+            }).catch(() => { });
             router.replace('/');
+        } else if (isLoaded && isDev) {
+            // Also track for devs visiting their own panel
+            fetch('/api/track_action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'dev_panel_views' })
+            }).then(r => r.json()).then(data => {
+                if (data.unlockedBadges && data.unlockedBadges.length > 0) {
+                    window.dispatchEvent(new CustomEvent('badge-unlocked', { detail: { unlockedBadges: data.unlockedBadges } }));
+                }
+            }).catch(() => { });
         }
     }, [isLoaded, isDev, router]);
 

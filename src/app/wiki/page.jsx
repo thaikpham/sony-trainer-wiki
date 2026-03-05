@@ -5,12 +5,13 @@ import { BookOpen, Palette, Loader2, BarChart3 } from 'lucide-react';
 import Layout from '@/components/Layout';
 import ProductDatabase from '@/components/ProductDatabase';
 import SpecCard from '@/components/SpecCard';
-import SpecModal from '@/components/SpecModal';
+import ProductFormModal from '@/components/admin/ProductFormModal';
 import CompareBar from '@/components/CompareBar';
 import { trackFeatureUsage } from '@/services/analytics';
 import { useUser } from '@clerk/nextjs';
-import { hasAdminAccess } from '@/lib/roles';
+import { useRoleAccess } from '@/components/RoleProvider';
 import LiveReportsTable from '@/components/admin/LiveReportsTable';
+import { updateProduct } from '@/services/db';
 
 // Lazy-load heavy components only when needed
 const ColorLab = dynamic(() => import('@/components/ColorLab'), {
@@ -39,7 +40,7 @@ export default function WikiPage() {
     const [pageToast, setPageToast] = useState(null);
     const { user } = useUser();
     const email = user?.primaryEmailAddress?.emailAddress;
-    const isAdmin = hasAdminAccess(email);
+    const { isAdmin } = useRoleAccess();
 
     const showPageToast = (type, msg) => {
         setPageToast({ type, msg });
@@ -129,12 +130,34 @@ export default function WikiPage() {
                         editProduct={productToEdit}
                         onClearEdit={() => setProductToEdit(null)}
                     />
-                    <SpecModal
-                        isOpen={!!selectedProductForSpecs}
-                        onClose={() => setSelectedProductForSpecs(null)}
-                        product={selectedProductForSpecs}
-                        onEdit={(p) => setProductToEdit(p)}
-                    />
+                    {selectedProductForSpecs && (
+                        <ProductFormModal
+                            product={selectedProductForSpecs}
+                            readOnly={!isAdmin}
+                            onClose={() => {
+                                setSelectedProductForSpecs(null);
+                                if (typeof window !== 'undefined') {
+                                    const url = new URL(window.location);
+                                    url.searchParams.delete('product');
+                                    window.history.replaceState({}, '', url);
+                                }
+                            }}
+                            onSave={async (formData) => {
+                                try {
+                                    const { id, createdAt, updatedAt, ...rest } = formData;
+                                    await updateProduct(id, rest);
+                                    showPageToast('success', `Đã cập nhật "${formData.name}"`);
+                                    // Trigger a reload in ProductDatabase if needed, or rely on cache invalidation
+                                    // For now, we set it to null and let the user refresh or rely on local state if we had it
+                                    setSelectedProductForSpecs(null);
+                                    // We might want a way to tell ProductDatabase to refresh
+                                    setProductToEdit({ ...formData, _refresh: Date.now() });
+                                } catch (e) {
+                                    showPageToast('error', 'Lỗi: ' + e.message);
+                                }
+                            }}
+                        />
+                    )}
                     <CompareBar
                         compareList={compareList}
                         onRemoveItem={(productName) => toggleCompareItem(productName, '')}

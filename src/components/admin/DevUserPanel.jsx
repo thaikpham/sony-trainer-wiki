@@ -1,7 +1,10 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { Search, RefreshCw, Users, Tag, Plus, X, Loader2, ChevronRight, Shield, Trash2, AlertTriangle } from 'lucide-react';
+import { Search, RefreshCw, Users, Tag, Plus, X, Loader2, ChevronRight, Shield, Trash2, AlertTriangle, Briefcase, ShieldCheck } from 'lucide-react';
 import { ROLES } from '@/lib/roles';
+import { useRoleAccess, DEFAULT_PERMISSIONS } from '@/components/RoleProvider';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 // -------- Helpers --------
 const CORE_ROLES = Object.entries(ROLES).filter(([, v]) => v.category === 'core').map(([k, v]) => ({ key: k, ...v }));
@@ -193,28 +196,33 @@ function EditModal({ user, onSave, onDelete, onClose, saving }) {
 
 // -------- Add Override Form --------
 function AddOverrideForm({ onSave, saving }) {
-    const [email, setEmail] = useState('');
+    const [rawEmails, setRawEmails] = useState('');
     const [roles, setRoles] = useState([]);
     const [badges, setBadges] = useState([]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!email.trim()) return;
-        onSave(email.trim(), roles, badges);
-        setEmail(''); setRoles([]); setBadges([]);
+        if (!rawEmails.trim()) return;
+        const emailList = rawEmails.split(/[\n,]+/).map(e => e.trim()).filter(e => e.length > 0 && e.includes('@'));
+        if (emailList.length === 0) {
+            alert("Vui lòng nhập email hợp lệ!");
+            return;
+        }
+        onSave(emailList, roles, badges);
+        setRawEmails(''); setRoles([]); setBadges([]);
     };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4 p-4 rounded-2xl bg-slate-50 border border-black/[0.06]">
             <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email người dùng</label>
-                <input
-                    type="email"
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email người dùng (Có thể dán nhiều email cách nhau bằng dấu phẩy hoặc enter)</label>
+                <textarea
                     required
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="user@example.com"
-                    className="w-full px-3 py-2.5 rounded-xl border border-black/10 bg-white text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                    value={rawEmails}
+                    onChange={e => setRawEmails(e.target.value)}
+                    placeholder="user1@example.com&#10;user2@example.com"
+                    rows={4}
+                    className="w-full px-3 py-2.5 rounded-xl border border-black/10 bg-white text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/40 custom-scrollbar resize-y"
                 />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -229,7 +237,7 @@ function AddOverrideForm({ onSave, saving }) {
             </div>
             <button
                 type="submit"
-                disabled={saving || !email}
+                disabled={saving || !rawEmails}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1d1d1f] text-white text-[13px] font-bold hover:opacity-90 disabled:opacity-40 transition-all"
             >
                 {saving ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
@@ -279,6 +287,80 @@ function RolesCatalog() {
     );
 }
 
+const ROLES_ORDER = ['DEV', 'TRAINER', 'PRODUCT_MARKETING', 'DATA', 'SALESMAN', 'PROMOTER', 'USER'];
+
+function RolePermissionsMatrix({ matrix, matrixLoading }) {
+    if (matrixLoading) return <div className="p-10 text-center"><Loader2 className="animate-spin mx-auto text-slate-400" /></div>;
+
+    const handleToggle = async (roleKey, permissionKey, currentValue) => {
+        try {
+            const updatedMatrix = { ...matrix };
+            if (!updatedMatrix[roleKey]) {
+                updatedMatrix[roleKey] = { ...DEFAULT_PERMISSIONS[roleKey] };
+            }
+            updatedMatrix[roleKey][permissionKey] = !currentValue;
+
+            await setDoc(doc(db, 'settings', 'rolesConfig'), updatedMatrix);
+        } catch (e) {
+            console.error("Failed to update matrix", e);
+            alert("Lỗi khi cập nhật quyền.");
+        }
+    };
+
+    return (
+        <div className="bg-white rounded-[28px] ring-1 ring-black/5 shadow-sm overflow-hidden animate-fade-in mx-2 max-w-full">
+            <div className="p-6 border-b border-black/[0.03] bg-slate-50/50">
+                <h3 className="text-[16px] font-black text-[#1d1d1f] flex items-center gap-2 tracking-tight">
+                    <ShieldCheck size={20} className="text-indigo-500" />
+                    Ma Trận Phân Quyền (Roles Matrix)
+                </h3>
+                <p className="text-[13px] text-slate-500 font-bold mt-1 max-w-2xl">Bật tắt quyền truy cập cốt lõi của từng Role Group. Thay đổi này tự động đồng bộ ngay lập tức với toàn bộ người dùng mang Role tương ứng.</p>
+            </div>
+            <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left border-collapse min-w-[700px]">
+                    <thead>
+                        <tr className="bg-slate-50/80 border-b border-black/[0.03]">
+                            <th className="px-5 py-4 text-[11px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap">Role Group</th>
+                            <th className="px-4 py-4 text-[11px] font-black uppercase tracking-widest text-[#1d1d1f] text-center" title="Quyền truy cập Admin/Dev UI">Admin Access</th>
+                            <th className="px-4 py-4 text-[11px] font-black uppercase tracking-widest text-[#1d1d1f] text-center" title="Chỉnh sửa dữ liệu máy ảnh">Manage Data</th>
+                            <th className="px-4 py-4 text-[11px] font-black uppercase tracking-widest text-red-600 text-center" title="Quyền Xóa hạng mục">Delete Data</th>
+                            <th className="px-4 py-4 text-[11px] font-black uppercase tracking-widest text-[#1d1d1f] text-center" title="Xem báo cáo Livestream">Live Report</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-black/[0.03]">
+                        {ROLES_ORDER.map(role => {
+                            const perms = matrix?.[role] || DEFAULT_PERMISSIONS[role] || {};
+                            const r = ROLES[role];
+                            return (
+                                <tr key={role} className="hover:bg-slate-50/50 transition-colors">
+                                    <td className="px-5 py-3.5">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[14px] font-black text-[#1d1d1f] tracking-tight">{role}</span>
+                                            {r && <span className="text-[16px]">{r.emoji}</span>}
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-3.5 text-center">
+                                        <input type="checkbox" checked={perms.adminAccess || false} onChange={() => handleToggle(role, 'adminAccess', perms.adminAccess)} className="w-5 h-5 accent-indigo-500 cursor-pointer rounded-md border-black/10 focus:ring-0 transition-all hover:scale-110" />
+                                    </td>
+                                    <td className="px-4 py-3.5 text-center">
+                                        <input type="checkbox" checked={perms.canManageData || false} onChange={() => handleToggle(role, 'canManageData', perms.canManageData)} className="w-5 h-5 accent-indigo-500 cursor-pointer rounded-md border-black/10 focus:ring-0 transition-all hover:scale-110" />
+                                    </td>
+                                    <td className="px-4 py-3.5 text-center">
+                                        <input type="checkbox" checked={perms.canDeleteData || false} onChange={() => handleToggle(role, 'canDeleteData', perms.canDeleteData)} className="w-5 h-5 accent-red-500 cursor-pointer rounded-md border-black/10 focus:ring-0 transition-all hover:scale-110" />
+                                    </td>
+                                    <td className="px-4 py-3.5 text-center">
+                                        <input type="checkbox" checked={perms.canViewLiveReport || false} onChange={() => handleToggle(role, 'canViewLiveReport', perms.canViewLiveReport)} className="w-5 h-5 accent-indigo-500 cursor-pointer rounded-md border-black/10 focus:ring-0 transition-all hover:scale-110" />
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
+
 // -------- Main Panel --------
 export default function DevUserPanel() {
     const [activeTab, setActiveTab] = useState('users');
@@ -288,6 +370,8 @@ export default function DevUserPanel() {
     const [searchQuery, setSearchQuery] = useState('');
     const [editingUser, setEditingUser] = useState(null);
     const [toast, setToast] = useState(null);
+
+    const { matrix, loading: matrixLoading } = useRoleAccess();
 
     const showToast = (type, msg) => {
         setToast({ type, msg });
@@ -310,16 +394,18 @@ export default function DevUserPanel() {
 
     useEffect(() => { loadUsers(); }, [loadUsers]);
 
-    const handleSave = async (email, roles, badges) => {
+    const handleSave = async (emails, roles, badges) => {
         setSaving(true);
         try {
             const res = await fetch('/api/dev/users', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, roles, badges }),
+                body: JSON.stringify({ emails, roles, badges }),
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            showToast('success', `✅ Đã lưu override cho ${email}`);
+            const data = await res.json();
+            const count = Array.isArray(emails) ? data.count || emails.length : 1;
+            showToast('success', `✅ Đã lưu override cho ${count} người dùng`);
             setEditingUser(null);
             await loadUsers();
         } catch (e) {
@@ -354,9 +440,19 @@ export default function DevUserPanel() {
         [u.firstName, u.lastName].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const staffUsers = filteredUsers.filter(u => {
+        const roles = u.overrideRoles ?? u.staticRoles;
+        return roles.some(r => r !== 'USER');
+    });
+
+    const memberUsers = filteredUsers.filter(u => {
+        const roles = u.overrideRoles ?? u.staticRoles;
+        return roles.every(r => r === 'USER') || roles.length === 0;
+    });
+
     const overrideCount = users.filter(u => u.hasOverride).length;
 
-    `px-4 py-2 rounded-xl text-[12px] font-black transition-all ${active
+    const TAB_STYLE = (active) => `px-4 py-2 rounded-xl text-[12px] font-black transition-all ${active
         ? 'bg-white text-[#1d1d1f] shadow-sm ring-1 ring-black/5'
         : 'text-[#86868b] hover:text-[#1d1d1f]'}`;
 
@@ -376,9 +472,12 @@ export default function DevUserPanel() {
                     </div>
                 </div>
 
-                <div className="flex items-center bg-[#F5F5F7] p-1 rounded-2xl ring-1 ring-black/5 ml-auto sm:ml-0">
+                <div className="flex flex-wrap gap-2 items-center bg-[#F5F5F7] p-1 rounded-2xl ring-1 ring-black/5 ml-auto sm:ml-0">
                     <button onClick={() => setActiveTab('users')} className={TAB_STYLE(activeTab === 'users')}>
                         <Users size={12} className="inline mr-1" />Users
+                    </button>
+                    <button onClick={() => setActiveTab('permissions')} className={TAB_STYLE(activeTab === 'permissions')}>
+                        <ShieldCheck size={12} className="inline mr-1" />Phân Quyền
                     </button>
                     <button onClick={() => setActiveTab('catalog')} className={TAB_STYLE(activeTab === 'catalog')}>
                         <Tag size={12} className="inline mr-1" />Roles & Badges
@@ -408,27 +507,55 @@ export default function DevUserPanel() {
                             />
                         </div>
 
-                        {/* Users list */}
+                        {/* Users list: 2 Columns */}
                         {loading ? (
                             <div className="flex items-center justify-center py-20">
                                 <Loader2 size={28} className="animate-spin text-slate-400" />
                             </div>
+                        ) : filteredUsers.length === 0 ? (
+                            <div className="bg-white rounded-[28px] ring-1 ring-black/5 shadow-sm overflow-hidden flex flex-col items-center justify-center py-16 gap-2">
+                                <Users size={28} className="text-slate-300" />
+                                <p className="text-[13px] text-slate-400">Không tìm thấy người dùng</p>
+                            </div>
                         ) : (
-                            <div className="bg-white rounded-[28px] ring-1 ring-black/5 shadow-sm overflow-hidden divide-y divide-black/[0.03]">
-                                {filteredUsers.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center py-16 gap-2">
-                                        <Users size={28} className="text-slate-300" />
-                                        <p className="text-[13px] text-slate-400">Không tìm thấy người dùng</p>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Column 1: Sony Staffs */}
+                                <div className="flex flex-col gap-3">
+                                    <div className="flex items-center gap-2 px-2">
+                                        <Briefcase size={16} className="text-violet-500" />
+                                        <h2 className="text-[14px] font-black uppercase tracking-widest text-[#1d1d1f]">Sony Staffs</h2>
+                                        <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{staffUsers.length}</span>
                                     </div>
-                                ) : (
-                                    filteredUsers.map(u => (
-                                        <UserRow key={u.id} user={u} onEdit={setEditingUser} />
-                                    ))
-                                )}
+                                    <div className="bg-white rounded-[28px] ring-1 ring-black/5 shadow-sm overflow-hidden divide-y divide-black/[0.03]">
+                                        {staffUsers.length > 0 ? staffUsers.map(u => (
+                                            <UserRow key={u.id} user={u} onEdit={setEditingUser} />
+                                        )) : (
+                                            <div className="py-8 text-center text-[12px] text-slate-400 italic">Trống</div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Column 2: Sony Users */}
+                                <div className="flex flex-col gap-3">
+                                    <div className="flex items-center gap-2 px-2">
+                                        <Users size={16} className="text-amber-500" />
+                                        <h2 className="text-[14px] font-black uppercase tracking-widest text-[#1d1d1f]">Sony Users</h2>
+                                        <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{memberUsers.length}</span>
+                                    </div>
+                                    <div className="bg-white rounded-[28px] ring-1 ring-black/5 shadow-sm overflow-hidden divide-y divide-black/[0.03]">
+                                        {memberUsers.length > 0 ? memberUsers.map(u => (
+                                            <UserRow key={u.id} user={u} onEdit={setEditingUser} />
+                                        )) : (
+                                            <div className="py-8 text-center text-[12px] text-slate-400 italic">Trống</div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
                 )}
+
+                {activeTab === 'permissions' && <RolePermissionsMatrix matrix={matrix} matrixLoading={matrixLoading} />}
 
                 {activeTab === 'catalog' && <RolesCatalog />}
 

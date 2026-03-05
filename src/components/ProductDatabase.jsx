@@ -5,18 +5,33 @@ import { trackFeatureUsage } from '@/services/analytics';
 import FeatureStar from './FeatureStar';
 import { CategoryBadge } from './admin/SingleSelectField';
 import ProductFormModal from './admin/ProductFormModal';
-import { useUser } from '@clerk/nextjs';
-import { getRoleKeys, canManageData, canDeleteData } from '@/lib/roles';
+import { useRoleAccess } from '@/components/RoleProvider';
 
 export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggleCompare, editProduct = null, onClearEdit = () => { } }) {
-    const { user } = useUser();
-    const email = user?.primaryEmailAddress?.emailAddress;
-    const isDataMaster = canManageData(email);
-    const isDev = canDeleteData(email);
+    const { isDataMaster, isDev } = useRoleAccess();
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [mainCategory, setMainCategory] = useState('Tất cả');
+    const [mainCategory, setMainCategory] = useState('Máy Ảnh');
     const [activeTags, setActiveTags] = useState([]);
+    const searchTimerRef = useState(null);
+
+    const handleSearchChange = (val) => {
+        setSearchTerm(val);
+        if (searchTimerRef[0]) clearTimeout(searchTimerRef[0]);
+        searchTimerRef[0] = setTimeout(() => {
+            if (val.trim().length >= 2) {
+                fetch('/api/track_action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'search_queries' })
+                }).then(r => r.json()).then(data => {
+                    if (data.unlockedBadges && data.unlockedBadges.length > 0) {
+                        window.dispatchEvent(new CustomEvent('badge-unlocked', { detail: { unlockedBadges: data.unlockedBadges } }));
+                    }
+                }).catch(() => { });
+            }
+        }, 1500);
+    };
 
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -106,6 +121,30 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
         return () => { isMounted = false; };
     }, []);
 
+    // Handle deep linking via ?product=ID from URL
+    useEffect(() => {
+        if (!loading && data.length > 0) {
+            const params = new URLSearchParams(window.location.search);
+            const productId = params.get('product');
+            if (productId) {
+                const targetProduct = data.find(p => p.id === productId);
+                if (targetProduct) {
+                    onOpenSpecs(targetProduct);
+                }
+            }
+        }
+    }, [loading, data, onOpenSpecs]);
+
+    const handleOpenSpecs = (product) => {
+        // Update URL transparently to make link shareable
+        if (typeof window !== 'undefined') {
+            const url = new URL(window.location);
+            url.searchParams.set('product', product.id);
+            window.history.pushState({}, '', url);
+        }
+        onOpenSpecs(product);
+    };
+
     const handleSaveProduct = async (formData) => {
         setSaving(true);
         try {
@@ -152,7 +191,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
         return data.filter(item => {
             const matchesSearch =
                 item.name.toLowerCase().includes(searchLower) ||
-                (item.model && item.model.toLowerCase().includes(searchLower)) ||
+                (item.kataban && item.kataban.toLowerCase().includes(searchLower)) ||
                 (item.highlights && item.highlights.toLowerCase().includes(searchLower)) ||
                 (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchLower)));
 
@@ -171,6 +210,16 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
         setActiveTags(prev =>
             prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
         );
+        // Track filter usage
+        fetch('/api/track_action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'filter_uses' })
+        }).then(r => r.json()).then(data => {
+            if (data.unlockedBadges && data.unlockedBadges.length > 0) {
+                window.dispatchEvent(new CustomEvent('badge-unlocked', { detail: { unlockedBadges: data.unlockedBadges } }));
+            }
+        }).catch(() => { });
     };
 
     // Helper function to render Sony Badges
@@ -198,9 +247,9 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                         <input
                             type="text"
                             className="w-full pl-12 pr-4 py-3.5 bg-white border border-black/[0.08] rounded-2xl text-[15px] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all placeholder:text-[#86868b] font-medium"
-                            placeholder="Tìm kiếm sản phẩm, model hoặc tính năng..."
+                            placeholder="Tìm kiếm sản phẩm, kataban hoặc tính năng..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => handleSearchChange(e.target.value)}
                         />
                     </div>
 
@@ -274,7 +323,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                 <th className="px-4 py-5 font-bold w-[250px]">
                                     <div className="flex items-center gap-2"><Fingerprint size={14} className="text-[#86868b]" /> SẢN PHẨM</div>
                                 </th>
-                                <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] uppercase tracking-widest w-[120px]">Model</th>
+                                <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] uppercase tracking-widest w-[120px]">Kataban</th>
                                 <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] uppercase tracking-widest w-[200px]">Thông số & Tính năng</th>
                                 <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] uppercase tracking-widest w-[100px]">Giá tham khảo</th>
                                 <th className="px-4 py-4 text-left text-[11px] font-bold text-[#86868b] uppercase tracking-widest w-[80px]">Năm</th>
@@ -307,7 +356,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                         <tr
                                             key={item.id}
                                             onClick={() => {
-                                                onOpenSpecs(item);
+                                                handleOpenSpecs(item);
                                                 trackFeatureUsage(`prod_${item.name.replace(/\s+/g, '_')}`, item.name);
                                             }}
                                             className={`group cursor-pointer transition-colors duration-300 hover:bg-[#F5F5F7]/80 ${selectedIds.includes(item.id) ? 'bg-orange-500/5' : ''}`}
@@ -349,8 +398,8 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                     <FeatureStar featureId={`prod_${item.name.replace(/\s+/g, '_')}`} />
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 text-[#424245] font-mono text-[12px] truncate" title={item.model}>
-                                                {item.model || '—'}
+                                            <td className="px-4 py-4 text-[#424245] font-mono text-[12px] truncate" title={item.kataban}>
+                                                {item.kataban || '—'}
                                             </td>
                                             <td className="px-4 py-4 text-slate-500 text-[12px] truncate group-hover:text-[#1d1d1f] transition-colors" title={item.highlights}>
                                                 {item.highlights || '—'}

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Aperture, BookOpenText, Sparkles, Video, ChevronDown, Terminal } from 'lucide-react';
 import RoleBadgeDropdown from '@/components/RoleBadgeDropdown';
-import { getRoleKeys, hasAdminAccess } from '@/lib/roles';
+import { getRoleKeys } from '@/lib/roles';
+import { useRoleAccess } from '@/components/RoleProvider';
 import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -13,30 +14,11 @@ export default function Layout({ children }) {
 
     const email = user?.primaryEmailAddress?.emailAddress;
     const roleKeys = getRoleKeys(email);
-    const isAdmin = hasAdminAccess(email);
-    const isDev = roleKeys.includes('DEV');
+    const { isAdmin, isDev } = useRoleAccess();
 
     useEffect(() => {
         if (isLoaded && user) {
             trackUserRegistration(user);
-
-            // Tự động bung Fullscreen khi User vừa mới đăng nhập thành công (nếu chưa full)
-            if (typeof window !== 'undefined' && document.documentElement) {
-                // Sử dụng try-catch và requestAnimationFrame để tránh lỗi "user activation required" 
-                // xảy ra quá nhanh nếu click của Clerk chưa kịp nhả.
-                const requestFull = async () => {
-                    try {
-                        if (!document.fullscreenElement) {
-                            await document.documentElement.requestFullscreen();
-                        }
-                    } catch (err) {
-                        console.log("Could not auto-fullscreen:", err);
-                    }
-                };
-
-                // Trì hoãn một chút để đảm bảo event click từ Clerk UI đã hoàn tất
-                setTimeout(requestFull, 100);
-            }
 
             // If admin, trigger a silent sync of Clerk user count to Firestore
             if (isAdmin) {
@@ -57,6 +39,30 @@ export default function Layout({ children }) {
     ];
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    // Easter Egg: track rapid logo clicks
+    const logoClickCount = useState(0);
+    const logoClickTimer = useState(null);
+
+    const handleLogoAreaClick = () => {
+        setIsMenuOpen(!isMenuOpen);
+        logoClickCount[0]++;
+        if (logoClickTimer[0]) clearTimeout(logoClickTimer[0]);
+        logoClickTimer[0] = setTimeout(() => {
+            logoClickCount[0] = 0;
+        }, 2000);
+        if (logoClickCount[0] >= 5) {
+            logoClickCount[0] = 0;
+            fetch('/api/track_action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'logo_clicks' })
+            }).then(r => r.json()).then(data => {
+                if (data.unlockedBadges && data.unlockedBadges.length > 0) {
+                    window.dispatchEvent(new CustomEvent('badge-unlocked', { detail: { unlockedBadges: data.unlockedBadges } }));
+                }
+            }).catch(() => { });
+        }
+    };
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -92,7 +98,7 @@ export default function Layout({ children }) {
                     {/* Left: Logo & Dropdown Trigger */}
                     <div className="relative" id="nav-dropdown">
                         <button
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            onClick={handleLogoAreaClick}
                             className="flex items-center gap-2.5 px-3 py-2 -ml-3 rounded-2xl group hover:bg-black/[0.04] transition-all duration-300 ease-in-out"
                             aria-expanded={isMenuOpen}
                             aria-haspopup="true"

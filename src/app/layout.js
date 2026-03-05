@@ -13,6 +13,8 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
 });
 
+import { RoleProvider } from "@/components/RoleProvider";
+
 export const metadata = {
   title: "Sony Training Wiki",
   description: "Knowledge hub for Alpha experts.",
@@ -24,8 +26,11 @@ export default function RootLayout({ children }) {
       <html lang="vi">
         <body
           className={`${notoSans.variable} ${jetbrainsMono.variable} antialiased`}
+          suppressHydrationWarning={true}
         >
-          {children}
+          <RoleProvider>
+            {children}
+          </RoleProvider>
         </body>
       </html>
     </ClerkProvider>

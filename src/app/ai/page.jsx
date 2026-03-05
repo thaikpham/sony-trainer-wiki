@@ -6,7 +6,7 @@ import { NEEDS_DICT } from '@/lib/data';
 import Layout from '@/components/Layout';
 import ToggleCardBtn from '@/components/ToggleCardBtn';
 import SpecCard from '@/components/SpecCard';
-import SpecModal from '@/components/SpecModal';
+import ProductFormModal from '@/components/admin/ProductFormModal';
 import CompareBar from '@/components/CompareBar';
 import { trackFeatureUsage, trackActiveUser } from '@/services/analytics';
 import { useUser } from '@clerk/nextjs';
@@ -84,6 +84,18 @@ export default function AIPage() {
             if (data.error) throw new Error(data.error);
             setLoadout(data);
             setStep('result');
+
+            // Track milestone action
+            fetch('/api/track_action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'ai_chats' })
+            }).then(r => r.json()).then(data => {
+                if (data.unlockedBadges && data.unlockedBadges.length > 0) {
+                    window.dispatchEvent(new CustomEvent('badge-unlocked', { detail: { unlockedBadges: data.unlockedBadges } }));
+                }
+            }).catch(e => console.error("Failed to track AI chat action", e));
+
         } catch (err) {
             setLoadingLog(prev => [...prev, 'LỖI HỆ THỐNG: Không thể kết nối tới AI.']);
             setTimeout(() => setStep('category'), 3000);
@@ -440,7 +452,11 @@ export default function AIPage() {
                     </div>
                 </div>
 
-                <SpecModal isOpen={!!selectedProductForSpecs} onClose={() => setSelectedProductForSpecs(null)} productName={selectedProductForSpecs?.productName} productType={selectedProductForSpecs?.productType} />
+                <ProductFormModal
+                    product={selectedProductForSpecs ? { name: selectedProductForSpecs.productName, category: selectedProductForSpecs.productType === 'camera' ? 'Máy Ảnh' : 'Ống Kính' } : null}
+                    readOnly={true}
+                    onClose={() => setSelectedProductForSpecs(null)}
+                />
                 <CompareBar compareList={compareList} onRemoveItem={(n) => toggleCompareItem(n, '')} onAddCustomItem={addCustomCompareItem} onCompare={() => setIsCompareModalOpen(true)} />
                 <CompareModal isOpen={isCompareModalOpen} onClose={() => setIsCompareModalOpen(false)} compareList={compareList} />
 

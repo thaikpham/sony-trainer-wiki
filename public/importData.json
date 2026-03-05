@@ -1,7 +1,7 @@
 [
   {
     "name": "FE 12-24mm F2.8 GM",
-    "model": "SEL1224GM",
+    "kataban": "SEL1224GM",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -18,7 +18,7 @@
   },
   {
     "name": "FE 16-25mm F2.8 G",
-    "model": "SEL1625G",
+    "kataban": "SEL1625G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -35,7 +35,7 @@
   },
   {
     "name": "FE 12-24mm F4 G",
-    "model": "SEL1224G",
+    "kataban": "SEL1224G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -52,7 +52,7 @@
   },
   {
     "name": "FE 16-35mm F4 ZA Vario-Sonnar OSS",
-    "model": "SEL1635Z",
+    "kataban": "SEL1635Z",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -70,7 +70,7 @@
   },
   {
     "name": "FE 24-240mm F3.5-F6.3 OSS",
-    "model": "SEL24240",
+    "kataban": "SEL24240",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -87,7 +87,7 @@
   },
   {
     "name": "FE 20-70mm F4 G",
-    "model": "SEL2070G",
+    "kataban": "SEL2070G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -104,7 +104,7 @@
   },
   {
     "name": "FE 24-50mm F2.8 G",
-    "model": "SEL2450G",
+    "kataban": "SEL2450G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -121,7 +121,7 @@
   },
   {
     "name": "FE 24-105mm F4 G OSS",
-    "model": "SEL24105G",
+    "kataban": "SEL24105G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -139,7 +139,7 @@
   },
   {
     "name": "FE 24-70mm F2.8 GM",
-    "model": "SEL2470GM",
+    "kataban": "SEL2470GM",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -156,7 +156,7 @@
   },
   {
     "name": "FE 24-70mm F4 ZA Vario-Tessar OSS",
-    "model": "SEL2470Z",
+    "kataban": "SEL2470Z",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -174,7 +174,7 @@
   },
   {
     "name": "FE 70-200mm F4 Macro G OSS II",
-    "model": "SEL70200G2",
+    "kataban": "SEL70200G2",
     "color": "White",
     "category": "Ống Kính",
     "tags": [
@@ -193,7 +193,7 @@
   },
   {
     "name": "FE PZ 28-135mm F4 G OSS",
-    "model": "SELP28135G",
+    "kataban": "SELP28135G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -212,7 +212,7 @@
   },
   {
     "name": "FE 16-35mm F2.8 GM II",
-    "model": "SEL1635GM2",
+    "kataban": "SEL1635GM2",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -229,7 +229,7 @@
   },
   {
     "name": "FE 16-35mm F2.8 GM",
-    "model": "SEL1635GM",
+    "kataban": "SEL1635GM",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -246,7 +246,7 @@
   },
   {
     "name": "FE 24-70mm F2.8 GM II",
-    "model": "SEL2470GM2",
+    "kataban": "SEL2470GM2",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -263,7 +263,7 @@
   },
   {
     "name": "FE 70-200mm F2.8 GM OSS",
-    "model": "SEL70200GM",
+    "kataban": "SEL70200GM",
     "color": "White",
     "category": "Ống Kính",
     "tags": [
@@ -281,7 +281,7 @@
   },
   {
     "name": "FE 70-200mm F2.8 GM OSS II",
-    "model": "SEL70200GM2",
+    "kataban": "SEL70200GM2",
     "color": "White",
     "category": "Ống Kính",
     "tags": [
@@ -299,7 +299,7 @@
   },
   {
     "name": "FE 50-150mm F2 GM",
-    "model": "SEL50150GM",
+    "kataban": "SEL50150GM",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -316,7 +316,7 @@
   },
   {
     "name": "FE 28-60mm F4-5.6",
-    "model": "SEL2860",
+    "kataban": "SEL2860",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -332,7 +332,7 @@
   },
   {
     "name": "FE C 16-35mm T3.1 G",
-    "model": "SELC1635G",
+    "kataban": "SELC1635G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -350,7 +350,7 @@
   },
   {
     "name": "FE 70-200mm F4 G OSS",
-    "model": "SEL70200G",
+    "kataban": "SEL70200G",
     "color": "White",
     "category": "Ống Kính",
     "tags": [
@@ -368,7 +368,7 @@
   },
   {
     "name": "FE 35mm F1.4 ZA Distagon",
-    "model": "SEL35F14Z",
+    "kataban": "SEL35F14Z",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -385,7 +385,7 @@
   },
   {
     "name": "FE 35mm F2.8 ZA Sonnar",
-    "model": "SEL35F28Z",
+    "kataban": "SEL35F28Z",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -402,7 +402,7 @@
   },
   {
     "name": "FE 24mm F1.4 GM",
-    "model": "SEL24F14GM",
+    "kataban": "SEL24F14GM",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -419,7 +419,7 @@
   },
   {
     "name": "FE 50mm F1.8",
-    "model": "SEL50F18F",
+    "kataban": "SEL50F18F",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -435,7 +435,7 @@
   },
   {
     "name": "FE 28mm F2",
-    "model": "SEL28F20",
+    "kataban": "SEL28F20",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -451,7 +451,7 @@
   },
   {
     "name": "FE 200-600mm F5.6-6.3 G OSS",
-    "model": "SEL200600G",
+    "kataban": "SEL200600G",
     "color": "White",
     "category": "Ống Kính",
     "tags": [
@@ -469,7 +469,7 @@
   },
   {
     "name": "FE 400-800mm F6.3-8 G OSS",
-    "model": "SEL400800G",
+    "kataban": "SEL400800G",
     "color": "White",
     "category": "Ống Kính",
     "tags": [
@@ -487,7 +487,7 @@
   },
   {
     "name": "FE 35mm F1.8",
-    "model": "SEL35F18F",
+    "kataban": "SEL35F18F",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -503,7 +503,7 @@
   },
   {
     "name": "FE 35mm F1.4 GM",
-    "model": "SEL35F14GM",
+    "kataban": "SEL35F14GM",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -520,7 +520,7 @@
   },
   {
     "name": "FE 50mm F2.8 Macro",
-    "model": "SEL50M28",
+    "kataban": "SEL50M28",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -537,7 +537,7 @@
   },
   {
     "name": "FE 24mm F2.8 G",
-    "model": "SEL24F28G",
+    "kataban": "SEL24F28G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -554,7 +554,7 @@
   },
   {
     "name": "FE 50mm F2.5 G",
-    "model": "SEL50F25G",
+    "kataban": "SEL50F25G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -571,7 +571,7 @@
   },
   {
     "name": "FE 14mm F1.8 GM",
-    "model": "SEL14F18GM",
+    "kataban": "SEL14F18GM",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -588,7 +588,7 @@
   },
   {
     "name": "FE 100-400mm F4.5-5.6 GM OSS",
-    "model": "SEL100400GM",
+    "kataban": "SEL100400GM",
     "color": "White",
     "category": "Ống Kính",
     "tags": [
@@ -606,7 +606,7 @@
   },
   {
     "name": "FE 20mm F1.8 G",
-    "model": "SEL20F18G",
+    "kataban": "SEL20F18G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -623,7 +623,7 @@
   },
   {
     "name": "FE 40mm F2.5 G",
-    "model": "SEL40F25G",
+    "kataban": "SEL40F25G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -640,7 +640,7 @@
   },
   {
     "name": "FE 90mm F2.8 Macro G OSS",
-    "model": "SEL90M28G",
+    "kataban": "SEL90M28G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -659,7 +659,7 @@
   },
   {
     "name": "FE 50mm F1.4 GM",
-    "model": "SEL50F14GM",
+    "kataban": "SEL50F14GM",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -676,7 +676,7 @@
   },
   {
     "name": "E PZ 10-20mm F4 G",
-    "model": "SELP1020G",
+    "kataban": "SELP1020G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -694,7 +694,7 @@
   },
   {
     "name": "E 16-55mm F2.8 G",
-    "model": "SEL1655G",
+    "kataban": "SEL1655G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -711,7 +711,7 @@
   },
   {
     "name": "FE 85mm F1.8",
-    "model": "SEL85F18",
+    "kataban": "SEL85F18",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -727,7 +727,7 @@
   },
   {
     "name": "FE 100mm F2.8 STF GM OSS",
-    "model": "SEL100F28GM",
+    "kataban": "SEL100F28GM",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -746,7 +746,7 @@
   },
   {
     "name": "FE 85mm F1.4 GM",
-    "model": "SEL85F14GM",
+    "kataban": "SEL85F14GM",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -763,7 +763,7 @@
   },
   {
     "name": "FE 55mm F1.8 ZA Sonnar",
-    "model": "SEL55F18Z",
+    "kataban": "SEL55F18Z",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -780,7 +780,7 @@
   },
   {
     "name": "FE 85mm F1.4 GM II",
-    "model": "SEL85F14GM2",
+    "kataban": "SEL85F14GM2",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -797,7 +797,7 @@
   },
   {
     "name": "FE 50mm F1.2 GM",
-    "model": "SEL50F12GM",
+    "kataban": "SEL50F12GM",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -814,7 +814,7 @@
   },
   {
     "name": "FE 400mm F2.8 GM OSS",
-    "model": "SEL400F28GM",
+    "kataban": "SEL400F28GM",
     "color": "White",
     "category": "Ống Kính",
     "tags": [
@@ -832,7 +832,7 @@
   },
   {
     "name": "FE 600mm F4 GM OSS",
-    "model": "SEL600F40GM",
+    "kataban": "SEL600F40GM",
     "color": "White",
     "category": "Ống Kính",
     "tags": [
@@ -850,7 +850,7 @@
   },
   {
     "name": "E 10-18mm F4 OSS",
-    "model": "SEL1018",
+    "kataban": "SEL1018",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -867,7 +867,7 @@
   },
   {
     "name": "FE 135mm F1.8 GM",
-    "model": "SEL135F18GM",
+    "kataban": "SEL135F18GM",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -884,7 +884,7 @@
   },
   {
     "name": "FE 300mm F2.8 GM OSS",
-    "model": "SEL300F28GM",
+    "kataban": "SEL300F28GM",
     "color": "White",
     "category": "Ống Kính",
     "tags": [
@@ -902,7 +902,7 @@
   },
   {
     "name": "FE 50mm F1.4 ZA Planar",
-    "model": "SEL50F14Z",
+    "kataban": "SEL50F14Z",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -919,7 +919,7 @@
   },
   {
     "name": "E 15mm F1.4 G",
-    "model": "SEL15F14G",
+    "kataban": "SEL15F14G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -936,7 +936,7 @@
   },
   {
     "name": "E 18-135mm F3.5-5.6 OSS",
-    "model": "SEL18135",
+    "kataban": "SEL18135",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -953,7 +953,7 @@
   },
   {
     "name": "E PZ 18-105mm F4 G OSS",
-    "model": "SELP18105G",
+    "kataban": "SELP18105G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -972,7 +972,7 @@
   },
   {
     "name": "E 20mm F2.8",
-    "model": "SEL20F28",
+    "kataban": "SEL20F28",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -988,7 +988,7 @@
   },
   {
     "name": "Vario-Tessar T* E 16-70mm F4 ZA OSS",
-    "model": "SEL1670Z",
+    "kataban": "SEL1670Z",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -1006,7 +1006,7 @@
   },
   {
     "name": "E 18-200mm F3.5-6.3 OSS LE",
-    "model": "SEL18200LE",
+    "kataban": "SEL18200LE",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -1023,7 +1023,7 @@
   },
   {
     "name": "E 11mm F1.8",
-    "model": "SEL11F18",
+    "kataban": "SEL11F18",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -1039,7 +1039,7 @@
   },
   {
     "name": "E 70-350mm F4.5-6.3 G OSS",
-    "model": "SEL70350G",
+    "kataban": "SEL70350G",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -1057,7 +1057,7 @@
   },
   {
     "name": "E 50mm F1.8 OSS",
-    "model": "SEL50F18",
+    "kataban": "SEL50F18",
     "color": "Black/Silver",
     "category": "Ống Kính",
     "tags": [
@@ -1074,7 +1074,7 @@
   },
   {
     "name": "E 24mm F1.8 ZA Sonnar",
-    "model": "SEL24F18Z",
+    "kataban": "SEL24F18Z",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -1091,7 +1091,7 @@
   },
   {
     "name": "E 30mm F3.5 Macro",
-    "model": "SEL30M35",
+    "kataban": "SEL30M35",
     "color": "Silver",
     "category": "Ống Kính",
     "tags": [
@@ -1108,7 +1108,7 @@
   },
   {
     "name": "E 35mm F1.8 OSS",
-    "model": "SEL35F18",
+    "kataban": "SEL35F18",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -1125,7 +1125,7 @@
   },
   {
     "name": "1.4x Teleconverter",
-    "model": "SEL14TC",
+    "kataban": "SEL14TC",
     "color": "White",
     "category": "Phụ Kiện",
     "tags": [
@@ -1141,7 +1141,7 @@
   },
   {
     "name": "2x Teleconverter",
-    "model": "SEL20TC",
+    "kataban": "SEL20TC",
     "color": "White",
     "category": "Phụ Kiện",
     "tags": [
@@ -1157,7 +1157,7 @@
   },
   {
     "name": "FE 28-70mm F2 GM",
-    "model": "SEL2870G2",
+    "kataban": "SEL2870G2",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -1173,7 +1173,7 @@
   },
   {
     "name": "FE 100mm F2.8 Macro GM",
-    "model": "SEL100M28GM",
+    "kataban": "SEL100M28GM",
     "color": "Black",
     "category": "Ống Kính",
     "tags": [
@@ -1189,7 +1189,7 @@
   },
   {
     "name": "Tai nghe Sony Truly Wireless WF-C510",
-    "model": "WF-C510",
+    "kataban": "WF-C510",
     "color": "Nhiều màu",
     "category": "Tai Nghe",
     "tags": [
@@ -1205,7 +1205,7 @@
   },
   {
     "name": "Tai nghe chống ồn Sony ULT WEAR WH-ULT900N",
-    "model": "WH-ULT900N",
+    "kataban": "WH-ULT900N",
     "color": "Trắng, Đen, Xám",
     "category": "Tai Nghe",
     "tags": [
@@ -1221,7 +1221,7 @@
   },
   {
     "name": "Đầu quay đĩa than Bluetooth Sony PS-LX310BT/CRU3",
-    "model": "PS-LX310BT",
+    "kataban": "PS-LX310BT",
     "color": "Black",
     "category": "Loa & Âm Thanh",
     "tags": [
@@ -1237,7 +1237,7 @@
   },
   {
     "name": "Tai nghe Sony Chống ồn không dây WF-1000XM5",
-    "model": "WF-1000XM5",
+    "kataban": "WF-1000XM5",
     "color": "Black, Silver",
     "category": "Tai Nghe",
     "tags": [
@@ -1253,7 +1253,7 @@
   },
   {
     "name": "Máy ảnh Sony vlog ZV-1 II",
-    "model": "ZV-1M2",
+    "kataban": "ZV-1M2",
     "color": "Black, White",
     "category": "Máy Ảnh",
     "tags": [
@@ -1269,7 +1269,7 @@
   },
   {
     "name": "Điện thoại di động Sony Xperia 1 VII",
-    "model": "XQ-FS72",
+    "kataban": "XQ-FS72",
     "color": "Black",
     "category": "Điện Thoại Xperia",
     "tags": [
@@ -1285,7 +1285,7 @@
   },
   {
     "name": "Tivi Sony BRAVIA 3 50 Inch 4K Ultra HD",
-    "model": "K-50S30",
+    "kataban": "K-50S30",
     "color": "Black",
     "category": "Tivi Bravia",
     "tags": [
@@ -1301,7 +1301,7 @@
   },
   {
     "name": "Tai nghe Sony không dây chống ồn WH-1000XM6",
-    "model": "WH-1000XM6",
+    "kataban": "WH-1000XM6",
     "color": "Black, Silver",
     "category": "Tai Nghe",
     "tags": [
@@ -1317,7 +1317,7 @@
   },
   {
     "name": "Tivi Sony BRAVIA 2 II 43 inch 4K HDR",
-    "model": "K-43S25VM2",
+    "kataban": "K-43S25VM2",
     "color": "Black",
     "category": "Tivi Bravia",
     "tags": [
@@ -1333,7 +1333,7 @@
   },
   {
     "name": "Premium RX0 FY21 DSC-RX0M2G E35",
-    "model": "DSC-RX0M2G",
+    "kataban": "DSC-RX0M2G",
     "color": "Mặc định",
     "category": "Máy Ảnh",
     "tags": [
@@ -1349,7 +1349,7 @@
   },
   {
     "name": "SEL20F18G FE-Others Prime FY20",
-    "model": "SEL20F18G//QSYX",
+    "kataban": "SEL20F18G//QSYX",
     "color": "Đen",
     "category": "Ống Kính",
     "tags": [
@@ -1365,7 +1365,7 @@
   },
   {
     "name": "Premium ZV-1 FY20 ZV-1/BC E32",
-    "model": "ZV-1/BC E32",
+    "kataban": "ZV-1/BC E32",
     "color": "Black (Đen)",
     "category": "Máy Ảnh",
     "tags": [
@@ -1381,7 +1381,7 @@
   },
   {
     "name": "ALPHA ILCE-6100L Non FF Low FY20",
-    "model": "ILCE-6100L/WAP2",
+    "kataban": "ILCE-6100L/WAP2",
     "color": "Trắng (White)",
     "category": "Máy Ảnh",
     "tags": [
@@ -1397,7 +1397,7 @@
   },
   {
     "name": "ALPHA ILCE-7CL FF Low ILCE-7C TTL FY20",
-    "model": "ILCE-7CL/BQ AP2",
+    "kataban": "ILCE-7CL/BQ AP2",
     "color": "Thân máy + ống kính zoom 28-60 mm",
     "category": "Máy Ảnh",
     "tags": [
@@ -1413,7 +1413,7 @@
   },
   {
     "name": "MDR WF-H800 TW HB FY20",
-    "model": "WF-H800/RM E",
+    "kataban": "WF-H800/RM E",
     "color": "Đỏ (RM)",
     "category": "Tai Nghe",
     "tags": [
@@ -1429,7 +1429,7 @@
   },
   {
     "name": "PS CUH-7106B Console FY22",
-    "model": "CUH-7106B B01",
+    "kataban": "CUH-7106B B01",
     "color": "B01",
     "category": "PlayStation",
     "tags": [
@@ -1445,7 +1445,7 @@
   },
   {
     "name": "BRAVIA KD-55X8000H 55-59 X85 FY20",
-    "model": "KD-55X8000H VN3",
+    "kataban": "KD-55X8000H VN3",
     "color": "Màn hình 55 inch",
     "category": "Tivi Bravia",
     "tags": [
@@ -1461,7 +1461,7 @@
   },
   {
     "name": "BRAVIA XR-55A80J 55-59 A8 FY21",
-    "model": "XR-55A80J VN3",
+    "kataban": "XR-55A80J VN3",
     "color": "OLED 55 inch",
     "category": "Tivi Bravia",
     "tags": [
@@ -1477,7 +1477,7 @@
   },
   {
     "name": "HAV HT-S20R SB 5.1 FY20",
-    "model": "HT-S20R//C SP1",
+    "kataban": "HT-S20R//C SP1",
     "color": "Mặc định",
     "category": "Loa & Âm Thanh",
     "tags": [
@@ -1493,7 +1493,7 @@
   },
   {
     "name": "MDR WH-1000XM4 AC HB FY20",
-    "model": "WH1000XM4/BME",
+    "kataban": "WH1000XM4/BME",
     "color": "Black (Đen)",
     "category": "Tai Nghe",
     "tags": [
@@ -1509,7 +1509,7 @@
   },
   {
     "name": "PS CFI-1018A Console FY21",
-    "model": "CFI-1018A 01",
+    "kataban": "CFI-1018A 01",
     "color": "1",
     "category": "PlayStation",
     "tags": [
@@ -1525,7 +1525,7 @@
   },
   {
     "name": "CINEMA LINE ILME-FX30 LFS-L FY22",
-    "model": "ILME-FX30//QAP2",
+    "kataban": "ILME-FX30//QAP2",
     "color": "Thân máy + Bộ phận tay cầm XLR",
     "category": "Máy Quay Film",
     "tags": [
@@ -1541,7 +1541,7 @@
   },
   {
     "name": "MDR WF-1000XM6 TW FY25",
-    "model": "WF1000XM6/BZE",
+    "kataban": "WF1000XM6/BZE",
     "color": "Black (Đen)",
     "category": "Tai Nghe",
     "tags": [
@@ -1557,7 +1557,7 @@
   },
   {
     "name": "FE 100 mm F2.8 Macro GM OSS",
-    "model": "SEL100M28GMQSYX",
+    "kataban": "SEL100M28GMQSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1575,7 +1575,7 @@
   },
   {
     "name": "FE 85 mm F1.4 GM II",
-    "model": "SEL85F14GM2/SYX",
+    "kataban": "SEL85F14GM2/SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1593,7 +1593,7 @@
   },
   {
     "name": "FE 300 mm F2.8 GM OSS",
-    "model": "SEL300F28GM/SYX",
+    "kataban": "SEL300F28GM/SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1611,7 +1611,7 @@
   },
   {
     "name": "FE 50 mm F1.4 GM",
-    "model": "SEL50F14GM/JSYX",
+    "kataban": "SEL50F14GM/JSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1629,7 +1629,7 @@
   },
   {
     "name": "FE 14 mm F1.8 GM",
-    "model": "SEL14F18GM/CSYX",
+    "kataban": "SEL14F18GM/CSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1647,7 +1647,7 @@
   },
   {
     "name": "FE 50mm F1.2 GM",
-    "model": "SEL50F12GM/QSYX",
+    "kataban": "SEL50F12GM/QSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1665,7 +1665,7 @@
   },
   {
     "name": "FE 35 mm F1.4 GM",
-    "model": "SEL35F14GM/QSYX",
+    "kataban": "SEL35F14GM/QSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1683,7 +1683,7 @@
   },
   {
     "name": "FE 85mm F1.4 GM",
-    "model": "SEL85F14GM/QSYX",
+    "kataban": "SEL85F14GM/QSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1701,7 +1701,7 @@
   },
   {
     "name": "FE 100mm F2.8 STF GM OSS",
-    "model": "SEL100F28GM SYX",
+    "kataban": "SEL100F28GM SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1719,7 +1719,7 @@
   },
   {
     "name": "FE 135mm F1.8 GM",
-    "model": "SEL135F18GM SYX",
+    "kataban": "SEL135F18GM SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1737,7 +1737,7 @@
   },
   {
     "name": "FE 24mm F1.4 GM",
-    "model": "SEL24F14GM SYX",
+    "kataban": "SEL24F14GM SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1755,7 +1755,7 @@
   },
   {
     "name": "FE 50-150 mm F2 GM",
-    "model": "SEL50150GM/QSYX",
+    "kataban": "SEL50150GM/QSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1773,7 +1773,7 @@
   },
   {
     "name": "FE 28-70mm F2 GM",
-    "model": "SEL2870GM//QSYX",
+    "kataban": "SEL2870GM//QSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1791,7 +1791,7 @@
   },
   {
     "name": "FE 16–35 mm F2.8 GM II",
-    "model": "SEL1635GM2/QSYX",
+    "kataban": "SEL1635GM2/QSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1809,7 +1809,7 @@
   },
   {
     "name": "FE 24-70 mm F2.8 GM II",
-    "model": "SEL2470GM2/QSYX",
+    "kataban": "SEL2470GM2/QSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1827,7 +1827,7 @@
   },
   {
     "name": "FE 70-200 mm F2.8 GM OSS II",
-    "model": "SEL70200GM2QSYX",
+    "kataban": "SEL70200GM2QSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1845,7 +1845,7 @@
   },
   {
     "name": "FE 12-24 mm F2.8 GM",
-    "model": "SEL1224GM//JSYX",
+    "kataban": "SEL1224GM//JSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1863,7 +1863,7 @@
   },
   {
     "name": "FE 100-400mm F4.5-5.6 GM OSS",
-    "model": "SEL100400GM SYX",
+    "kataban": "SEL100400GM SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1881,7 +1881,7 @@
   },
   {
     "name": "FE 24-70mm F2.8 GM",
-    "model": "SEL2470GM//QSYX",
+    "kataban": "SEL2470GM//QSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1899,7 +1899,7 @@
   },
   {
     "name": "FE 16 mm F1.8 G",
-    "model": "SEL16F18G//QSYX",
+    "kataban": "SEL16F18G//QSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1917,7 +1917,7 @@
   },
   {
     "name": "FE 24 mm F2.8 G",
-    "model": "SEL24F28G//CSYX",
+    "kataban": "SEL24F28G//CSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1935,7 +1935,7 @@
   },
   {
     "name": "FE 40 mm F2.5 G",
-    "model": "SEL40F25G//CSYX",
+    "kataban": "SEL40F25G//CSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1953,7 +1953,7 @@
   },
   {
     "name": "FE 50 mm F2.5 G",
-    "model": "SEL50F25G//CSYX",
+    "kataban": "SEL50F25G//CSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1971,7 +1971,7 @@
   },
   {
     "name": "FE 20 mm F1.8 G",
-    "model": "SEL20F18G//QSYX",
+    "kataban": "SEL20F18G//QSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -1989,7 +1989,7 @@
   },
   {
     "name": "FE 90mm F2.8 Macro G OSS",
-    "model": "SEL90M28G//QSYX",
+    "kataban": "SEL90M28G//QSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2007,7 +2007,7 @@
   },
   {
     "name": "FE 400–800 mm F6.3–8 G OSS",
-    "model": "SEL400800G/CSYX",
+    "kataban": "SEL400800G/CSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2025,7 +2025,7 @@
   },
   {
     "name": "FE 16–25 mm F2.8 G",
-    "model": "SEL1625G//Z SYX",
+    "kataban": "SEL1625G//Z SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2043,7 +2043,7 @@
   },
   {
     "name": "FE 24-50 mm F2.8 G",
-    "model": "SEL2450G//Z SYX",
+    "kataban": "SEL2450G//Z SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2061,7 +2061,7 @@
   },
   {
     "name": "FE 70-200mm F4 Macro G OSS Ⅱ",
-    "model": "SEL70200G2/CSYX",
+    "kataban": "SEL70200G2/CSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2079,7 +2079,7 @@
   },
   {
     "name": "FE 20–70 mm F4 G",
-    "model": "SEL2070G//Q SYX",
+    "kataban": "SEL2070G//Q SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2097,7 +2097,7 @@
   },
   {
     "name": "FE PZ 16-35 mm F4 G",
-    "model": "SELP1635G//QSYX",
+    "kataban": "SELP1635G//QSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2115,7 +2115,7 @@
   },
   {
     "name": "FE 200-600 mm F5.6-6.3 G OSS",
-    "model": "SEL200600G/CSYX",
+    "kataban": "SEL200600G/CSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2133,7 +2133,7 @@
   },
   {
     "name": "FE C 16-35 mm T3.1",
-    "model": "SELC1635G SYX",
+    "kataban": "SELC1635G SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2151,7 +2151,7 @@
   },
   {
     "name": "FE 24-105 mm F4 G OSS",
-    "model": "SEL24105G//QSYX",
+    "kataban": "SEL24105G//QSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2169,7 +2169,7 @@
   },
   {
     "name": "FE 12-24mm F4 G",
-    "model": "SEL1224G SYX",
+    "kataban": "SEL1224G SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2187,7 +2187,7 @@
   },
   {
     "name": "FE PZ 28-135mm F4 G OSS",
-    "model": "SELP28135G/CSYX",
+    "kataban": "SELP28135G/CSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2205,7 +2205,7 @@
   },
   {
     "name": "E PZ 10-20 mm F4 G",
-    "model": "SELP1020G//CSYX",
+    "kataban": "SELP1020G//CSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2223,7 +2223,7 @@
   },
   {
     "name": "E 15 mm F1.4 G",
-    "model": "SEL15F14G//CSYX",
+    "kataban": "SEL15F14G//CSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2241,7 +2241,7 @@
   },
   {
     "name": "E 11 mm F1.8",
-    "model": "SEL11F18//C SYX",
+    "kataban": "SEL11F18//C SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2259,7 +2259,7 @@
   },
   {
     "name": "G E 16-55 mm F2.8",
-    "model": "SEL1655G//C SYX",
+    "kataban": "SEL1655G//C SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2277,7 +2277,7 @@
   },
   {
     "name": "E 18–200mm F3.5–6.3 OSS LE",
-    "model": "SEL18200LE SYX",
+    "kataban": "SEL18200LE SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2295,7 +2295,7 @@
   },
   {
     "name": "E 35mm F1.8 OSS",
-    "model": "SEL35F18//C SYX",
+    "kataban": "SEL35F18//C SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2313,7 +2313,7 @@
   },
   {
     "name": "E 70-350 mm F4.5-6.3 G OSS",
-    "model": "SEL70350G//CSYX",
+    "kataban": "SEL70350G//CSYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2331,7 +2331,7 @@
   },
   {
     "name": "E 10-18mm F4 OSS",
-    "model": "SEL1018//C AE",
+    "kataban": "SEL1018//C AE",
     "color": "",
     "category": "",
     "tags": [
@@ -2349,7 +2349,7 @@
   },
   {
     "name": "E PZ 18-105mm F4 G OSS",
-    "model": "SELP18105G AE",
+    "kataban": "SELP18105G AE",
     "color": "",
     "category": "",
     "tags": [
@@ -2367,7 +2367,7 @@
   },
   {
     "name": "E 30 mm F3.5 macro",
-    "model": "SEL30M35//C SYX",
+    "kataban": "SEL30M35//C SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2385,7 +2385,7 @@
   },
   {
     "name": "E 50mm F1.8 OSS",
-    "model": "SEL50F18/BC SYX",
+    "kataban": "SEL50F18/BC SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2403,7 +2403,7 @@
   },
   {
     "name": "Chuyển đổi tele 1.4x",
-    "model": "SEL14TC//Q SYX",
+    "kataban": "SEL14TC//Q SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2419,7 +2419,7 @@
   },
   {
     "name": "Chuyển đổi tele 2x",
-    "model": "SEL20TC//Q SYX",
+    "kataban": "SEL20TC//Q SYX",
     "color": "",
     "category": "",
     "tags": [
@@ -2435,7 +2435,7 @@
   },
   {
     "name": "RX 1R III",
-    "model": "DSC-RX1RM3 AP2",
+    "kataban": "DSC-RX1RM3 AP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2452,7 +2452,7 @@
   },
   {
     "name": "Alpha 7C II",
-    "model": "ILCE-7CM2/SQAP2",
+    "kataban": "ILCE-7CM2/SQAP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2469,7 +2469,7 @@
   },
   {
     "name": "Alpha 7C",
-    "model": "ILCE-7C/SQ AP2",
+    "kataban": "ILCE-7C/SQ AP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2486,7 +2486,7 @@
   },
   {
     "name": "Alpha 7 IV",
-    "model": "ILCE-7M4/B",
+    "kataban": "ILCE-7M4/B",
     "color": "",
     "category": "",
     "tags": [
@@ -2503,7 +2503,7 @@
   },
   {
     "name": "Alpha 7 V",
-    "model": "ILCE-7M5/B",
+    "kataban": "ILCE-7M5/B",
     "color": "",
     "category": "",
     "tags": [
@@ -2520,7 +2520,7 @@
   },
   {
     "name": "Alpha 7R V",
-    "model": "ILCE-7RM5/BQAP2",
+    "kataban": "ILCE-7RM5/BQAP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2537,7 +2537,7 @@
   },
   {
     "name": "Alpha 7S III",
-    "model": "ILCE-7SM3/BQAP2",
+    "kataban": "ILCE-7SM3/BQAP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2554,7 +2554,7 @@
   },
   {
     "name": "Alpha 7C R",
-    "model": "ILCE-7CR/BQ AP2",
+    "kataban": "ILCE-7CR/BQ AP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2571,7 +2571,7 @@
   },
   {
     "name": "Alpha 9 III",
-    "model": "ILCE-9M3/BQ AP2",
+    "kataban": "ILCE-9M3/BQ AP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2588,7 +2588,7 @@
   },
   {
     "name": "Alpha 1 II",
-    "model": "ILCE-1M2/BQ AP2",
+    "kataban": "ILCE-1M2/BQ AP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2605,7 +2605,7 @@
   },
   {
     "name": "Alpha 1",
-    "model": "ILCE-1/BQ AP2",
+    "kataban": "ILCE-1/BQ AP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2622,7 +2622,7 @@
   },
   {
     "name": "ZV-E1",
-    "model": "ZV-E1/BQ AP2",
+    "kataban": "ZV-E1/BQ AP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2640,7 +2640,7 @@
   },
   {
     "name": "RX 100 VII",
-    "model": "DSC-RX100M7/E32",
+    "kataban": "DSC-RX100M7/E32",
     "color": "",
     "category": "",
     "tags": [
@@ -2657,7 +2657,7 @@
   },
   {
     "name": "Alpha 6400",
-    "model": "ILCE-6400/B AP2",
+    "kataban": "ILCE-6400/B AP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2674,7 +2674,7 @@
   },
   {
     "name": "Alpha 6700",
-    "model": "ILCE-6700/BQAP2",
+    "kataban": "ILCE-6700/BQAP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2691,7 +2691,7 @@
   },
   {
     "name": "ZV-E10",
-    "model": "ZV-E10/BQ AP2",
+    "kataban": "ZV-E10/BQ AP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2708,7 +2708,7 @@
   },
   {
     "name": "ZV-E10 II",
-    "model": "ZV-E10M2/BQ AP2",
+    "kataban": "ZV-E10M2/BQ AP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2725,7 +2725,7 @@
   },
   {
     "name": "ZV-1",
-    "model": "ZV-1/WQ E32",
+    "kataban": "ZV-1/WQ E32",
     "color": "",
     "category": "",
     "tags": [
@@ -2742,7 +2742,7 @@
   },
   {
     "name": "ZV-1 II",
-    "model": "ZV-1M2/WQ E32",
+    "kataban": "ZV-1M2/WQ E32",
     "color": "",
     "category": "",
     "tags": [
@@ -2759,7 +2759,7 @@
   },
   {
     "name": "Cinemaline FX3",
-    "model": "ILME-FX3A/Q AP2",
+    "kataban": "ILME-FX3A/Q AP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2777,7 +2777,7 @@
   },
   {
     "name": "Cinemaline FX2",
-    "model": "ILME-FX2B/Q AP2",
+    "kataban": "ILME-FX2B/Q AP2",
     "color": "",
     "category": "",
     "tags": [
@@ -2795,7 +2795,7 @@
   },
   {
     "name": "Cinemaline FX30",
-    "model": "ILME-FX30B/QAP2",
+    "kataban": "ILME-FX30B/QAP2",
     "color": "",
     "category": "Máy Quay Film",
     "tags": [
@@ -2813,7 +2813,7 @@
   },
   {
     "name": "RX 1R III",
-    "model": "DSC-RX1RM3 AP2",
+    "kataban": "DSC-RX1RM3 AP2",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -2830,7 +2830,7 @@
   },
   {
     "name": "Alpha 7C II",
-    "model": "ILCE-7CM2/SQAP2",
+    "kataban": "ILCE-7CM2/SQAP2",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -2847,7 +2847,7 @@
   },
   {
     "name": "Alpha 7C",
-    "model": "ILCE-7C/SQ AP2",
+    "kataban": "ILCE-7C/SQ AP2",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -2864,7 +2864,7 @@
   },
   {
     "name": "Alpha 7 IV",
-    "model": "ILCE-7M4/B",
+    "kataban": "ILCE-7M4/B",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -2881,7 +2881,7 @@
   },
   {
     "name": "Alpha 7V",
-    "model": "ILCE-7M5/B",
+    "kataban": "ILCE-7M5/B",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -2898,7 +2898,7 @@
   },
   {
     "name": "Alpha 7R V",
-    "model": "ILCE-7RM5/BQAP2",
+    "kataban": "ILCE-7RM5/BQAP2",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -2915,7 +2915,7 @@
   },
   {
     "name": "Alpha 7S III",
-    "model": "ILCE-7SM3/BQAP2",
+    "kataban": "ILCE-7SM3/BQAP2",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -2932,7 +2932,7 @@
   },
   {
     "name": "Alpha 7C R",
-    "model": "ILCE-7CR/BQ AP2",
+    "kataban": "ILCE-7CR/BQ AP2",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -2949,7 +2949,7 @@
   },
   {
     "name": "Alpha 9 III",
-    "model": "ILCE-9M3/BQ AP2",
+    "kataban": "ILCE-9M3/BQ AP2",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -2966,7 +2966,7 @@
   },
   {
     "name": "Alpha 1 II",
-    "model": "ILCE-1M2/BQ AP2",
+    "kataban": "ILCE-1M2/BQ AP2",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -2983,7 +2983,7 @@
   },
   {
     "name": "Alpha 1",
-    "model": "ILCE-1/BQ AP2",
+    "kataban": "ILCE-1/BQ AP2",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -3000,7 +3000,7 @@
   },
   {
     "name": "ZV-E1",
-    "model": "ZV-E1/BQ AP2",
+    "kataban": "ZV-E1/BQ AP2",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -3018,7 +3018,7 @@
   },
   {
     "name": "RX 100 VII",
-    "model": "DSC-RX100M7/E32",
+    "kataban": "DSC-RX100M7/E32",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -3035,7 +3035,7 @@
   },
   {
     "name": "Alpha 6400",
-    "model": "ILCE-6400/B AP2",
+    "kataban": "ILCE-6400/B AP2",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -3052,7 +3052,7 @@
   },
   {
     "name": "Alpha 6700",
-    "model": "ILCE-6700/BQAP2",
+    "kataban": "ILCE-6700/BQAP2",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -3069,7 +3069,7 @@
   },
   {
     "name": "ZV-E10",
-    "model": "ZV-E10/BQ AP2",
+    "kataban": "ZV-E10/BQ AP2",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -3087,7 +3087,7 @@
   },
   {
     "name": "ZV-E10 II",
-    "model": "ZV-E10M2/BQ AP2",
+    "kataban": "ZV-E10M2/BQ AP2",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -3105,7 +3105,7 @@
   },
   {
     "name": "ZV-1",
-    "model": "ZV-1M/WQ E32",
+    "kataban": "ZV-1M/WQ E32",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -3123,7 +3123,7 @@
   },
   {
     "name": "ZV-1 II",
-    "model": "ZV-1M2/WQ E32",
+    "kataban": "ZV-1M2/WQ E32",
     "color": "Black",
     "category": "Máy Ảnh",
     "tags": [
@@ -3141,7 +3141,7 @@
   },
   {
     "name": "Cinemaline FX3",
-    "model": "ILME-FX3A/Q AP2",
+    "kataban": "ILME-FX3A/Q AP2",
     "color": "Black",
     "category": "Máy Quay Film",
     "tags": [
@@ -3159,7 +3159,7 @@
   },
   {
     "name": "Cinemaline FX2",
-    "model": "ILME-FX2B/Q AP2",
+    "kataban": "ILME-FX2B/Q AP2",
     "color": "Black",
     "category": "Máy Quay Film",
     "tags": [

@@ -43,7 +43,7 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
             const q = search.toLowerCase();
             list = list.filter(p =>
                 p.name?.toLowerCase().includes(q) ||
-                p.model?.toLowerCase().includes(q) ||
+                p.kataban?.toLowerCase().includes(q) ||
                 p.category?.toLowerCase().includes(q) ||
                 p.tags?.some(t => t.toLowerCase().includes(q))
             );
@@ -76,7 +76,7 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
                     <input
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        placeholder="Tìm sản phẩm, model, tag..."
+                        placeholder="Tìm sản phẩm, kataban, tag..."
                         className="w-full pl-9 pr-3 py-2 rounded-xl border border-black/10 bg-white text-[13px] text-[#1d1d1f] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors"
                     />
                 </div>
@@ -122,7 +122,7 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
                             <tr>
                                 <th className="px-4 py-3 text-left w-14" />
                                 <SortHeader label="Tên sản phẩm" colKey="name" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
-                                <SortHeader label="Model Name" colKey="model" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                                <SortHeader label="Kataban" colKey="kataban" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                                 <SortHeader label="Màu sắc" colKey="color" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                                 <SortHeader label="Ngành hàng" colKey="category" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                                 <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500 w-[150px] truncate">Tags</th>
@@ -154,9 +154,9 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
                                         {product.name || '—'}
                                     </td>
 
-                                    {/* Model */}
-                                    <td className="px-4 py-2.5 text-slate-500 font-mono text-[11px] truncate max-w-[150px]" title={product.model}>
-                                        {product.model || '—'}
+                                    {/* Kataban */}
+                                    <td className="px-4 py-2.5 text-slate-500 font-mono text-[11px] truncate max-w-[150px]" title={product.kataban}>
+                                        {product.kataban || '—'}
                                     </td>
 
                                     {/* Color */}

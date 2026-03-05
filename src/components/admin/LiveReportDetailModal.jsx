@@ -1,11 +1,20 @@
 import { X, Calendar, Clock, Users, ShoppingBag, BarChart3, TrendingUp, Info, MessageSquare, Monitor, MousePointerClick, Heart, User, Download } from 'lucide-react';
 import { toPng } from 'html-to-image';
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 
 export default function LiveReportDetailModal({ report, onClose }) {
     const modalRef = useRef(null);
 
     if (!report) return null;
+
+    // Close on Escape key
+    useEffect(() => {
+        const handleEsc = (e) => {
+            if (e.key === 'Escape') onClose();
+        };
+        document.addEventListener('keydown', handleEsc);
+        return () => document.removeEventListener('keydown', handleEsc);
+    }, [onClose]);
 
     const handleExport = async () => {
         const modalElement = modalRef.current;

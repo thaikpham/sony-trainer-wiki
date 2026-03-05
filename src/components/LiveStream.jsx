@@ -3,7 +3,7 @@ import { Camera, Monitor, Upload, SlidersHorizontal, ChevronRight, ChevronLeft, 
 import { platformIcons } from '@/data/platformIcons';
 import { platformsData } from '@/data/platformsData';
 import StudioDiagram from './livestream/StudioDiagram';
-import { isAuthorizedForLiveReport } from '@/lib/roles';
+import { useRoleAccess } from '@/components/RoleProvider';
 import { saveLiveReport } from '@/services/db';
 import { useUser } from '@clerk/nextjs';
 
@@ -18,6 +18,7 @@ export default function LiveStream() {
     const [isStreaming, setIsStreaming] = useState(false);
     const [cameraError, setCameraError] = useState('');
     const { user } = useUser();
+    const { canViewReport } = useRoleAccess();
 
     const [activePlatformIndex, setActivePlatformIndex] = useState(0);
     const [platforms, setPlatforms] = useState(platformsData);
@@ -85,7 +86,7 @@ export default function LiveStream() {
                 }]
             }));
         }
-    }, [activePlatform, reportMetrics.platforms.length]);
+    }, [activePlatform, reportMetrics.platforms.length, setReportMetrics]);
     const [isSavingReport, setIsSavingReport] = useState(false);
     const [reportSaved, setReportSaved] = useState(false);
 
@@ -135,6 +136,17 @@ export default function LiveStream() {
                 userName: user.fullName,
                 timestamp: new Date().toISOString()
             });
+
+            // Track milestone action
+            fetch('/api/track_action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'live_reports_submitted' })
+            }).then(r => r.json()).then(data => {
+                if (data.unlockedBadges && data.unlockedBadges.length > 0) {
+                    window.dispatchEvent(new CustomEvent('badge-unlocked', { detail: { unlockedBadges: data.unlockedBadges } }));
+                }
+            }).catch(e => console.error("Failed to track live stream report action", e));
 
             setReportSaved(true);
             setTimeout(() => {
@@ -338,7 +350,7 @@ export default function LiveStream() {
             setStream(null);
             if (videoRef.current) videoRef.current.srcObject = null;
         };
-    }, [isStreaming, selectedDevice]);
+    }, [isStreaming, selectedDevice, selectedAudioDevice]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -1165,7 +1177,7 @@ export default function LiveStream() {
                                 </div>
                             </div>
 
-                            {!isAuthorizedForLiveReport(user?.primaryEmailAddress?.emailAddress) ? (
+                            {!canViewReport ? (
                                 <div className="max-w-2xl mx-auto py-16 text-center flex flex-col items-center gap-8 relative z-10">
                                     <div className="w-24 h-24 rounded-[32px] bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white shadow-2xl shadow-orange-500/30 animate-pulse-slow">
                                         <KeyRound size={44} strokeWidth={2.5} />

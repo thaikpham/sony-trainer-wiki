@@ -114,7 +114,7 @@ async function addDemoGuides() {
         snapshot.forEach((doc) => {
             const data = doc.data();
             const lowerName = data.name ? data.name.toLowerCase() : '';
-            if (lowerName.includes('a6400') || lowerName.includes('alpha 6400') || data.model === 'ILCE-6400') {
+            if (lowerName.includes('a6400') || lowerName.includes('alpha 6400') || data.kataban === 'ILCE-6400') {
                 a6400Id = doc.id;
             }
             if (lowerName.includes('zv-e1') && !lowerName.includes('zv-e10')) {

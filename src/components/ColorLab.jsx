@@ -85,24 +85,65 @@ export default function ColorLab() {
         }
     }, [subTab]);
 
+    const handleRecipeSelect = (recipe) => {
+        setSelectedRecipe(recipe);
+        // Track milestone action
+        fetch('/api/track_action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'color_profile_views' })
+        }).then(r => r.json()).then(data => {
+            if (data.unlockedBadges && data.unlockedBadges.length > 0) {
+                window.dispatchEvent(new CustomEvent('badge-unlocked', { detail: { unlockedBadges: data.unlockedBadges } }));
+            }
+        }).catch(e => console.error("Failed to track color profile view action", e));
+    };
+
+    const handleTabSwitch = (tab) => {
+        setSubTab(tab);
+        if (tab === 'creative') {
+            fetch('/api/track_action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'creative_look_views' })
+            }).then(r => r.json()).then(data => {
+                if (data.unlockedBadges && data.unlockedBadges.length > 0) {
+                    window.dispatchEvent(new CustomEvent('badge-unlocked', { detail: { unlockedBadges: data.unlockedBadges } }));
+                }
+            });
+        }
+    };
+
+    const trackLutDownload = () => {
+        fetch('/api/track_action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'lut_downloads' })
+        }).then(r => r.json()).then(data => {
+            if (data.unlockedBadges && data.unlockedBadges.length > 0) {
+                window.dispatchEvent(new CustomEvent('badge-unlocked', { detail: { unlockedBadges: data.unlockedBadges } }));
+            }
+        });
+    };
+
     return (
         <div className="w-full flex flex-col gap-6 animate-slide-up relative z-10">
             {/* Top Sub-Navigation */}
             <div className="flex flex-col sm:flex-row gap-2 items-center justify-center p-2 glass-panel p-2 rounded-2xl">
                 <button
-                    onClick={() => setSubTab('creative')}
+                    onClick={() => handleTabSwitch('creative')}
                     className={`flex-1 w-full sm:w-auto px-6 py-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all ${subTab === 'creative' ? 'bg-indigo-600 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}
                 >
                     <Palette size={16} /> Creative Look (Mod)
                 </button>
                 <button
-                    onClick={() => setSubTab('profile')}
+                    onClick={() => handleTabSwitch('profile')}
                     className={`flex-1 w-full sm:w-auto px-6 py-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all ${subTab === 'profile' ? 'bg-cyan-600 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}
                 >
                     <Sliders size={16} /> Picture Profile
                 </button>
                 <button
-                    onClick={() => setSubTab('lut')}
+                    onClick={() => handleTabSwitch('lut')}
                     className={`flex-1 w-full sm:w-auto px-6 py-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all ${subTab === 'lut' ? 'bg-emerald-600 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}
                 >
                     <Play size={16} /> LUT Màu (.cube)
@@ -134,7 +175,7 @@ export default function ColorLab() {
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {recipes.map(recipe => (
-                                    <div key={recipe.id} onClick={() => setSelectedRecipe(recipe)} className="border border-slate-200 rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-transform group bg-white">
+                                    <div key={recipe.id} onClick={() => handleRecipeSelect(recipe)} className="border border-slate-200 rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-transform group bg-white">
                                         <div className="h-48 bg-slate-100 relative overflow-hidden">
                                             {recipe.images && recipe.images.length > 0 ? (
                                                 <img src={recipe.images[0]} alt={recipe.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -202,7 +243,7 @@ export default function ColorLab() {
                                             <h3 className="text-sm font-bold text-slate-800 leading-tight mb-1 truncate" title={lut.name}>{lut.name}</h3>
                                             <p className="text-[11px] font-medium text-slate-500">Cube File • {lut.size}</p>
                                         </div>
-                                        <a href={`/luts/${lut.filename}`} download className="w-full relative overflow-hidden bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 font-bold text-xs py-2.5 rounded-xl border border-slate-200 hover:border-emerald-200 transition-colors flex items-center justify-center gap-2 group/btn">
+                                        <a href={`/luts/${lut.filename}`} onClick={trackLutDownload} download className="w-full relative overflow-hidden bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 font-bold text-xs py-2.5 rounded-xl border border-slate-200 hover:border-emerald-200 transition-colors flex items-center justify-center gap-2 group/btn">
                                             <svg className="w-4 h-4 transition-transform group-hover/btn:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                             Phân Phối Bởi Sony
                                         </a>

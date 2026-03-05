@@ -6,6 +6,17 @@ export default function CompareModal({ isOpen, onClose, compareList }) {
     const [compareData, setCompareData] = useState([]);
     const [error, setError] = useState('');
 
+    // Close on Escape key
+    useEffect(() => {
+        const handleEsc = (e) => {
+            if (e.key === 'Escape') onClose();
+        };
+        if (isOpen) {
+            document.addEventListener('keydown', handleEsc);
+        }
+        return () => document.removeEventListener('keydown', handleEsc);
+    }, [isOpen, onClose]);
+
     useEffect(() => {
         if (isOpen && compareList?.length > 0) {
             const fetchSpecs = async () => {
@@ -28,6 +39,18 @@ export default function CompareModal({ isOpen, onClose, compareList }) {
 
                     const results = await Promise.all(promises);
                     setCompareData(results);
+
+                    // Track milestone action
+                    fetch('/api/track_action', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'compare_tool_uses' })
+                    }).then(r => r.json()).then(data => {
+                        if (data.unlockedBadges && data.unlockedBadges.length > 0) {
+                            window.dispatchEvent(new CustomEvent('badge-unlocked', { detail: { unlockedBadges: data.unlockedBadges } }));
+                        }
+                    }).catch(e => console.error("Failed to track compare action", e));
+
                 } catch (err) {
                     setError('Không thể tải dữ liệu so sánh.');
                 } finally {
