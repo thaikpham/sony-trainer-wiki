@@ -2,13 +2,15 @@
 import { useState, useEffect } from 'react';
 import { X, ExternalLink, Loader2, Trash2 } from 'lucide-react';
 import MultiSelectField from './MultiSelectField';
+import MultiSelectCategoryField from './MultiSelectCategoryField';
 import SingleSelectField from './SingleSelectField';
 
 const EMPTY_PRODUCT = {
     name: '',
     kataban: '',
     color: '',
-    category: '',
+    category: '', // Legacy support
+    categories: [], // Multi support
     tags: [],
     highlights: '',
     quickSettingGuide: '',
@@ -55,6 +57,14 @@ export default function ProductFormModal({
     const sanitizeForm = (prod) => {
         if (!prod) return { ...EMPTY_PRODUCT };
         const next = { ...EMPTY_PRODUCT, ...prod };
+
+        // Migrate legacy category (string) to categories (array)
+        if (next.category && (!next.categories || next.categories.length === 0)) {
+            next.categories = [next.category];
+        } else if (next.categories && next.categories.length > 0 && !next.category) {
+            next.category = next.categories[0];
+        }
+
         for (const key in next) {
             if (next[key] === null && key !== 'id') {
                 next[key] = '';
@@ -87,10 +97,19 @@ export default function ProductFormModal({
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        // Validation: Must have at least one category
+        if (!form.categories || form.categories.length === 0) {
+            alert('Vui lòng chọn ít nhất một ngành hàng.');
+            return;
+        }
+
         const cleaned = {
             ...form,
-            price: form.price === '' ? null : Number(form.price),
-            year: form.year === '' ? null : Number(form.year),
+            price: (form.price === '' || form.price === null || form.price === undefined) ? null : Number(form.price),
+            year: (form.year === '' || form.year === null || form.year === undefined) ? null : Number(form.year),
+            // Legacy fallback syncing
+            category: form.categories[0] || ''
         };
         onSave(cleaned);
     };
@@ -171,33 +190,50 @@ export default function ProductFormModal({
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Category */}
+                        {/* Categories */}
                         <div>
                             <label className={LabelClass}>Ngành hàng *</label>
-                            <SingleSelectField value={form.category} onChange={v => {
-                                if (readOnly) return;
-                                setForm(f => {
-                                    const next = { ...f, category: v };
-                                    const mapping = {
-                                        'Máy Ảnh': 'Body',
-                                        'Ống Kính': 'Lens',
-                                        'Tivi Bravia': 'TV',
-                                        'Loa & Âm Thanh': 'Loa',
-                                        'Tai Nghe': 'Tai nghe',
-                                        'Điện Thoại Xperia': 'Điện Thoại',
-                                        'Máy Quay Film': 'Body'
-                                    };
-                                    const templateKey = mapping[v];
-                                    if (templateKey && INDUSTRY_TEMPLATES[templateKey]) {
-                                        const tpl = INDUSTRY_TEMPLATES[templateKey];
-                                        // Chỉ tự điền template nếu chưa có chữ nào hoặc đang là 1 template trắng khác
-                                        if (!f.highlights || Object.values(INDUSTRY_TEMPLATES).includes(f.highlights)) {
-                                            next.highlights = tpl;
+                            <MultiSelectCategoryField
+                                value={form.categories || []}
+                                onChange={newCats => {
+                                    if (readOnly) return;
+                                    setForm(f => {
+                                        const next = {
+                                            ...f,
+                                            categories: newCats,
+                                            category: newCats[0] || '' // Sync legacy field for compatibility
+                                        };
+                                        const mapping = {
+                                            'Máy Ảnh': 'Body',
+                                            'Ống Kính': 'Lens',
+                                            'Tivi Bravia': 'TV',
+                                            'Loa & Âm Thanh': 'Loa',
+                                            'Tai Nghe': 'Tai nghe',
+                                            'Điện Thoại Xperia': 'Điện Thoại',
+                                            'Máy Quay Film': 'Body'
+                                        };
+
+                                        // Auto-apply template if selection changes and content is empty/template
+                                        const newlyAdded = newCats.find(c => !f.categories?.includes(c));
+                                        if (newlyAdded) {
+                                            const templateKey = mapping[newlyAdded];
+                                            if (templateKey && INDUSTRY_TEMPLATES[templateKey]) {
+                                                const tpl = INDUSTRY_TEMPLATES[templateKey];
+                                                if (!f.highlights || Object.values(INDUSTRY_TEMPLATES).includes(f.highlights)) {
+                                                    next.highlights = tpl;
+                                                }
+                                            }
                                         }
-                                    }
-                                    return next;
-                                });
-                            }} readOnly={readOnly} />
+                                        return next;
+                                    });
+                                }}
+                                readOnly={readOnly}
+                            />
+                            {!readOnly && (form.categories?.length > 1) && (
+                                <p className="mt-1 text-[11px] text-blue-500 font-bold">
+                                    ✓ Đã chọn {form.categories.length} ngành
+                                </p>
+                            )}
                         </div>
 
                         {/* Tags */}
