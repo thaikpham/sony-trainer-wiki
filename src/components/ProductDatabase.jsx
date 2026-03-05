@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Filter, Plus, ShoppingCart, Info, Activity, Box, Aperture, Layers, Fingerprint, ExternalLink, Loader2, AlertCircle, Camera, Settings2, Trash2, X, Edit3 } from 'lucide-react';
+import { Search, Filter, Plus, ShoppingCart, Info, Activity, Box, Aperture, Layers, Fingerprint, ExternalLink, Loader2, AlertCircle, Camera, Settings2, Trash2, X, Edit3, Check } from 'lucide-react';
 import { getProducts, deleteProduct, addProduct, updateProduct, getGlobalTags, updateGlobalTags } from '../services/db';
 import { trackFeatureUsage } from '@/services/analytics';
 import FeatureStar from './FeatureStar';
@@ -101,6 +101,20 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
     const [bulkTagsToRemove, setBulkTagsToRemove] = useState([]);
     const [bulkTagInput, setBulkTagInput] = useState('');
     const [bulkSaving, setBulkSaving] = useState(false);
+
+    const selectionSummary = useMemo(() => {
+        if (!bulkEditOpen || selectedIds.length === 0) return null;
+        const selectedProducts = data.filter(p => selectedIds.includes(p.id));
+        const catMap = {};
+        const tagMap = {};
+        selectedProducts.forEach(p => {
+            const cats = getProductCategories(p);
+            cats.forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
+            const tags = Array.isArray(p.tags) ? p.tags : [];
+            tags.forEach(t => { tagMap[t] = (tagMap[t] || 0) + 1; });
+        });
+        return { categories: catMap, tags: tagMap, count: selectedProducts.length };
+    }, [bulkEditOpen, selectedIds, data]);
 
     const toggleBulkCatAdd = (cat) => {
         setBulkCatsToRemove(prev => prev.filter(c => c !== cat));
@@ -309,6 +323,16 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
         setActiveCategories(prev =>
             prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
         );
+        // Track filter usage
+        fetch('/api/track_action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'filter_uses' })
+        }).then(r => r.json()).then(data => {
+            if (data.unlockedBadges && data.unlockedBadges.length > 0) {
+                window.dispatchEvent(new CustomEvent('badge-unlocked', { detail: { unlockedBadges: data.unlockedBadges } }));
+            }
+        }).catch(() => { });
     };
 
     const toggleTag = (tag) => {
@@ -504,23 +528,44 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                 <div className="bg-[#F5F5F7] p-1.5 rounded-xl text-[#86868b] group-hover:bg-white group-hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] group-hover:text-[#1d1d1f] transition-all w-8 h-8 flex items-center justify-center flex-shrink-0">
                                                     <Aperture size={14} />
                                                 </div>
-                                                <div className="flex items-center gap-1.5 overflow-hidden">
-                                                    <span className="truncate" title={item.name}>{item.name}</span>
-                                                    {renderBadges(item.name)}
-                                                    {item.quickSettingGuide && (
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setQuickSettingGuide({ name: item.name, guide: item.quickSettingGuide });
-                                                                trackFeatureUsage(`guide_${item.name.replace(/\s+/g, '_')}`, item.name);
-                                                            }}
-                                                            title="Quick Setting Guide"
-                                                            className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-orange-100 text-orange-600 hover:bg-orange-500 hover:text-white transition-all text-[9px] font-bold uppercase tracking-wide border border-orange-200 flex-shrink-0"
-                                                        >
-                                                            <Settings2 size={10} /> Guide
-                                                        </button>
-                                                    )}
-                                                    <FeatureStar featureId={`prod_${item.name.replace(/\s+/g, '_')}`} />
+                                                <div className="flex flex-col gap-1 overflow-hidden">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="truncate font-black text-[15px]" title={item.name}>{item.name}</span>
+                                                        {renderBadges(item.name)}
+                                                        {item.quickSettingGuide && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setQuickSettingGuide({ name: item.name, guide: item.quickSettingGuide });
+                                                                    trackFeatureUsage(`guide_${item.name.replace(/\s+/g, '_')}`, item.name);
+                                                                }}
+                                                                title="Quick Setting Guide"
+                                                                className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-orange-100 text-orange-600 hover:bg-orange-500 hover:text-white transition-all text-[9px] font-bold uppercase tracking-wide border border-orange-200 flex-shrink-0"
+                                                            >
+                                                                <Settings2 size={10} /> Guide
+                                                            </button>
+                                                        )}
+                                                        <FeatureStar featureId={`prod_${item.name.replace(/\s+/g, '_')}`} />
+                                                    </div>
+
+                                                    {/* Visual Categories & Tags */}
+                                                    <div className="flex flex-wrap gap-1 mt-0.5">
+                                                        {getProductCategories(item).map(cat => (
+                                                            <span key={cat} className="text-[9px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 font-bold border border-blue-100 uppercase tracking-tighter">
+                                                                {cat}
+                                                            </span>
+                                                        ))}
+                                                        {item.tags?.slice(0, 3).map(tag => (
+                                                            <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded bg-teal-50 text-teal-600 font-bold border border-teal-100 uppercase tracking-tighter">
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                        {item.tags?.length > 3 && (
+                                                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-50 text-slate-400 font-bold border border-slate-100">
+                                                                +{item.tags.length - 3}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td className="px-4 py-4 text-[#424245] font-mono text-[12px] truncate" title={item.kataban}>
@@ -653,6 +698,51 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                             </button>
                         </div>
 
+                        {/* Selection Summary Display */}
+                        {selectionSummary && (
+                            <div className="bg-slate-50/50 rounded-2xl p-5 border border-black/[0.03] flex flex-col gap-4">
+                                <div className="flex flex-wrap gap-2 items-center">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 w-full mb-1 flex items-center gap-1.5">
+                                        <Check size={10} strokeWidth={4} className="text-blue-500" /> Đặc điểm chung của {selectedIds.length} sản phẩm:
+                                    </span>
+                                    {ALL_TYPES.filter(c => (selectionSummary.categories[c] || 0) === selectedIds.length).map(c => (
+                                        <span key={c} className="px-2.5 py-1 rounded-full bg-blue-500 text-white text-[10px] font-black border border-blue-600 shadow-sm">
+                                            {c}
+                                        </span>
+                                    ))}
+                                    {globalTags.filter(t => (selectionSummary.tags[t] || 0) === selectedIds.length).map(t => (
+                                        <span key={t} className="px-2.5 py-1 rounded-full bg-teal-600 text-white text-[10px] font-black border border-teal-700 shadow-sm">
+                                            {t}
+                                        </span>
+                                    ))}
+                                    {(ALL_TYPES.filter(c => (selectionSummary.categories[c] || 0) === selectedIds.length).length === 0 &&
+                                        globalTags.filter(t => (selectionSummary.tags[t] || 0) === selectedIds.length).length === 0) && (
+                                            <span className="text-[11px] text-slate-400 italic">Chưa có ngành/tag chung cho toàn bộ lựa chọn</span>
+                                        )}
+                                </div>
+
+                                {/* Partial match summary (Optional - only if many products) */}
+                                {selectedIds.length > 1 && (
+                                    <div className="flex flex-wrap gap-2 items-center opacity-80">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 w-full mb-1 flex items-center gap-1.5">
+                                            <Info size={10} className="text-amber-500" /> Xuất hiện trong một số sản phẩm:
+                                        </span>
+                                        {ALL_TYPES.filter(c => (selectionSummary.categories[c] || 0) > 0 && (selectionSummary.categories[c] || 0) < selectedIds.length).map(c => (
+                                            <span key={c} className="px-2 py-0.5 rounded-full bg-white text-blue-500 text-[9px] font-bold border border-blue-100">
+                                                {c} ({selectionSummary.categories[c]})
+                                            </span>
+                                        ))}
+                                        {globalTags.filter(t => (selectionSummary.tags[t] || 0) > 0 && (selectionSummary.tags[t] || 0) < selectedIds.length).map(t => (
+                                            <span key={t} className="px-2 py-0.5 rounded-full bg-white text-teal-600 text-[9px] font-bold border border-teal-100">
+                                                {t} ({selectionSummary.tags[t]})
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+
                         {/* Categories — multi add/remove */}
                         <div>
                             <label className="block text-[12px] font-black uppercase tracking-widest text-slate-400 mb-3">
@@ -662,19 +752,24 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                 {ALL_TYPES.map(cat => {
                                     const isAdding = bulkCatsToAdd.includes(cat);
                                     const isRemoving = bulkCatsToRemove.includes(cat);
+                                    const count = selectionSummary?.categories[cat] || 0;
+                                    const isEvery = count === selectedIds.length;
+                                    const isSome = count > 0 && count < selectedIds.length;
+
                                     return (
-                                        <div key={cat} className="flex items-center rounded-2xl overflow-hidden ring-1 ring-black/5">
+                                        <div key={cat} className={`flex items-center rounded-2xl overflow-hidden ring-1 transition-all ${isEvery ? 'ring-blue-500/30 bg-blue-50/30' : 'ring-black/5'}`}>
                                             <button
                                                 onClick={() => toggleBulkCatAdd(cat)}
-                                                className={`px-3 py-1.5 text-[11px] font-bold transition-all ${isAdding ? 'bg-green-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-green-50 hover:text-green-600'
+                                                className={`group/btn px-3 py-1.5 text-[11px] font-bold transition-all flex items-center gap-1.5 ${isAdding ? 'bg-green-500 text-white' : 'bg-slate-50/50 text-slate-600 hover:bg-green-50 hover:text-green-600'
                                                     }`}
-                                                title="Thêm ngành hàng này cho tất cả sản phẩm đã chọn"
+                                                title={isEvery ? "Tất cả sp đã chọn đều có ngành này" : isSome ? `Có ${count}/${selectedIds.length} sp có ngành này` : "Thêm ngành này"}
                                             >
-                                                ✚ {cat}
+                                                {isAdding ? '✚' : isEvery ? <Check size={10} strokeWidth={4} className="text-blue-500" /> : isSome ? <Info size={10} className="text-amber-500" /> : '✚'}
+                                                {cat}
                                             </button>
                                             <button
                                                 onClick={() => toggleBulkCatRemove(cat)}
-                                                className={`px-2 py-1.5 text-[11px] font-bold border-l border-white/30 transition-all ${isRemoving ? 'bg-red-500 text-white' : 'bg-slate-100 text-slate-400 hover:bg-red-50 hover:text-red-500'
+                                                className={`px-2 py-1.5 text-[11px] font-bold border-l border-white/30 transition-all ${isRemoving ? 'bg-red-500 text-white' : 'bg-slate-50/50 text-slate-400 hover:bg-red-50 hover:text-red-500'
                                                     }`}
                                                 title="Xoá ngành hàng này khỏi tất cả sản phẩm đã chọn"
                                             >
@@ -699,19 +794,24 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                 {globalTags.map(tag => {
                                     const isAdding = bulkTagsToAdd.includes(tag);
                                     const isRemoving = bulkTagsToRemove.includes(tag);
+                                    const count = selectionSummary?.tags[tag] || 0;
+                                    const isEvery = count === selectedIds.length;
+                                    const isSome = count > 0 && count < selectedIds.length;
+
                                     return (
-                                        <div key={tag} className="flex items-center rounded-2xl overflow-hidden ring-1 ring-black/5">
+                                        <div key={tag} className={`flex items-center rounded-2xl overflow-hidden ring-1 transition-all ${isEvery ? 'ring-teal-500/30 bg-teal-50/30' : 'ring-black/5'}`}>
                                             <button
                                                 onClick={() => toggleBulkTagAdd(tag)}
-                                                className={`px-3 py-1.5 text-[11px] font-bold transition-all ${isAdding ? 'bg-green-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-green-50 hover:text-green-600'
+                                                className={`px-3 py-1.5 text-[11px] font-bold transition-all flex items-center gap-1.5 ${isAdding ? 'bg-green-500 text-white' : 'bg-slate-50/50 text-slate-600 hover:bg-green-50 hover:text-green-600'
                                                     }`}
-                                                title="Thêm tag này cho tất cả sản phẩm đã chọn"
+                                                title={isEvery ? "Tất cả sp đều có tag này" : isSome ? `Có ${count}/${selectedIds.length} sp có tag này` : "Thêm tag"}
                                             >
-                                                ✚ {tag}
+                                                {isAdding ? '✚' : isEvery ? <Check size={10} strokeWidth={4} className="text-teal-600" /> : isSome ? <Info size={10} className="text-amber-500" /> : '✚'}
+                                                {tag}
                                             </button>
                                             <button
                                                 onClick={() => toggleBulkTagRemove(tag)}
-                                                className={`px-2 py-1.5 text-[11px] font-bold border-l border-white/30 transition-all ${isRemoving ? 'bg-red-500 text-white' : 'bg-slate-100 text-slate-400 hover:bg-red-50 hover:text-red-500'
+                                                className={`px-2 py-1.5 text-[11px] font-bold border-l border-white/30 transition-all ${isRemoving ? 'bg-red-500 text-white' : 'bg-slate-50/50 text-slate-400 hover:bg-red-50 hover:text-red-500'
                                                     }`}
                                                 title="Xoá tag này khỏi tất cả sản phẩm đã chọn"
                                             >
