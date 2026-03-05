@@ -284,14 +284,15 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
     const filteredData = useMemo(() => {
         const searchLower = searchTerm.toLowerCase();
         return data.filter(item => {
+            const cats = getProductCategories(item);
             const matchesSearch =
                 item.name.toLowerCase().includes(searchLower) ||
                 (item.kataban && item.kataban.toLowerCase().includes(searchLower)) ||
                 (item.highlights && item.highlights.toLowerCase().includes(searchLower)) ||
-                (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchLower)));
+                (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchLower))) ||
+                cats.some(c => c.toLowerCase().includes(searchLower));
 
             // Multi-category OR logic: match if product belongs to ANY selected category
-            const cats = getProductCategories(item);
             const matchesMainCat = activeCategories.length === 0 || activeCategories.some(c => cats.includes(c));
             const matchesType = activeTags.length === 0 ? true : activeTags.every(tag => item.tags && item.tags.includes(tag));
             return matchesSearch && matchesMainCat && matchesType;
