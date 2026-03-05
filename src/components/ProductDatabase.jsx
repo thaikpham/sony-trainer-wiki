@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Filter, Plus, ShoppingCart, Info, Activity, Box, Aperture, Layers, Fingerprint, ExternalLink, Loader2, AlertCircle, Camera, Settings2, Trash2, X, Edit3, Check } from 'lucide-react';
+import { Search, Filter, Plus, ShoppingCart, Info, Activity, Box, Aperture, Layers, Fingerprint, ExternalLink, Loader2, AlertCircle, Camera, Settings2, Trash2, X, Edit3, Check, ArrowUp } from 'lucide-react';
 import { getProducts, deleteProduct, addProduct, updateProduct, getGlobalTags, updateGlobalTags } from '../services/db';
 import { trackFeatureUsage } from '@/services/analytics';
 import FeatureStar from './FeatureStar';
@@ -9,6 +9,25 @@ import { useRoleAccess } from '@/components/RoleProvider';
 
 export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggleCompare, editProduct = null, onClearEdit = () => { } }) {
     const { isDataMaster, isDev } = useRoleAccess();
+
+    // Helper: get all categories for a product (supports legacy string + new array)
+    const getProductCategories = (item) => {
+        if (!item) return [];
+        if (item.categories && Array.isArray(item.categories) && item.categories.length > 0) return item.categories;
+        if (item.category) return [item.category];
+        return [];
+    };
+
+    // Helper function to render Sony Badges
+    const renderBadges = (name) => {
+        const badges = [];
+        if (name.includes('GM') || name.includes('G Master')) {
+            badges.push(<span key="gm" className="bg-[#ff4500] text-white text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wide leading-none" title="G Master">GM</span>);
+        } else if (/\bG\b/.test(name)) {
+            badges.push(<span key="g" className="bg-[#1d1d1f] text-white text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wide leading-none" title="G Lens">G</span>);
+        }
+        return badges;
+    };
 
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategories, setActiveCategories] = useState([]); // multi-select, empty = Tất cả
@@ -276,13 +295,6 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
         }
     };
 
-    // Helper: get all categories for a product (supports legacy string + new array)
-    const getProductCategories = (item) => {
-        if (item.categories && Array.isArray(item.categories) && item.categories.length > 0) return item.categories;
-        if (item.category) return [item.category];
-        return [];
-    };
-
     const availableTags = useMemo(() => {
         const tagSet = new Set();
         data.forEach(item => {
@@ -351,23 +363,11 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
         }).catch(() => { });
     };
 
-    // Helper function to render Sony Badges
-    const renderBadges = (name) => {
-        const badges = [];
-        if (name.includes('GM') || name.includes('G Master')) {
-            badges.push(<span key="gm" className="bg-[#ff4500] text-white text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wide leading-none" title="G Master">GM</span>);
-        } else if (/\bG\b/.test(name)) {
-            badges.push(<span key="g" className="bg-[#1d1d1f] text-white text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wide leading-none" title="G Lens">G</span>);
-        }
-        // Zeiss badges removed per Sony Vietnam's current product line
-        return badges;
-    };
-
     return (
         <div className="w-full flex flex-col gap-6 animate-slide-up relative z-10">
 
-            {/* Header & Controls */}
-            <div className="flex flex-col gap-6 bg-white/60 backdrop-blur-xl p-6 sm:p-8 rounded-[32px] ring-1 ring-black/[0.04] shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+            {/* Header & Controls - STICKY */}
+            <div className="sticky top-6 z-[100] flex flex-col gap-6 bg-white/80 backdrop-blur-2xl p-6 sm:p-8 rounded-[32px] ring-1 ring-black/[0.04] shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
 
                 {/* Search Row & View Toggle */}
                 <div className="flex flex-col sm:flex-row gap-4 w-full items-center justify-between">
@@ -642,6 +642,18 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                         </tbody>
                     </table>
                 </div>
+
+                {/* Back to Top Feature */}
+                {filteredData.length > 5 && (
+                    <div className="p-4 border-t border-black/[0.02] bg-slate-50/50 flex justify-center">
+                        <button
+                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                            className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white ring-1 ring-black/5 text-[#86868b] text-[11px] font-black uppercase tracking-widest hover:bg-[#1d1d1f] hover:text-white transition-all shadow-sm group"
+                        >
+                            Quay lại đầu trang <ArrowUp size={12} className="group-hover:-translate-y-1 transition-transform" />
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* DEV Bulk Action Bar */}
