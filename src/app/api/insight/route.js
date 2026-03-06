@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { buildFallbackInsight } from '@/lib/insightFallback';
 
+const INSIGHT_GEMINI_TIMEOUT_MS = Number(process.env.INSIGHT_GEMINI_TIMEOUT_MS || 7000);
+
 function cleanText(value) {
     if (typeof value !== 'string') return '';
     return value.replace(/\*\*/g, '').replace(/#/g, '').trim();
@@ -30,6 +32,8 @@ export async function POST(request) {
 
     try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), INSIGHT_GEMINI_TIMEOUT_MS);
 
         const sysPrompt = `Ban la co van Sony Alpha.
 Hay tra ve phan tich ngan gon theo dung bo cuc:
@@ -48,11 +52,17 @@ Khong dung markdown. Moi dong 1-2 cau.`;
             systemInstruction: { parts: [{ text: sysPrompt }] }
         };
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+        let response;
+        try {
+            response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+        } finally {
+            clearTimeout(timeoutId);
+        }
 
         const data = await response.json();
         if (!response.ok || data?.error) {
@@ -69,8 +79,7 @@ Khong dung markdown. Moi dong 1-2 cau.`;
         console.error('Insight LLM Error:', error);
         return NextResponse.json({
             text: fallbackText,
-            fallbackReason: 'gemini_unavailable'
+            fallbackReason: error?.name === 'AbortError' ? 'gemini_timeout' : 'gemini_unavailable'
         });
     }
 }
-

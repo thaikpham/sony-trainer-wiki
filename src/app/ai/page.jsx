@@ -453,11 +453,13 @@ export default function AIPage() {
                     </div>
                 </div>
 
-                <ProductFormModal
-                    product={selectedProductForSpecs ? { name: selectedProductForSpecs.productName, category: selectedProductForSpecs.productType === 'camera' ? 'Máy Ảnh' : 'Ống Kính' } : null}
-                    readOnly={true}
-                    onClose={() => setSelectedProductForSpecs(null)}
-                />
+                {selectedProductForSpecs && (
+                    <ProductFormModal
+                        product={{ name: selectedProductForSpecs.productName, category: selectedProductForSpecs.productType }}
+                        readOnly={true}
+                        onClose={() => setSelectedProductForSpecs(null)}
+                    />
+                )}
                 <CompareBar compareList={compareList} onRemoveItem={(n) => toggleCompareItem(n, '')} onAddCustomItem={addCustomCompareItem} onCompare={() => setIsCompareModalOpen(true)} />
                 <CompareModal isOpen={isCompareModalOpen} onClose={() => setIsCompareModalOpen(false)} compareList={compareList} />
 

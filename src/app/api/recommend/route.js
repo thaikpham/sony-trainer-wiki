@@ -37,6 +37,27 @@ const RESPONSE_SCHEMA = {
     required: ['good', 'better', 'best', 'courseRecommendation']
 };
 
+const MCP_TIMEOUT_MS = Number(process.env.RECOMMEND_MCP_TIMEOUT_MS || 1800);
+const GEMINI_TIMEOUT_MS = Number(process.env.RECOMMEND_GEMINI_TIMEOUT_MS || 5500);
+
+function withTimeout(promise, timeoutMs, label) {
+    return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+            reject(new Error(`${label} timeout after ${timeoutMs}ms`));
+        }, timeoutMs);
+
+        promise
+            .then((result) => {
+                clearTimeout(timeoutId);
+                resolve(result);
+            })
+            .catch((error) => {
+                clearTimeout(timeoutId);
+                reject(error);
+            });
+    });
+}
+
 function sanitizeResponseText(text) {
     if (typeof text !== 'string') return '';
     let clean = text.trim();
@@ -133,7 +154,11 @@ export async function POST(request) {
 
         let retrievedContext = '';
         try {
-            retrievedContext = await callMcpTool('search_trainer_wiki_rag', { query: queryText });
+            retrievedContext = await withTimeout(
+                callMcpTool('search_trainer_wiki_rag', { query: queryText }),
+                MCP_TIMEOUT_MS,
+                'MCP retrieval'
+            );
         } catch (err) {
             console.warn('MCP RAG Query failed in /api/recommend:', err);
         }
@@ -168,7 +193,11 @@ Needs: ${userNeeds.join(', ') || 'General Photography'}
 Experience: ${experienceLevel}
 Preferences: Sensor=${prefs?.sensorPref || 'all'}, Lens=${prefs?.lensPref || 'all'}, Body=${prefs?.bodyPref || 'all'}, Investment=${prefs?.investmentPref || 'balanced'}, CurrentGear=${prefs?.currentGear || 'None'}`;
 
-        const result = await geminiModel.generateContent(userPrompt);
+        const result = await withTimeout(
+            geminiModel.generateContent(userPrompt),
+            GEMINI_TIMEOUT_MS,
+            'Gemini recommendation'
+        );
         const responseText = sanitizeResponseText(result?.response?.text());
 
         const parsed = JSON.parse(responseText);
@@ -181,4 +210,3 @@ Preferences: Sensor=${prefs?.sensorPref || 'all'}, Lens=${prefs?.lensPref || 'al
         });
     }
 }
-
