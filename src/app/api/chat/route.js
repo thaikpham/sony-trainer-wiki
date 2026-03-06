@@ -8,7 +8,7 @@ export async function POST(request) {
         const pineconeKey = process.env.PINECONE_API_KEY || "";
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }, { apiVersion: "v1beta" });
+        const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }, { apiVersion: "v1beta" });
         const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
 
         // Lấy câu hỏi cuối cùng của user
@@ -70,7 +70,7 @@ ${retrievedContext}
             systemInstruction: { parts: [{ text: sys }] }
         };
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

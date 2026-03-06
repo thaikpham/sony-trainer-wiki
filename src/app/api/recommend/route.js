@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import { Pinecone } from '@pinecone-database/pinecone';
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+import { NextResponse } from 'next/server';
+import { callMcpTool } from '@/lib/mcp';
 
 export async function POST(request) {
     try {
@@ -83,26 +83,11 @@ export async function POST(request) {
 
         let retrievedContext = "";
 
-        // Retrieval Phase (Pinecone)
+        // Retrieval Phase (MCP Server)
         try {
-            if (pineconeKey) {
-                const pc = new Pinecone({ apiKey: pineconeKey });
-                const index = pc.index('alpha-focus-wiki');
-
-                const embeddingResult = await embeddingModel.embedContent(queryText);
-                const queryVector = embeddingResult.embedding.values.slice(0, 1024);
-
-                const queryResponse = await index.query({
-                    vector: queryVector,
-                    topK: 15, // Retrieve plenty of data for options
-                    includeMetadata: true
-                });
-
-                const matches = queryResponse.matches || [];
-                retrievedContext = matches.map((m) => m.metadata.text).join('\n\n---\n\n');
-            }
+            retrievedContext = await callMcpTool('search_trainer_wiki_rag', { query: queryText });
         } catch (err) {
-            console.warn("Pinecone Query failed in /api/recommend: ", err);
+            console.warn("MCP RAG Query failed in /api/recommend: ", err);
         }
 
         const sysPrompt = `You are an elite, highly persuasive Sales Expert for Sony Alpha Vietnam. 
@@ -128,6 +113,7 @@ export async function POST(request) {
 
         DIRECTIVE 2 (SONY EXCLUSIVITY): Recommend ONLY Sony lenses. No third-party.
         DIRECTIVE 3 (BRAND PROTECTOR): Defend Sony's ecosystem.
+        DIRECTIVE 4 (COURSES): You MUST also recommend 1 Alpha Academy course relevant to the gear (e.g., 'Cơ bản về Mirrorless' if newbie, 'Quay phim chuyên nghiệp' if FX3/A7SIII). Place this in the 'courseRecommendation' field with 'name' and 'instructor'.
         
         [RETRIEVED KNOWLEDGE BASE CONTEXT]
         ${retrievedContext}
@@ -135,20 +121,16 @@ export async function POST(request) {
 
         const geminiModel = genAI.getGenerativeModel(
             {
-                model: "gemini-2.5-flash",
-                systemInstruction: sysPrompt
+                model: "gemini-2.0-flash",
+                systemInstruction: sysPrompt,
+                generationConfig: {
+                    temperature: 0.2,
+                    responseMimeType: "application/json",
+                    responseSchema: responseSchema
+                }
             },
             { apiVersion: "v1beta" }
         );
-
-        // Configure the model generation
-        // Note: Gemini 2.0 Flash in v1beta might handle generationConfig differently, 
-        // but let's try to set it via model properties or keep it simple.
-        geminiModel.generationConfig = {
-            temperature: 0.2,
-            responseMimeType: "application/json",
-            responseSchema: responseSchema
-        };
 
         const userPrompt = `Generate the recommendations for:
         Needs (IDs): ${userNeeds.join(', ') || 'General Photography'}
@@ -157,7 +139,11 @@ export async function POST(request) {
 
         const result = await geminiModel.generateContent(userPrompt);
         let responseText = result.response.text();
-        responseText = responseText.replace(/^\`\`\`json\s*/, '').replace(/\`\`\`$/, '').trim();
+
+        // Final fallback to clean potential markdown
+        if (responseText.includes('```')) {
+            responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        }
 
         const structuredData = JSON.parse(responseText);
         return NextResponse.json(structuredData);

@@ -47,3 +47,13 @@ export const SearchTrainerWikiRagSchema = z.object({
     query: z.string().describe('A natural language query regarding Sony products, settings, workflows, or training materials.')
 });
 export type SearchTrainerWikiRagInput = z.infer<typeof SearchTrainerWikiRagSchema>;
+
+// Tool: upsert_trainer_wiki_knowledge
+export const UpsertTrainerWikiKnowledgeSchema = z.object({
+    products: z.array(z.object({
+        id: z.string(),
+        text: z.string(),
+        metadata: z.record(z.any()).optional()
+    }))
+});
+export type UpsertTrainerWikiKnowledgeInput = z.infer<typeof UpsertTrainerWikiKnowledgeSchema>;

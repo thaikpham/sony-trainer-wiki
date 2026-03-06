@@ -1,6 +1,13 @@
 import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { getDb } from '../firebase.js';
-import { GetProductSpecsSchema, SearchColorRecipesSchema, CompareSonyCamerasSchema, SearchTrainerWikiRagSchema } from '../types/index.js';
+import { GetProductSpecsSchema, SearchColorRecipesSchema, CompareSonyCamerasSchema, SearchTrainerWikiRagSchema, UpsertTrainerWikiKnowledgeSchema } from '../types/index.js';
+import { Pinecone } from '@pinecone-database/pinecone';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+const apiKey = process.env.GEMINI_API_KEY || "";
+const pineconeKey = process.env.PINECONE_API_KEY || "";
+const indexName = process.env.PINECONE_INDEX_NAME || "alpha-focus-wiki";
+const genAI = new GoogleGenerativeAI(apiKey);
+const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
 export const registerTools = (server) => {
     server.setRequestHandler(ListToolsRequestSchema, async () => {
         return {
@@ -66,6 +73,28 @@ export const registerTools = (server) => {
                             }
                         },
                         required: ['query']
+                    }
+                },
+                {
+                    name: 'upsert_trainer_wiki_knowledge',
+                    description: 'Upserts a list of product metadata and text chunks into the Pinecone Vector DB for RAG retrieval.',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            products: {
+                                type: 'array',
+                                items: {
+                                    type: 'object',
+                                    properties: {
+                                        id: { type: 'string' },
+                                        text: { type: 'string' },
+                                        metadata: { type: 'object', additionalProperties: true }
+                                    },
+                                    required: ['id', 'text']
+                                }
+                            }
+                        },
+                        required: ['products']
                     }
                 }
             ]
@@ -142,15 +171,81 @@ export const registerTools = (server) => {
             }
             if (name === 'search_trainer_wiki_rag') {
                 const { query } = SearchTrainerWikiRagSchema.parse(args);
-                // Return a placeholder for the mock result
-                return {
-                    content: [
-                        {
-                            type: 'text',
-                            text: `Mock RAG result for: \n${query}`
-                        }
-                    ]
-                };
+                if (!pineconeKey || !apiKey) {
+                    return {
+                        content: [{ type: 'text', text: "MCP Server Error: Missing Gemini or Pinecone keys." }],
+                        isError: true
+                    };
+                }
+                try {
+                    const pc = new Pinecone({ apiKey: pineconeKey });
+                    const index = pc.index(indexName);
+                    const embeddingResult = await embeddingModel.embedContent(query);
+                    const queryVector = embeddingResult.embedding.values.slice(0, 1024);
+                    const queryResponse = await index.query({
+                        vector: queryVector,
+                        topK: 10,
+                        includeMetadata: true
+                    });
+                    const matches = queryResponse.matches || [];
+                    const context = matches.map((m) => m.metadata.text).join('\n\n---\n\n');
+                    return {
+                        content: [
+                            {
+                                type: 'text',
+                                text: context || "No relevant knowledge found in the Trainer Wiki database."
+                            }
+                        ]
+                    };
+                }
+                catch (ragErr) {
+                    return {
+                        content: [{ type: 'text', text: `RAG Retrieval Error: ${ragErr.message}` }],
+                        isError: true
+                    };
+                }
+            }
+            if (name === 'upsert_trainer_wiki_knowledge') {
+                const { products } = UpsertTrainerWikiKnowledgeSchema.parse(args);
+                if (!pineconeKey || !apiKey) {
+                    return {
+                        content: [{ type: 'text', text: "MCP Server Error: Missing Gemini or Pinecone keys." }],
+                        isError: true
+                    };
+                }
+                try {
+                    const pc = new Pinecone({ apiKey: pineconeKey });
+                    const index = pc.index(indexName);
+                    const vectorsToUpsert = [];
+                    for (const prod of products) {
+                        const embeddingResult = await embeddingModel.embedContent(prod.text);
+                        const vectorValues = embeddingResult.embedding.values.slice(0, 1024);
+                        vectorsToUpsert.push({
+                            id: prod.id,
+                            values: vectorValues,
+                            metadata: {
+                                ...prod.metadata,
+                                text: prod.text,
+                                lastUpdated: new Date().toISOString()
+                            }
+                        });
+                    }
+                    await index.upsert({ records: vectorsToUpsert });
+                    return {
+                        content: [
+                            {
+                                type: 'text',
+                                text: `Successfully upserted ${vectorsToUpsert.length} vectors to Pinecone index: ${indexName}`
+                            }
+                        ]
+                    };
+                }
+                catch (upsertErr) {
+                    return {
+                        content: [{ type: 'text', text: `Pinecone Upsert Error: ${upsertErr.message}` }],
+                        isError: true
+                    };
+                }
             }
             throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
         }

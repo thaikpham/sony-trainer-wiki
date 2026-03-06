@@ -124,7 +124,7 @@ export default function ProductFormModal({
 
             {/* Modal */}
             <div
-                className={`relative z-10 w-full max-w-6xl max-h-full overflow-y-auto custom-scrollbar rounded-[32px] shadow-2xl animate-in zoom-in-95 duration-200 ${!readOnly
+                className={`relative z-10 w-full max-w-[98vw] max-h-full overflow-y-auto custom-scrollbar rounded-[32px] shadow-2xl animate-in zoom-in-95 duration-200 ${!readOnly
                     ? 'bg-[#fafafa] border-[3px] border-[#1d1d1f]'
                     : 'bg-background border border-black/[0.07]'
                     }`}
@@ -245,9 +245,9 @@ export default function ProductFormModal({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
                         {/* Highlights */}
-                        <div className="flex flex-col h-full col-span-1 lg:col-span-2 space-y-2">
+                        <div className="flex flex-col h-full space-y-2">
                             <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
                                 <label className={LabelClass}>Thông số kỹ thuật tiêu chuẩn (Highlights)</label>
                                 {!readOnly && (

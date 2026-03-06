@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { Pinecone } from '@pinecone-database/pinecone';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { callMcpTool } from '@/lib/mcp';
 
 export const maxDuration = 60; // Allow more time for this route as it does web search and embeddings
 
@@ -20,8 +20,6 @@ export async function POST(request) {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const pc = new Pinecone({ apiKey: pineconeKey });
-        const index = pc.index('alpha-focus-wiki');
 
         // Step 1: Scout Agent (Gemini + Google Search)
         const geminiModel = genAI.getGenerativeModel({
@@ -66,12 +64,7 @@ export async function POST(request) {
             return NextResponse.json({ message: "No new products found adjusting the last 6 months window.", productsFound: 0 });
         }
 
-        // Step 2: Extract, Transform, Load (ETL) into Pinecone
-        const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
-        const vectorsToUpsert = [];
-
-        for (const product of newProducts) {
-            // Transform the structured data into a cohesive text chunk for the embedding model
+        const productsToSync = newProducts.map(product => {
             const textChunk = `
             Product: ${product.productName}
             Category: ${product.category}
@@ -80,34 +73,25 @@ export async function POST(request) {
             Target User: ${product.targetUser}
             Price: ~${product.estimatedPriceVND.toLocaleString()} VND
             `;
-
-            // Generate Embedding
-            const embeddingResult = await embeddingModel.embedContent(textChunk);
-            const vectorValues = embeddingResult.embedding.values.slice(0, 1024);
-
-            // Create a unique ID (e.g. "sony-fe-100mm-macro-gm")
             const vectorId = product.productName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-            vectorsToUpsert.push({
+            return {
                 id: vectorId,
-                values: vectorValues,
+                text: textChunk,
                 metadata: {
-                    text: textChunk,
                     type: "auto-ingested-product",
                     category: product.category,
-                    tier: product.tier,
-                    lastUpdated: new Date().toISOString()
+                    tier: product.tier
                 }
-            });
-        }
+            };
+        });
 
-        // Upsert to Pinecone
-        // We do this in batches if there are many, but usually it's just a few products at a time
-        await index.upsert(vectorsToUpsert);
+        // Step 2: Upsert into Pinecone via MCP Server
+        await callMcpTool('upsert_trainer_wiki_knowledge', { products: productsToSync });
 
         return NextResponse.json({
-            message: "Successfully synced new knowledge to the AI Brain.",
-            productsSynced: vectorsToUpsert.length,
+            message: "Successfully synced new knowledge to the AI Brain via MCP Server.",
+            productsSynced: productsToSync.length,
             details: newProducts
         });
 

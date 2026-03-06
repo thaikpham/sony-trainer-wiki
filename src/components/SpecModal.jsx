@@ -124,7 +124,7 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
 
             <div
                 ref={modalRef}
-                className="relative w-full max-w-2xl max-h-full flex flex-col bg-background rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200"
+                className="relative w-full max-w-6xl max-h-full flex flex-col bg-background rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200"
             >
                 {/* Header */}
                 <div className="px-8 py-6 border-b border-black/[0.05] flex items-center justify-between">
@@ -196,118 +196,122 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
                                 )}
                             </div>
 
-                            <div>
-                                <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                    <div className="h-px bg-black/10 flex-1" />
-                                    THÔNG SỐ KỸ THUẬT
-                                    <div className="h-px bg-black/10 flex-1" />
-                                </h3>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-12 items-start mt-4">
+                                {/* Technical Specs Column */}
+                                <div className="space-y-8">
+                                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                        <div className="h-px bg-black/10 flex-1" />
+                                        THÔNG SỐ KỸ THUẬT
+                                        <div className="h-px bg-black/10 flex-1" />
+                                    </h3>
 
-                                <div className="space-y-6">
-                                    {(() => {
-                                        const GROUPS = {
-                                            "Vận hành máy ảnh": { title: "Vận hành máy ảnh", items: [] },
-                                            "Chất lượng hình ảnh": { title: "Chất lượng hình ảnh", items: [] },
-                                            "Lấy Nét": { title: "Lấy Nét", items: [] },
-                                            "Quay Phim & Âm thanh": { title: "Quay Phim & Âm thanh", items: [] }
-                                        };
+                                    <div className="space-y-6">
+                                        {(() => {
+                                            const GROUPS = {
+                                                "Vận hành máy ảnh": { title: "Vận hành máy ảnh", items: [] },
+                                                "Chất lượng hình ảnh": { title: "Chất lượng hình ảnh", items: [] },
+                                                "Lấy Nét": { title: "Lấy Nét", items: [] },
+                                                "Quay Phim & Âm thanh": { title: "Quay Phim & Âm thanh", items: [] }
+                                            };
 
-                                        const getCategory = (text) => {
-                                            const tLow = text.toLowerCase();
-                                            if (tLow.includes('cảm biến') || tLow.includes('megapixel') || tLow.includes('bionz') || tLow.includes('iso') || tLow.includes('raw') || tLow.includes('chụp')) return "Chất lượng hình ảnh";
-                                            if (tLow.includes('lấy nét') || tLow.includes('af') || tLow.includes('nhận diện') || tLow.includes('tracking') || tLow.includes('điểm af')) return "Lấy Nét";
-                                            if (tLow.includes('quay') || tLow.includes('video') || tLow.includes('4k') || tLow.includes('10-bit') || tLow.includes('s-log') || tLow.includes('âm thanh') || tLow.includes('mic')) return "Quay Phim & Âm thanh";
-                                            return "Vận hành máy ảnh";
-                                        };
+                                            const getCategory = (text) => {
+                                                const tLow = text.toLowerCase();
+                                                if (tLow.includes('cảm biến') || tLow.includes('megapixel') || tLow.includes('bionz') || tLow.includes('iso') || tLow.includes('raw') || tLow.includes('chụp')) return "Chất lượng hình ảnh";
+                                                if (tLow.includes('lấy nét') || tLow.includes('af') || tLow.includes('nhận diện') || tLow.includes('tracking') || tLow.includes('điểm af')) return "Lấy Nét";
+                                                if (tLow.includes('quay') || tLow.includes('video') || tLow.includes('4k') || tLow.includes('10-bit') || tLow.includes('s-log') || tLow.includes('âm thanh') || tLow.includes('mic')) return "Quay Phim & Âm thanh";
+                                                return "Vận hành máy ảnh";
+                                            };
 
-                                        const rawData = product?.highlights || specs || "Dữ liệu đang được cập nhật...";
-                                        const rawLines = rawData.split('\n').map(l => l.trim()).filter(Boolean);
+                                            const rawData = product?.highlights || specs || "Dữ liệu đang được cập nhật...";
+                                            const rawLines = rawData.split('\n').map(l => l.trim()).filter(Boolean);
 
-                                        rawLines.forEach(line => {
-                                            const isBullet = line.startsWith('-');
-                                            const content = isBullet ? line.substring(1).trim() : line;
-                                            const matchedGroup = getCategory(content);
+                                            rawLines.forEach(line => {
+                                                const isBullet = line.startsWith('-');
+                                                const content = isBullet ? line.substring(1).trim() : line;
+                                                const matchedGroup = getCategory(content);
 
-                                            if (content.includes(':')) {
-                                                const [label, value] = content.split(':').map(s => s.trim());
-                                                GROUPS[matchedGroup].items.push({ label, value });
-                                            } else {
-                                                GROUPS[matchedGroup].items.push({ label: content, value: null });
-                                            }
-                                        });
+                                                if (content.includes(':')) {
+                                                    const [label, value] = content.split(':').map(s => s.trim());
+                                                    GROUPS[matchedGroup].items.push({ label, value });
+                                                } else {
+                                                    GROUPS[matchedGroup].items.push({ label: content, value: null });
+                                                }
+                                            });
 
-                                        const activeGroups = Object.values(GROUPS).filter(g => g.items.length > 0);
-                                        if (activeGroups.length === 0) return <p className="text-slate-500 italic text-center">Chưa có thông số chi tiết.</p>;
+                                            const activeGroups = Object.values(GROUPS).filter(g => g.items.length > 0);
+                                            if (activeGroups.length === 0) return <p className="text-slate-500 italic text-center">Chưa có thông số chi tiết.</p>;
 
-                                        return activeGroups.map((group, gIdx) => {
-                                            let GroupIcon = Aperture;
-                                            if (group.title === "Chất lượng hình ảnh") GroupIcon = Camera;
-                                            else if (group.title === "Vận hành máy ảnh") GroupIcon = Activity;
-                                            else if (group.title === "Lấy Nét") GroupIcon = Fingerprint;
-                                            else if (group.title === "Quay Phim & Âm thanh") GroupIcon = Settings2;
+                                            return activeGroups.map((group, gIdx) => {
+                                                let GroupIcon = Aperture;
+                                                if (group.title === "Chất lượng hình ảnh") GroupIcon = Camera;
+                                                else if (group.title === "Vận hành máy ảnh") GroupIcon = Activity;
+                                                else if (group.title === "Lấy Nét") GroupIcon = Fingerprint;
+                                                else if (group.title === "Quay Phim & Âm thanh") GroupIcon = Settings2;
 
-                                            return (
-                                                <div key={gIdx} className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
-                                                    <div className="flex items-center gap-3 mb-5 border-b border-black/[0.05] pb-4">
-                                                        <div className="w-10 h-10 rounded-2xl bg-slate-50 text-blue-600 flex items-center justify-center shrink-0 shadow-inner">
-                                                            <GroupIcon size={20} strokeWidth={2.5} />
-                                                        </div>
-                                                        <h4 className="text-[14px] font-black text-slate-800 uppercase tracking-widest">
-                                                            {group.title}
-                                                        </h4>
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        {group.items.map((item, idx) => (
-                                                            <div key={idx} className={`flex flex-col sm:flex-row sm:items-baseline ${item.value ? 'justify-between py-2 border-b border-black/[0.03] last:border-0' : 'py-1.5'}`}>
-                                                                {item.value ? (
-                                                                    <>
-                                                                        <span className="text-[13px] font-bold text-slate-500 w-full sm:w-1/2 pr-4 mb-1 sm:mb-0">{item.label}</span>
-                                                                        <span className="text-[14px] font-bold text-slate-900 sm:text-right w-full sm:w-1/2">{item.value}</span>
-                                                                    </>
-                                                                ) : (
-                                                                    <div className="flex items-start gap-3 group/item">
-                                                                        <div className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0 group-hover/item:bg-blue-500 transition-colors" />
-                                                                        <p className="text-[14px] font-medium text-slate-700 leading-relaxed">{item.label}</p>
-                                                                    </div>
-                                                                )}
+                                                return (
+                                                    <div key={gIdx} className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+                                                        <div className="flex items-center gap-3 mb-5 border-b border-black/[0.05] pb-4">
+                                                            <div className="w-10 h-10 rounded-2xl bg-slate-50 text-blue-600 flex items-center justify-center shrink-0 shadow-inner">
+                                                                <GroupIcon size={20} strokeWidth={2.5} />
                                                             </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            );
-                                        });
-                                    })()}
-
-                                    {product?.quickSettingGuide && (
-                                        <div className="mt-8">
-                                            <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                                <div className="h-px bg-black/10 flex-1" />
-                                                HƯỚNG DẪN CÀI ĐẶT NHANH
-                                                <div className="h-px bg-black/10 flex-1" />
-                                            </h3>
-                                            <div className="bg-amber-50 rounded-3xl p-6 sm:p-8 border border-amber-100 shadow-sm">
-                                                <div className="flex items-center gap-3 mb-5 border-b border-amber-200/50 pb-4">
-                                                    <div className="w-10 h-10 rounded-2xl bg-white text-amber-600 flex items-center justify-center shrink-0 shadow-sm">
-                                                        <Settings2 size={20} strokeWidth={2.5} />
-                                                    </div>
-                                                    <h4 className="text-[14px] font-black text-amber-900 uppercase tracking-widest">
-                                                        Quick Settings
-                                                    </h4>
-                                                </div>
-                                                <div className="space-y-4">
-                                                    {product.quickSettingGuide.split('\n').filter(Boolean).map((line, idx) => (
-                                                        <div key={idx} className="flex gap-3">
-                                                            <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-                                                            <p className="text-[14px] font-medium text-amber-900 leading-relaxed">
-                                                                {line.startsWith('-') ? line.substring(1).trim() : line}
-                                                            </p>
+                                                            <h4 className="text-[14px] font-black text-slate-800 uppercase tracking-widest">
+                                                                {group.title}
+                                                            </h4>
                                                         </div>
-                                                    ))}
+                                                        <div className="space-y-1">
+                                                            {group.items.map((item, idx) => (
+                                                                <div key={idx} className={`flex flex-col sm:flex-row sm:items-baseline ${item.value ? 'justify-between py-2 border-b border-black/[0.03] last:border-0' : 'py-1.5'}`}>
+                                                                    {item.value ? (
+                                                                        <>
+                                                                            <span className="text-[13px] font-bold text-slate-500 w-full sm:w-1/2 pr-4 mb-1 sm:mb-0">{item.label}</span>
+                                                                            <span className="text-[14px] font-bold text-slate-900 sm:text-right w-full sm:w-1/2">{item.value}</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <div className="flex items-start gap-3 group/item">
+                                                                            <div className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0 group-hover/item:bg-blue-500 transition-colors" />
+                                                                            <p className="text-[14px] font-medium text-slate-700 leading-relaxed">{item.label}</p>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            });
+                                        })()}
+                                    </div>
+                                </div>
+
+                                {/* Quick Settings Column */}
+                                {product?.quickSettingGuide && (
+                                    <div className="space-y-8">
+                                        <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                            <div className="h-px bg-black/10 flex-1" />
+                                            HƯỚNG DẪN CÀI ĐẶT NHANH
+                                            <div className="h-px bg-black/10 flex-1" />
+                                        </h3>
+                                        <div className="bg-amber-50 rounded-3xl p-6 sm:p-8 border border-amber-100 shadow-sm">
+                                            <div className="flex items-center gap-3 mb-5 border-b border-amber-200/50 pb-4">
+                                                <div className="w-10 h-10 rounded-2xl bg-white text-amber-600 flex items-center justify-center shrink-0 shadow-sm">
+                                                    <Settings2 size={20} strokeWidth={2.5} />
                                                 </div>
+                                                <h4 className="text-[14px] font-black text-amber-900 uppercase tracking-widest">
+                                                    Quick Settings
+                                                </h4>
+                                            </div>
+                                            <div className="space-y-4">
+                                                {product.quickSettingGuide.split('\n').filter(Boolean).map((line, idx) => (
+                                                    <div key={idx} className="flex gap-3">
+                                                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                                                        <p className="text-[14px] font-medium text-amber-900 leading-relaxed">
+                                                            {line.startsWith('-') ? line.substring(1).trim() : line}
+                                                        </p>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
