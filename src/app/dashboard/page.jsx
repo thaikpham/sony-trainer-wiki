@@ -3,6 +3,7 @@
 import { useUser, SignOutButton } from "@clerk/nextjs";
 import { ArrowLeft, Hexagon, LogOut, Settings, Award, ShieldCheck, Box, Bookmark, Camera, Trophy, BarChart3 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import BadgeShowcase from '@/components/BadgeShowcase';
 import { getRoleKeys, ROLES } from '@/lib/roles';
 import { useRoleAccess } from '@/components/RoleProvider';
@@ -90,7 +91,7 @@ export default function Dashboard() {
                         {/* Status Backdrop Glow */}
                         <div className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-[100px] -z-0 opacity-20 ${isEmployee ? 'bg-indigo-500' : 'bg-teal-500'}`}></div>
 
-                        <img src={user.imageUrl} alt="Profile Avatar" className="w-24 h-24 sm:w-32 sm:h-32 rounded-full ring-4 ring-white shadow-lg relative z-10 object-cover" />
+                        <Image src={user.imageUrl} alt="Profile Avatar" width={128} height={128} unoptimized className="w-24 h-24 sm:w-32 sm:h-32 rounded-full ring-4 ring-white shadow-lg relative z-10 object-cover" />
 
                         <div className="flex flex-col text-center sm:text-left relative z-10">
                             <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">

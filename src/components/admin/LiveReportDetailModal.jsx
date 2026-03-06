@@ -5,8 +5,6 @@ import { useRef, useEffect } from 'react';
 export default function LiveReportDetailModal({ report, onClose }) {
     const modalRef = useRef(null);
 
-    if (!report) return null;
-
     // Close on Escape key
     useEffect(() => {
         const handleEsc = (e) => {
@@ -15,6 +13,8 @@ export default function LiveReportDetailModal({ report, onClose }) {
         document.addEventListener('keydown', handleEsc);
         return () => document.removeEventListener('keydown', handleEsc);
     }, [onClose]);
+
+    if (!report) return null;
 
     const handleExport = async () => {
         const modalElement = modalRef.current;

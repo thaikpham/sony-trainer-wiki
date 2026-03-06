@@ -1,6 +1,7 @@
 'use client';
 import { useState, useMemo } from 'react';
 import { Search, Plus, ArrowUpDown, ExternalLink, Pencil } from 'lucide-react';
+import Image from 'next/image';
 import { TagPill } from './MultiSelectField';
 import SingleSelectField, { CategoryBadge } from './SingleSelectField';
 
@@ -142,9 +143,10 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
                                     {/* Image */}
                                     <td className="px-4 py-2.5 w-14">
                                         {product.imageUrl
-                                            ? <img src={product.imageUrl} alt={product.name}
-                                                className="w-9 h-9 rounded-lg object-cover border border-black/10"
-                                                onError={e => { e.target.style.display = 'none'; }} />
+                                            ? <div className="relative w-9 h-9 flex-shrink-0"><Image src={product.imageUrl} alt={product.name} fill sizes="36px"
+                                                className="rounded-lg object-cover border border-black/10"
+                                                unoptimized
+                                                onError={e => { e.target.style.display = 'none'; }} /></div>
                                             : <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-lg">📦</div>
                                         }
                                     </td>

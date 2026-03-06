@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Search, Filter, Plus, ShoppingCart, Info, Activity, Box, Aperture, Layers, Fingerprint, ExternalLink, Loader2, AlertCircle, Camera, Settings2, Trash2, X, Edit3, Check, ArrowUp } from 'lucide-react';
 import { getProducts, deleteProduct, addProduct, updateProduct, getGlobalTags, updateGlobalTags } from '../services/db';
+import Image from 'next/image';
 import { trackFeatureUsage } from '@/services/analytics';
 import FeatureStar from './FeatureStar';
 import { CategoryBadge } from './admin/SingleSelectField';
@@ -662,7 +663,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                     {item.lastEditedBy && (
                                                         <div className="flex items-center gap-1.5 mt-1.5 opacity-60 hover:opacity-100 transition-opacity">
                                                             {item.lastEditedBy.avatar ? (
-                                                                <img src={item.lastEditedBy.avatar} alt={item.lastEditedBy.name} className="w-4 h-4 rounded-full shadow-sm ring-1 ring-black/5" />
+                                                                <Image src={item.lastEditedBy.avatar} alt={item.lastEditedBy.name} width={16} height={16} className="w-4 h-4 rounded-full shadow-sm ring-1 ring-black/5" unoptimized />
                                                             ) : (
                                                                 <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[8px] font-bold text-slate-500 ring-1 ring-black/5">
                                                                     {item.lastEditedBy.name?.charAt(0) || '?'}
@@ -1136,7 +1137,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 transition-all text-blue-300"
                                                 >
                                                     <Plus size={12} />
-                                                    <span className="text-[11px] font-bold italic">Tạo mới: "{bulkSearchQuery}"</span>
+                                                    <span className="text-[11px] font-bold italic">Tạo mới: &quot;{bulkSearchQuery}&quot;</span>
                                                 </button>
                                             )}
                                         </div>

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { Search, RefreshCw, Users, Tag, Plus, X, Loader2, ChevronRight, Shield, Trash2, AlertTriangle, Briefcase, ShieldCheck } from 'lucide-react';
+import Image from 'next/image';
 import { ROLES } from '@/lib/roles';
 import { useRoleAccess, DEFAULT_PERMISSIONS } from '@/components/RoleProvider';
 import { doc, setDoc } from 'firebase/firestore';
@@ -72,10 +73,13 @@ function UserRow({ user, onEdit }) {
             onClick={() => onEdit(user)}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-black/[0.03] transition-colors text-left group"
         >
-            <img
+            <Image
                 src={user.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff`}
                 alt={name}
+                width={36}
+                height={36}
                 className="w-9 h-9 rounded-full flex-shrink-0 ring-2 ring-black/5"
+                unoptimized
             />
             <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-bold text-[#1d1d1f] truncate">{name}</p>
@@ -110,10 +114,13 @@ function EditModal({ user, onSave, onDelete, onClose, saving }) {
             <div className="relative z-10 w-full max-w-lg bg-white rounded-[28px] shadow-2xl border border-black/[0.07] overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-center gap-3 px-6 py-4 border-b border-black/[0.06]">
-                    <img
+                    <Image
                         src={user.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff`}
                         alt={name}
+                        width={40}
+                        height={40}
                         className="w-10 h-10 rounded-full ring-2 ring-black/5"
+                        unoptimized
                     />
                     <div className="flex-1 min-w-0">
                         <p className="text-[14px] font-bold text-[#1d1d1f] truncate">{name}</p>

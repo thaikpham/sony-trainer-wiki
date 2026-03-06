@@ -23,8 +23,11 @@ export default function GlobalBadgeToast() {
     useEffect(() => {
         if (!current && queue.length > 0) {
             const nextBadge = queue[0];
-            setCurrent(nextBadge);
-            setQueue(prev => prev.slice(1));
+            // Defer state update to next tick to avoid cascading renders
+            setTimeout(() => {
+                setCurrent(nextBadge);
+                setQueue(prev => prev.slice(1));
+            }, 0);
         }
     }, [queue, current]);
 

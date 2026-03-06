@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { X, ExternalLink, Loader2, Trash2 } from 'lucide-react';
+import Image from 'next/image';
 import MultiSelectField from './MultiSelectField';
 import MultiSelectCategoryField from './MultiSelectCategoryField';
 import SingleSelectField from './SingleSelectField';
@@ -303,9 +304,12 @@ export default function ProductFormModal({
                                 <input value={form.imageUrl} onChange={e => set('imageUrl', e.target.value)}
                                     className={`${InputClass} flex-1`} placeholder="https://..." type="url" readOnly={readOnly} />
                                 {form.imageUrl && (
-                                    <img src={form.imageUrl} alt="preview"
-                                        className="w-10 h-10 rounded-lg object-cover border border-black/10 flex-shrink-0"
-                                        onError={e => { e.target.style.display = 'none'; }} />
+                                    <div className="relative w-10 h-10 flex-shrink-0">
+                                        <Image src={form.imageUrl} alt="preview" fill sizes="40px"
+                                            className="rounded-lg object-cover border border-black/10"
+                                            unoptimized
+                                            onError={e => { e.target.style.display = 'none'; }} />
+                                    </div>
                                 )}
                             </div>
                         </div>

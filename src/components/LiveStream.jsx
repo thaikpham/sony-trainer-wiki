@@ -343,12 +343,14 @@ export default function LiveStream() {
 
         startStream();
 
+        const currentVideoRef = videoRef.current;
+
         return () => {
             if (currentStream) {
                 currentStream.getTracks().forEach(t => t.stop());
             }
             setStream(null);
-            if (videoRef.current) videoRef.current.srcObject = null;
+            if (currentVideoRef) currentVideoRef.srcObject = null;
         };
     }, [isStreaming, selectedDevice, selectedAudioDevice]);
 
