@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Monitor, Upload, SlidersHorizontal, ChevronRight, ChevronLeft, PowerOff, Loader2, Mic, Settings2, FlipHorizontal, Download, Link, KeyRound, MonitorPlay, BookOpen, X, CheckCircle2, Cable, Laptop, RadioReceiver, Video, Lightbulb, PlayCircle, Star, Settings, Plus, Trash2, ClipboardList, Wand2, Bot, Send, Sparkles, BarChart3 } from 'lucide-react';
+import { Camera, Monitor, Upload, SlidersHorizontal, ChevronRight, ChevronLeft, PowerOff, Loader2, Mic, Settings2, FlipHorizontal, Download, Link, KeyRound, MonitorPlay, BookOpen, X, CheckCircle2, Cable, Laptop, RadioReceiver, Video, Lightbulb, PlayCircle, Star, Settings, Plus, Trash2, ClipboardList, Wand2, Bot, Send, Sparkles, BarChart3, Aperture } from 'lucide-react';
 import { platformIcons } from '@/data/platformIcons';
 import { platformsData } from '@/data/platformsData';
 import StudioDiagram from './livestream/StudioDiagram';
@@ -549,153 +549,192 @@ export default function LiveStream() {
                 )}
 
                 {currentStep === 2 && (
-                    <div className="flex flex-col lg:flex-row gap-6 w-full animate-fade-in relative z-10">
-                        {/* Visual Studio (Camera Preview) */}
-                        <div className="w-full lg:w-[360px] xl:w-[400px] shrink-0 flex flex-col gap-6">
-                            <div className="glass-panel p-6 sm:p-8 rounded-[40px] flex flex-col flex-grow">
-                                <div className="flex flex-col gap-4 mb-5">
-                                    <div className="flex items-center gap-3">
-                                        <div className="bg-[#F5F5F7] p-2.5 rounded-xl text-[#1d1d1f] flex-shrink-0">
-                                            <Camera size={20} />
-                                        </div>
-                                        <div className="min-w-0 flex-1">
-                                            <h3 className="text-[17px] font-bold text-[#1d1d1f] truncate">Camera Preview</h3>
-                                            <p className="text-[12px] text-[#86868b] truncate">Xem trước góc máy và màu sắc</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-2 w-full mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <div className="p-2 bg-[#F5F5F7] rounded-xl text-[#86868b]"><Camera size={16} /></div>
-                                            <select
-                                                className="bg-[#F5F5F7] border border-slate-200 text-[#1d1d1f] text-[13px] font-medium rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500/50 w-full truncate flex-1"
-                                                value={selectedDevice}
-                                                onChange={(e) => setSelectedDevice(e.target.value)}
-                                                disabled={isStreaming}
-                                            >
-                                                {devices.length === 0 ? <option>Đang tìm Camera...</option> :
-                                                    devices.map((d, i) => (
-                                                        <option key={d.deviceId} value={d.deviceId}>{d.label || `Camera ${i + 1}`}</option>
-                                                    ))
-                                                }
-                                            </select>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="p-2 bg-[#F5F5F7] rounded-xl text-[#86868b]"><Mic size={16} /></div>
-                                            <select
-                                                className="bg-[#F5F5F7] border border-slate-200 text-[#1d1d1f] text-[13px] font-medium rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500/50 w-full truncate flex-1"
-                                                value={selectedAudioDevice}
-                                                onChange={(e) => setSelectedAudioDevice(e.target.value)}
-                                                disabled={isStreaming}
-                                            >
-                                                {audioDevices.length === 0 ? <option>Đang tìm Micro...</option> :
-                                                    audioDevices.map((d, i) => (
-                                                        <option key={d.deviceId} value={d.deviceId}>{d.label || `Microphone ${i + 1}`}</option>
-                                                    ))
-                                                }
-                                            </select>
-                                        </div>
-                                        <button
-                                            onClick={() => setIsStreaming(!isStreaming)}
-                                            className={`w-full mt-2 py-2.5 rounded-xl text-[13px] font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm ${isStreaming ? 'bg-red-50 text-red-600 ring-1 ring-red-200 hover:bg-red-100' : 'bg-[#1d1d1f] text-white hover:bg-black'}`}
-                                        >
-                                            {isStreaming ? <PowerOff size={16} /> : <Monitor size={16} />}
-                                            {isStreaming ? 'Dừng Streaming' : 'Bật Kết Nối'}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Video Canvas Container (9:16 Aspect Ratio) */}
-                                <div className="relative w-full max-w-[360px] mx-auto aspect-[9/16] bg-slate-100 rounded-3xl overflow-hidden ring-1 ring-black/5 flex items-center justify-center mb-6 shadow-inner">
-                                    {cameraError ? (
-                                        <div className="text-red-500 text-[13px] font-medium px-6 text-center">{cameraError}</div>
-                                    ) : !isStreaming ? (
-                                        <div className="flex flex-col items-center justify-center text-[#86868b] text-center p-4">
-                                            <Camera size={40} className="mb-3 opacity-30 mx-auto" />
-                                            <p className="text-[14px] font-medium">Camera đang tắt. Vui lòng kết nối Sony Imaging Edge Webcam.</p>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <video
-                                                ref={videoRef}
-                                                className="absolute inset-0 w-full h-full object-cover transition-all duration-300"
-                                                autoPlay
-                                                playsInline
-                                                muted
-                                                style={{
-                                                    transform: isMirrored ? 'scaleX(-1)' : 'none',
-                                                    filter: `brightness(${brightness}%) saturate(${saturation}%)`
-                                                }}
-                                            />
-                                            {isStreaming && !stream && <Loader2 className="animate-spin text-teal-500 w-8 h-8 absolute" />}
-                                        </>
-                                    )}
-
-                                    {/* Live Badge indicator */}
-                                    {isStreaming && stream && (
-                                        <div className="absolute top-4 left-4 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md tracking-wider flex items-center gap-1.5 shadow-[0_2px_10px_rgba(239,68,68,0.5)] z-10">
-                                            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
-                                            LIVE
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Video Adjustment Controls */}
-                                <div className="bg-[#F5F5F7]/60 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 ring-1 ring-black/5 mt-auto">
-                                    <h4 className="text-[14px] font-bold text-[#1d1d1f] mb-1 flex items-center gap-2">
-                                        <Settings2 size={16} className="text-teal-500" /> Tinh Chỉnh Hình Ảnh
-                                    </h4>
-
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[13px] font-medium text-[#86868b]">Lật gương (Mirror)</span>
-                                        <button
-                                            onClick={() => setIsMirrored(!isMirrored)}
-                                            className={`p-2 rounded-xl transition-colors ${isMirrored ? 'bg-teal-100 text-teal-600 ring-1 ring-teal-200' : 'bg-white text-[#86868b] ring-1 ring-black/5'}`}
-                                        >
-                                            <FlipHorizontal size={16} />
-                                        </button>
-                                    </div>
-
-                                    <div className="flex flex-col gap-1.5">
-                                        <div className="flex justify-between items-center text-[12px] font-medium">
-                                            <span className="text-[#86868b]">Độ sáng (Brightness)</span>
-                                            <span className="text-[#1d1d1f]">{brightness}%</span>
-                                        </div>
-                                        <input type="range" min="50" max="150" value={brightness} onChange={(e) => setBrightness(e.target.value)} className="w-full h-1.5 bg-slate-200 rounded-full appearance-none outline-none accent-teal-500 cursor-pointer" />
-                                    </div>
-
-                                    <div className="flex flex-col gap-1.5">
-                                        <div className="flex justify-between items-center text-[12px] font-medium">
-                                            <span className="text-[#86868b]">Độ bão hoà (Saturation)</span>
-                                            <span className="text-[#1d1d1f]">{saturation}%</span>
-                                        </div>
-                                        <input type="range" min="0" max="200" value={saturation} onChange={(e) => setSaturation(e.target.value)} className="w-full h-1.5 bg-slate-200 rounded-full appearance-none outline-none accent-teal-500 cursor-pointer" />
-                                    </div>
-                                </div>
-                            </div> {/* End of inner card */}
-                        </div> {/* End of w-1/3 Visual Studio column */}
-
-                        {/* Equipment Status / Diagram Panel */}
-                        {/* Only visible on lg screens and up since diagram is hard to use on mobile */}
-                        <div className="hidden lg:flex flex-1 glass-panel p-6 lg:p-10 rounded-[40px] flex-col relative overflow-hidden min-w-0">
-
-                            <div className="flex items-center justify-between mb-0 z-10 w-full shrink-0">
-                                <h3 className="text-[18px] font-bold text-[#1d1d1f] flex items-center gap-2">
-                                    <Cable size={20} className="text-indigo-500" /> Sơ đồ kết nối tiêu chuẩn
+                    <div className="flex flex-col gap-8 w-full animate-fade-in relative z-10">
+                        {/* Header Section for Step 2 */}
+                        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 px-4 sm:px-0">
+                            <div className="flex flex-col">
+                                <h3 className="text-[22px] md:text-[28px] font-black text-[#1d1d1f] flex items-center gap-3">
+                                    <Cable size={28} className="text-indigo-500" />
+                                    Thiết lập Kết nối Studio
                                 </h3>
-                                <span className="text-[11px] font-bold bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg uppercase tracking-wider ring-1 ring-indigo-500/20 shadow-sm hidden sm:inline-flex">
-                                    STUDIO LIVE
-                                </span>
+                                <p className="text-[14px] text-[#86868b] font-medium mt-1">Gắn cáp theo sơ đồ chuẩn và kiểm tra tín hiệu Camera.</p>
+                            </div>
+                            <div className="flex items-center gap-3 bg-white/60 backdrop-blur-md px-5 py-2.5 rounded-2xl ring-1 ring-black/5 shadow-sm">
+                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span className="text-[12px] font-black text-[#1d1d1f] uppercase tracking-widest">Hệ thống đang sẵn sàng</span>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col lg:flex-row gap-8 w-full">
+                            {/* Visual Studio (Camera Preview) - Now as a sidebar-like control panel on desktop */}
+                            <div className="w-full lg:w-[380px] xl:w-[420px] shrink-0 flex flex-col gap-6">
+                                <div className="glass-panel p-6 sm:p-8 rounded-[40px] flex flex-col h-full border-t-4 border-t-teal-500 shadow-xl shadow-teal-500/5">
+                                    <div className="flex flex-col gap-4 mb-5">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-teal-50 p-2.5 rounded-xl text-teal-600 flex-shrink-0 ring-1 ring-teal-500/10">
+                                                <Camera size={20} />
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="text-[17px] font-bold text-[#1d1d1f] truncate">Màn hình Kiểm soát</h3>
+                                                <p className="text-[12px] text-[#86868b] truncate">Giám sát luồng hình ảnh & âm thanh</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-2 w-full mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <div className="p-2 bg-[#F5F5F7] rounded-xl text-[#86868b]"><Camera size={16} /></div>
+                                                <select
+                                                    className="bg-[#F5F5F7] border border-slate-200 text-[#1d1d1f] text-[13px] font-medium rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500/50 w-full truncate flex-1 shadow-sm transition-all"
+                                                    value={selectedDevice}
+                                                    onChange={(e) => setSelectedDevice(e.target.value)}
+                                                    disabled={isStreaming}
+                                                >
+                                                    {devices.length === 0 ? <option>Đang tìm Camera...</option> :
+                                                        devices.map((d, i) => (
+                                                            <option key={d.deviceId} value={d.deviceId}>{d.label || `Camera ${i + 1}`}</option>
+                                                        ))
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="p-2 bg-[#F5F5F7] rounded-xl text-[#86868b]"><Mic size={16} /></div>
+                                                <select
+                                                    className="bg-[#F5F5F7] border border-slate-200 text-[#1d1d1f] text-[13px] font-medium rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500/50 w-full truncate flex-1 shadow-sm transition-all"
+                                                    value={selectedAudioDevice}
+                                                    onChange={(e) => setSelectedAudioDevice(e.target.value)}
+                                                    disabled={isStreaming}
+                                                >
+                                                    {audioDevices.length === 0 ? <option>Đang tìm Micro...</option> :
+                                                        audioDevices.map((d, i) => (
+                                                            <option key={d.deviceId} value={d.deviceId}>{d.label || `Microphone ${i + 1}`}</option>
+                                                        ))
+                                                    }
+                                                </select>
+                                            </div>
+                                            <button
+                                                onClick={() => setIsStreaming(!isStreaming)}
+                                                className={`w-full mt-2 py-3 rounded-2xl text-[14px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg ${isStreaming ? 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/20' : 'bg-[#1d1d1f] text-white hover:bg-black shadow-black/20'}`}
+                                            >
+                                                {isStreaming ? <PowerOff size={18} /> : <Monitor size={18} />}
+                                                {isStreaming ? 'Ngắt Kết Nối' : 'Kích hoạt Preview'}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Video Canvas Container (9:16 Aspect Ratio) */}
+                                    <div className="relative w-full max-w-[340px] mx-auto aspect-[9/16] bg-slate-900 rounded-[32px] overflow-hidden ring-4 ring-black/[0.03] flex items-center justify-center mb-6 shadow-2xl overflow-hidden group">
+                                        {/* Scanline effect for look-and-feel */}
+                                        <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_2px,3px_100%] pointer-events-none z-10 opacity-20"></div>
+
+                                        {cameraError ? (
+                                            <div className="text-red-400 text-[13px] font-bold px-8 text-center relative z-20">
+                                                <PowerOff size={32} className="mx-auto mb-3 opacity-50" />
+                                                {cameraError}
+                                            </div>
+                                        ) : !isStreaming ? (
+                                            <div className="flex flex-col items-center justify-center text-slate-400 text-center p-6 relative z-20">
+                                                <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 ring-1 ring-white/10">
+                                                    <Camera size={28} className="opacity-40" />
+                                                </div>
+                                                <p className="text-[14px] font-bold leading-relaxed px-4">Nhấn nút kích hoạt để kết nối Sony Camlink / USB Video.</p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <video
+                                                    ref={videoRef}
+                                                    className="absolute inset-0 w-full h-full object-cover transition-all duration-300 contrast-[1.05] saturate-[1.1]"
+                                                    autoPlay
+                                                    playsInline
+                                                    muted
+                                                    style={{
+                                                        transform: isMirrored ? 'scaleX(-1)' : 'none',
+                                                        filter: `brightness(${brightness}%) saturate(${saturation}%)`
+                                                    }}
+                                                />
+                                                {isStreaming && !stream && <Loader2 className="animate-spin text-teal-500 w-10 h-10 absolute z-20" />}
+
+                                                {/* UI Overlays for Video */}
+                                                <div className="absolute top-4 right-4 flex flex-col gap-2 z-20 items-end">
+                                                    <div className="bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-black text-white/80 flex items-center gap-1.5 border border-white/10 uppercase tracking-tighter">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                                        Live 1080p
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Video Adjustment Controls */}
+                                    <div className="bg-[#F5F5F7]/80 rounded-[28px] p-5 flex flex-col gap-4 ring-1 ring-black/5 mt-auto shadow-inner">
+                                        <h4 className="text-[13px] font-black text-[#1d1d1f] mb-1 flex items-center gap-2 uppercase tracking-widest opacity-60">
+                                            <Settings2 size={14} /> Video Tuning
+                                        </h4>
+
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[12px] font-bold text-[#86868b]">Mirror Mode</span>
+                                            <button
+                                                onClick={() => setIsMirrored(!isMirrored)}
+                                                className={`p-2 rounded-xl transition-all ${isMirrored ? 'bg-[#1d1d1f] text-white shadow-md' : 'bg-white text-[#86868b] ring-1 ring-black/5 hover:bg-slate-50'}`}
+                                            >
+                                                <FlipHorizontal size={14} />
+                                            </button>
+                                        </div>
+
+                                        <div className="flex flex-col gap-1.5">
+                                            <div className="flex justify-between items-center text-[11px] font-bold uppercase tracking-tight">
+                                                <span className="text-[#86868b]">Brightness</span>
+                                                <span className="text-[#1d1d1f] bg-white px-2 py-0.5 rounded-md ring-1 ring-black/5">{brightness}%</span>
+                                            </div>
+                                            <input type="range" min="50" max="150" value={brightness} onChange={(e) => setBrightness(e.target.value)} className="w-full h-1 bg-slate-200 rounded-full appearance-none outline-none accent-[#1d1d1f] cursor-pointer" />
+                                        </div>
+
+                                        <div className="flex flex-col gap-1.5">
+                                            <div className="flex justify-between items-center text-[11px] font-bold uppercase tracking-tight">
+                                                <span className="text-[#86868b]">Saturation</span>
+                                                <span className="text-[#1d1d1f] bg-white px-2 py-0.5 rounded-md ring-1 ring-black/5">{saturation}%</span>
+                                            </div>
+                                            <input type="range" min="0" max="200" value={saturation} onChange={(e) => setSaturation(e.target.value)} className="w-full h-1 bg-slate-200 rounded-full appearance-none outline-none accent-[#1d1d1f] cursor-pointer" />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            {/* Connection Diagram flow (React Flow Integration) */}
-                            <div className="flex-grow w-full relative z-10 rounded-2xl overflow-hidden ring-1 ring-black/5 mt-4">
-                                <StudioDiagram />
-                            </div>
+                            {/* Equipment Status / Diagram Panel - Expanded Full Width on Desktop */}
+                            <div className="flex-1 glass-panel p-6 lg:p-10 rounded-[40px] flex flex-col relative overflow-hidden min-w-0 border-t-4 border-t-indigo-500 shadow-xl shadow-indigo-500/5">
+                                <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-indigo-500/5 blur-[100px] pointer-events-none"></div>
 
-                        </div> {/* End of w-2/3 Diagram column */}
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 z-10 w-full shrink-0 gap-4">
+                                    <div className="flex flex-col">
+                                        <h3 className="text-[18px] md:text-[22px] font-black text-[#1d1d1f] flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                                                <Video size={18} />
+                                            </div>
+                                            Sơ đồ Luồng Kỹ thuật (Full-Width)
+                                        </h3>
+                                        <p className="text-[13px] text-[#86868b] font-medium mt-0.5 ml-10">Tương tác trực tiếp để thay đổi thiết bị và dây dẫn.</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                                        <div className="flex bg-[#F5F5F7] p-1 rounded-xl ring-1 ring-black/5">
+                                            <button className="px-3 py-1.5 text-[11px] font-black uppercase text-[#1d1d1f] bg-white rounded-lg shadow-sm tracking-widest">Interactive</button>
+                                            <button className="px-3 py-1.5 text-[11px] font-bold uppercase text-[#86868b] hover:text-[#1d1d1f] transition-colors tracking-widest opacity-60">Static View</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Connection Diagram flow (React Flow Integration) */}
+                                <div className="flex-grow w-full relative z-10 rounded-[32px] overflow-hidden bg-[#FBFBFD] ring-1 ring-black/5 mt-6 min-h-[600px] lg:min-h-[750px] shadow-inner">
+                                    <StudioDiagram />
+
+                                    {/* Overlay Watermark/Branding for Wow-Factor */}
+                                    <div className="absolute bottom-8 right-8 pointer-events-none opacity-20 hidden md:block select-none">
+                                        <Aperture size={120} className="text-[#1d1d1f]" strokeWidth={1} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                )} {/* End of Step 2 */}
+                )}
+                {/* End of Step 2 */}
 
                 {currentStep === 3 && (
                     <div className="flex flex-col gap-6 w-full animate-fade-in">

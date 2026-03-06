@@ -68,8 +68,10 @@ export async function PATCH(request) {
         const { email: singleEmail, emails: emailArray, roles, badges } = body;
 
         let targetEmails = [];
-        if (Array.isArray(emailArray) && emailArray.length > 0) {
-            targetEmails = emailArray;
+        if (Array.isArray(emailArray)) {
+            targetEmails = emailArray.filter(e => typeof e === 'string' && e.length > 0);
+        } else if (typeof emailArray === 'string' && emailArray.length > 0) {
+            targetEmails = [emailArray]; // Robustness if frontend sends string in 'emails' key
         } else if (singleEmail) {
             targetEmails = [singleEmail];
         }

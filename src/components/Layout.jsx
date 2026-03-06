@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Aperture, BookOpenText, Sparkles, Video, ChevronDown, Terminal } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Aperture, BookOpenText, Sparkles, Video, ChevronDown, Terminal, LayoutDashboard } from 'lucide-react';
 import RoleBadgeDropdown from '@/components/RoleBadgeDropdown';
 import { getRoleKeys } from '@/lib/roles';
 import { useRoleAccess } from '@/components/RoleProvider';
@@ -13,8 +13,7 @@ export default function Layout({ children }) {
     const pathname = usePathname();
 
     const email = user?.primaryEmailAddress?.emailAddress;
-    const roleKeys = getRoleKeys(email);
-    const { isAdmin, isDev } = useRoleAccess();
+    const { isAdmin, isDev, roleKeys } = useRoleAccess();
 
     useEffect(() => {
         if (isLoaded && user) {
@@ -35,23 +34,28 @@ export default function Layout({ children }) {
         { href: '/', label: 'Trang chủ', labelShort: 'Home', icon: Aperture, match: (p) => p === '/' },
         { href: '/ai', label: 'AI Tư vấn', labelShort: 'AI', icon: Sparkles, match: (p) => p.startsWith('/ai') },
         { href: '/wiki', label: 'Wiki', labelShort: 'Wiki', icon: BookOpenText, match: (p) => p.startsWith('/wiki') },
+        { href: '/dashboard', label: 'Dashboard', labelShort: 'Dash', icon: LayoutDashboard, match: (p) => p.startsWith('/dashboard') },
         { href: '/livestream', label: 'Livestream', labelShort: 'Live', icon: Video, match: (p) => p.startsWith('/livestream') },
     ];
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    // Easter Egg: track rapid logo clicks
-    const logoClickCount = useState(0);
-    const logoClickTimer = useState(null);
+
+    // Easter Egg: track rapid logo clicks using refs to avoid re-renders
+    const logoClickCount = useRef(0);
+    const logoClickTimer = useRef(null);
 
     const handleLogoAreaClick = () => {
         setIsMenuOpen(!isMenuOpen);
-        logoClickCount[0]++;
-        if (logoClickTimer[0]) clearTimeout(logoClickTimer[0]);
-        logoClickTimer[0] = setTimeout(() => {
-            logoClickCount[0] = 0;
+
+        logoClickCount.current++;
+        if (logoClickTimer.current) clearTimeout(logoClickTimer.current);
+
+        logoClickTimer.current = setTimeout(() => {
+            logoClickCount.current = 0;
         }, 2000);
-        if (logoClickCount[0] >= 5) {
-            logoClickCount[0] = 0;
+
+        if (logoClickCount.current >= 5) {
+            logoClickCount.current = 0;
             fetch('/api/track_action', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

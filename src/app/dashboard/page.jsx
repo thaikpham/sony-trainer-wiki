@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 
 export default function Dashboard() {
     const { isLoaded, isSignedIn, user } = useUser();
+    const { roleKeys, canViewReport, loading: rolesLoading } = useRoleAccess();
     const [liveReports, setLiveReports] = useState([]);
     const [loadingReports, setLoadingReports] = useState(true);
 
@@ -41,7 +42,7 @@ export default function Dashboard() {
         }
     }, [isSignedIn, user]);
 
-    if (!isLoaded || !isSignedIn) {
+    if (!isLoaded || rolesLoading || !isSignedIn) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#F5F5F7] text-[#1d1d1f]">
                 <span className="animate-pulse font-bold tracking-tight">Đang tải dữ liệu định danh...</span>
@@ -50,8 +51,6 @@ export default function Dashboard() {
     }
 
     const email = user.primaryEmailAddress?.emailAddress;
-    const roleKeys = getRoleKeys(email);
-    const { canViewReport } = useRoleAccess();
     // Any of these roles consider as employee for the UI purposes here
     const isEmployee = roleKeys.some(k => ['DEV', 'TRAINER', 'PRODUCT_MARKETING', 'DATA'].includes(k));
 

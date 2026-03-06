@@ -400,7 +400,11 @@ export default function DevUserPanel() {
             const res = await fetch('/api/dev/users', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ emails, roles, badges }),
+                body: JSON.stringify({
+                    emails: Array.isArray(emails) ? emails : [emails],
+                    roles,
+                    badges
+                }),
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();

@@ -4,8 +4,30 @@ import { Lock, Sparkles, Star, Award as Trophy } from 'lucide-react';
 
 export default function BadgeShowcase({ userRoleKeys = [] }) {
     const allRoles = useMemo(() => Object.keys(ROLES).sort((a, b) => ROLES[a].priority - ROLES[b].priority), []);
-    const coreRoles = useMemo(() => allRoles.filter(k => ROLES[k].category === 'core'), [allRoles]);
-    const achievementRoles = useMemo(() => allRoles.filter(k => ROLES[k].category === 'achievement'), [allRoles]);
+    const sortBadges = (keys) => {
+        return [...keys].sort((a, b) => {
+            const isUnlockedA = userRoleKeys.includes(a);
+            const isUnlockedB = userRoleKeys.includes(b);
+
+            // 1. Unlocked first
+            if (isUnlockedA !== isUnlockedB) {
+                return isUnlockedA ? -1 : 1;
+            }
+
+            // 2. Then by rarity/priority
+            return (ROLES[a].priority || 99) - (ROLES[b].priority || 99);
+        });
+    };
+
+    const coreRoles = useMemo(() => {
+        const keys = allRoles.filter(k => ROLES[k].category === 'core');
+        return sortBadges(keys);
+    }, [allRoles, userRoleKeys]);
+
+    const achievementRoles = useMemo(() => {
+        const keys = allRoles.filter(k => ROLES[k].category === 'achievement');
+        return sortBadges(keys);
+    }, [allRoles, userRoleKeys]);
 
     const renderBadgeGrid = (keys) => (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

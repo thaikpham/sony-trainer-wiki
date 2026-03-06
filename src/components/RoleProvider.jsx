@@ -27,15 +27,13 @@ export const DEFAULT_PERMISSIONS = {
 
 export function RoleProvider({ children }) {
     const { user, isLoaded } = useUser();
-    const [matrix, setMatrix] = useState(null);
+    const [matrix, setMatrix] = useState(DEFAULT_PERMISSIONS);
     const [loading, setLoading] = useState(true);
+    const [overrides, setOverrides] = useState({ roles: [], badges: [] });
 
+    // 1. Fetch the Global Role Matrix
     useEffect(() => {
-        if (!db) {
-            setMatrix(DEFAULT_PERMISSIONS);
-            setLoading(false);
-            return;
-        }
+        if (!db) return;
 
         const docRef = doc(db, 'settings', 'rolesConfig');
         const unsubscribe = onSnapshot(docRef, (snap) => {
@@ -45,43 +43,74 @@ export function RoleProvider({ children }) {
                 setDoc(docRef, DEFAULT_PERMISSIONS).catch(console.error);
                 setMatrix(DEFAULT_PERMISSIONS);
             }
-            setLoading(false);
         }, (err) => {
             console.error("Error fetching rolesConfig:", err);
             setMatrix(DEFAULT_PERMISSIONS);
-            setLoading(false);
         });
 
         return () => unsubscribe();
     }, []);
 
+    // 2. Fetch User Overrides (Live Achievements/Roles)
+    useEffect(() => {
+        if (!isLoaded || !user?.primaryEmailAddress?.emailAddress || !db) return;
+
+        const email = user.primaryEmailAddress.emailAddress;
+        const id = email.replace(/[@.]/g, '_');
+        const overrideRef = doc(db, 'user_overrides', id);
+
+        const unsubscribe = onSnapshot(overrideRef, (snap) => {
+            if (snap.exists()) {
+                const data = snap.data();
+                setOverrides({
+                    roles: data.roles || [],
+                    badges: data.badges || []
+                });
+            } else {
+                setOverrides({ roles: [], badges: [] });
+            }
+            setLoading(false);
+        }, (err) => {
+            console.error("Error fetching user_overrides:", err);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [isLoaded, user]);
+
     const access = useMemo(() => {
-        if (!isLoaded || loading || !matrix) {
-            return { isAdmin: false, isDataMaster: false, isDev: false, canViewReport: false, matrix: null, loading: true };
+        if (!isLoaded || !matrix) {
+            return { isAdmin: false, isDataMaster: false, isDev: false, canViewReport: false, matrix: null, roleKeys: [], loading: true };
         }
 
         const email = user?.primaryEmailAddress?.emailAddress;
         if (!email) {
-            return { isAdmin: false, isDataMaster: false, isDev: false, canViewReport: false, matrix, loading: false };
+            return { isAdmin: false, isDataMaster: false, isDev: false, canViewReport: false, matrix, roleKeys: [], loading: false };
         }
 
-        const keys = getRoleKeys(email);
+        // Merge Static Roles + Dynamic Firestore Overrides
+        const staticKeys = getRoleKeys(email);
+        const dynamicRoles = overrides.roles || [];
+        const dynamicBadges = overrides.badges || [];
+
+        // Unique set of all keys
+        const roleKeys = Array.from(new Set([...staticKeys, ...dynamicRoles, ...dynamicBadges]));
 
         let isAdmin = false;
         let isDataMaster = false;
         let isDev = false;
         let canViewReport = false;
 
-        for (const k of keys) {
+        for (const k of roleKeys) {
             const m = matrix[k] || DEFAULT_PERMISSIONS.USER;
-            if (m.adminAccess || m.isAdmin) isAdmin = true; // Support legacy if needed
+            if (m.adminAccess || m.isAdmin) isAdmin = true;
             if (m.canManageData) isDataMaster = true;
             if (m.canDeleteData) isDev = true;
             if (m.canViewLiveReport) canViewReport = true;
         }
 
-        return { isAdmin, isDataMaster, isDev, canViewReport, matrix, loading: false };
-    }, [user, isLoaded, matrix, loading]);
+        return { isAdmin, isDataMaster, isDev, canViewReport, matrix, roleKeys, loading: false };
+    }, [user, isLoaded, matrix, overrides]);
 
     return (
         <RoleContext.Provider value={access}>

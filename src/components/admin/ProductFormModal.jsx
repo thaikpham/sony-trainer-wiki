@@ -27,13 +27,15 @@ const EMPTY_PRODUCT = {
 // Removed static TAG_SUGGESTIONS
 
 const INDUSTRY_TEMPLATES = {
-    'Body': '- Cảm biến: \n- Bộ xử lý: \n- Hệ thống lấy nét: \n- Video: \n- ISO: \n- Tính năng nổi bật: ',
-    'Lens': '- Tiêu cự: \n- Khẩu độ: \n- Motor lấy nét:\n- Khoảng cách lấy nét gần nhất: \n- Đường kính filter: \n- Trọng lượng: ',
-    'TV': '- Độ phân giải: \n- Tấm nền: \n- Bộ xử lý hình ảnh: \n- Tần số quét: \n- Công nghệ âm thanh: \n- Tính năng Game: ',
-    'Soundbar': '- Số kênh: \n- Công suất: \n- Công nghệ âm thanh: \n- Kết nối: \n- Loa subwoofer: ',
-    'Tai nghe': '- Loại: \n- Driver: \n- Chống ồn: \n- Thời lượng pin: \n- Kết nối: \n- Trọng lượng: ',
-    'Loa': '- Công suất: \n- Thời lượng pin: \n- Chống nước/bụi: \n- Kết nối: \n- Tính năng: ',
-    'Điện Thoại': '- Màn hình: \n- Chipset: \n- RAM/ROM: \n- Camera sau: \n- Pin/Sạc: \n- Chống nước: '
+    'Máy Ảnh': '- Cảm biến: \n- Bộ xử lý hình ảnh: \n- Hệ thống lấy nét: \n- Quay video (Tối đa): \n- Dải ISO: \n- Màn hình/Kính ngắm: \n- Lưu trữ (Thẻ / SSD): \n- Trọng lượng & Pin: ',
+    'Ống Kính': '- Ngàm: E-mount \n- Tiêu cự: \n- Khẩu độ tối đa - tối thiểu: \n- Motor lấy nét chính: \n- Khoảng cách lấy nét gần nhất: \n- Đường kính Filter: \n- Cấu tạo lá khẩu: \n- Trọng lượng: ',
+    'Tivi Bravia': '- Kích thước màn hình: \n- Độ phân giải: \n- Tấm nền & Đèn nền: \n- Bộ xử lý hình ảnh: \n- Tần số quét (Native): \n- Công nghệ âm thanh: \n- Hệ điều hành: \n- Kết nối (HDMI 2.1 / VRR): ',
+    'Tai Nghe': '- Kiểu dáng: \n- Màng loa (Driver): \n- Chống ồn chủ động (ANC): \n- Công nghệ âm thanh (LDAC / Hi-Res): \n- Thời lượng Pin: \n- Sạc nhanh: \n- Chống nước / bụi: \n- Trọng lượng: ',
+    'Loa & Âm Thanh': '- Hệ thống kênh âm thanh / Cấu hình: \n- Tổng công suất: \n- Công nghệ âm thanh đa chiều: \n- Kết nối không dây: \n- Kết nối có dây: \n- Thời lượng Pin / Chống nước (Với loa di động): ',
+    'Điện Thoại Xperia': '- Màn hình (Tấm nền/Độ phân giải): \n- Vi xử lý (Chipset): \n- RAM / ROM: \n- Camera chính: \n- Dung lượng Pin / Sạc: \n- Chuẩn kháng nước/bụi: \n- Âm thanh: ',
+    'PlayStation': '- Vi xử lý (CPU/GPU): \n- Bộ nhớ lưu trữ / SSD: \n- Độ phân giải xuất hình (Max): \n- Ổ đĩa quang: \n- Tay cầm đi kèm: \n- Kết nối / Cổng xuất: ',
+    'Phụ Kiện': '- Loại thiết bị: \n- Khả năng tương thích: \n- Kích thước / Trọng lượng: \n- Tiện ích / Tính năng nổi bật: ',
+    'Máy Quay Film': '- Cảm biến: \n- Ngàm ống kính: \n- Quay video (Tối đa): \n- Dải Dynamic Range: \n- Hệ thống lấy nét: \n- Lưu trữ (Thẻ / SSD): \n- Trọng lượng & Pin: ' // Same as alpha mostly but different terms
 };
 
 const InputClass = 'w-full px-3 py-2.5 rounded-xl border border-black/10 bg-background text-[13px] text-foreground placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors';
@@ -203,20 +205,10 @@ export default function ProductFormModal({
                                             categories: newCats,
                                             category: newCats[0] || '' // Sync legacy field for compatibility
                                         };
-                                        const mapping = {
-                                            'Máy Ảnh': 'Body',
-                                            'Ống Kính': 'Lens',
-                                            'Tivi Bravia': 'TV',
-                                            'Loa & Âm Thanh': 'Loa',
-                                            'Tai Nghe': 'Tai nghe',
-                                            'Điện Thoại Xperia': 'Điện Thoại',
-                                            'Máy Quay Film': 'Body'
-                                        };
-
                                         // Auto-apply template if selection changes and content is empty/template
                                         const newlyAdded = newCats.find(c => !f.categories?.includes(c));
                                         if (newlyAdded) {
-                                            const templateKey = mapping[newlyAdded];
+                                            const templateKey = newlyAdded;
                                             if (templateKey && INDUSTRY_TEMPLATES[templateKey]) {
                                                 const tpl = INDUSTRY_TEMPLATES[templateKey];
                                                 if (!f.highlights || Object.values(INDUSTRY_TEMPLATES).includes(f.highlights)) {
@@ -254,23 +246,24 @@ export default function ProductFormModal({
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Highlights */}
-                        <div className="flex flex-col h-full">
-                            <div className="flex items-center justify-between mb-1.5">
-                                <label className={LabelClass}>Thông số & Tính năng nổi bật</label>
+                        <div className="flex flex-col h-full col-span-1 lg:col-span-2 space-y-2">
+                            <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+                                <label className={LabelClass}>Thông số kỹ thuật tiêu chuẩn (Highlights)</label>
                                 {!readOnly && (
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 flex-wrap pb-2">
                                         {Object.keys(INDUSTRY_TEMPLATES).map(type => (
                                             <button
                                                 key={type}
                                                 type="button"
                                                 onClick={() => {
-                                                    if (confirm(`Áp dụng mẫu ${type}? Nội dung hiện tại sẽ bị ghi đè.`)) {
-                                                        set('highlights', INDUSTRY_TEMPLATES[type]);
+                                                    if (form.highlights && !Object.values(INDUSTRY_TEMPLATES).includes(form.highlights) && !confirm(`Ghi đè thông số hiện tại bằng mẫu ${type}?`)) {
+                                                        return;
                                                     }
+                                                    set('highlights', INDUSTRY_TEMPLATES[type]);
                                                 }}
-                                                className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 text-[9px] font-bold uppercase tracking-wider hover:bg-blue-500/20 transition-colors"
+                                                className="px-2 py-1 rounded-md bg-blue-500/10 text-blue-600 text-[10px] font-bold uppercase tracking-wider hover:bg-blue-500 hover:text-white transition-all whitespace-nowrap"
                                             >
-                                                Mẫu {type === 'Body' ? 'Máy ảnh' : type === 'Tai nghe' ? 'Audio' : type}
+                                                Mẫu {type}
                                             </button>
                                         ))}
                                     </div>

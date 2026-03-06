@@ -4,7 +4,7 @@ export async function POST(request) {
     try {
         const { activeNeedsText, loadout } = await request.json();
         const apiKey = process.env.GEMINI_API_KEY || "";
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
         const sys = `Bạn là một nhiếp ảnh gia truyền cảm hứng và Cố vấn cấp cao của Sony Alpha. Hãy viết một bài phân tích CHI TIẾT nhưng CỰC KỲ NGẮN GỌN về sự kết hợp thiết bị này, tập trung 100% vào TRẢI NGHIỆM THỰC TẾ. TUYỆT ĐỐI KHÔNG dùng từ ngữ hàn lâm khô khan (như XA, XD motor).
 

@@ -73,7 +73,7 @@ export default function AIPage() {
                 "STATUS: Đang hoàn thiện khuyến nghị cuối cùng..."
             ];
             let i = 0;
-            const interval = setInterval(() => { if (i < logs.length) setLoadingLog(prev => [...prev, logs[i++]]); }, 1000);
+            const interval = setInterval(() => { if (i < logs.length) setLoadingLog(prev => [...prev, logs[i++]]); }, 400);
             const res = await fetch('/api/recommend', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -211,6 +211,7 @@ export default function AIPage() {
                             const Icon = cat.icon;
                             return (
                                 <button key={cat.id}
+                                    onClick={() => { if (cat.ready) { setActiveCategory(cat.id); setStep('configure'); } }}
                                     className={`relative group flex flex-col items-start p-7 rounded-[28px] text-left transition-all duration-300 ring-1 ${cat.ready ? 'bg-white ring-black/5 hover:shadow-[0_12px_40px_rgba(0,0,0,0.10)] hover:-translate-y-1 cursor-pointer' : 'bg-white/50 ring-black/5 opacity-60 cursor-not-allowed'}`}>
                                     {!cat.ready && (<div className="absolute top-4 right-4 bg-[#F5F5F7] text-[#86868b] text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Sắp ra mắt</div>)}
                                     <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center mb-5 shadow-lg group-hover:scale-105 transition-transform duration-300`}>

@@ -1,14 +1,18 @@
 import { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, Filter, Plus, ShoppingCart, Info, Activity, Box, Aperture, Layers, Fingerprint, ExternalLink, Loader2, AlertCircle, Camera, Settings2, Trash2, X, Edit3, Check, ArrowUp } from 'lucide-react';
 import { getProducts, deleteProduct, addProduct, updateProduct, getGlobalTags, updateGlobalTags } from '../services/db';
 import { trackFeatureUsage } from '@/services/analytics';
 import FeatureStar from './FeatureStar';
 import { CategoryBadge } from './admin/SingleSelectField';
 import ProductFormModal from './admin/ProductFormModal';
+import TagManagerModal from './admin/TagManagerModal';
 import { useRoleAccess } from '@/components/RoleProvider';
+import { useUser } from '@clerk/nextjs';
 
 export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggleCompare, editProduct = null, onClearEdit = () => { } }) {
     const { isDataMaster, isDev } = useRoleAccess();
+    const { user } = useUser();
 
     // Helper: get all categories for a product (supports legacy string + new array)
     const getProductCategories = (item) => {
@@ -76,6 +80,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
     const [saving, setSaving] = useState(false);
     const [globalTags, setGlobalTags] = useState([]);
     const [toast, setToast] = useState(null);
+    const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
 
     const showToast = (msg) => {
         setToast(msg);
@@ -113,96 +118,136 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
 
     // ── Bulk Edit State ──────────────────────────────────────────
     const [bulkEditOpen, setBulkEditOpen] = useState(false);
-    // Categories now support add + remove (multi)
-    const [bulkCatsToAdd, setBulkCatsToAdd] = useState([]);
-    const [bulkCatsToRemove, setBulkCatsToRemove] = useState([]);
-    const [bulkTagsToAdd, setBulkTagsToAdd] = useState([]);
-    const [bulkTagsToRemove, setBulkTagsToRemove] = useState([]);
-    const [bulkTagInput, setBulkTagInput] = useState('');
+    // Tri-State Matrix Context
+    // { [name]: { type: 'cat' | 'tag', action: 'ADD' | 'REMOVE' } }
+    const [bulkMutations, setBulkMutations] = useState({});
+    const [bulkSearchQuery, setBulkSearchQuery] = useState('');
     const [bulkSaving, setBulkSaving] = useState(false);
+    const [isConsoleExpanded, setIsConsoleExpanded] = useState(false);
+
+    // Auto-collapse console if no products are selected
+    useEffect(() => {
+        if (selectedIds.length === 0) {
+            setIsConsoleExpanded(false);
+            setBulkSearchQuery('');
+        }
+    }, [selectedIds.length]);
 
     const selectionSummary = useMemo(() => {
-        if (!bulkEditOpen || selectedIds.length === 0) return null;
+        if (selectedIds.length === 0) return null;
         const selectedProducts = data.filter(p => selectedIds.includes(p.id));
         const catMap = {};
         const tagMap = {};
         selectedProducts.forEach(p => {
-            const cats = getProductCategories(p);
-            cats.forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
-            const tags = Array.isArray(p.tags) ? p.tags : [];
-            tags.forEach(t => { tagMap[t] = (tagMap[t] || 0) + 1; });
+            getProductCategories(p).forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
+            (Array.isArray(p.tags) ? p.tags : []).forEach(t => { tagMap[t] = (tagMap[t] || 0) + 1; });
         });
-        return { categories: catMap, tags: tagMap, count: selectedProducts.length };
-    }, [bulkEditOpen, selectedIds, data]);
+        return {
+            categories: catMap,
+            tags: tagMap,
+            count: selectedProducts.length,
+            // Helper to get consensus type
+            getStatus: (type, key) => {
+                const count = type === 'cat' ? catMap[key] : tagMap[key];
+                if (!count) return 'none';
+                if (count === selectedProducts.length) return 'all';
+                return 'some';
+            }
+        };
+    }, [selectedIds, data]);
 
-    const toggleBulkCatAdd = (cat) => {
-        setBulkCatsToRemove(prev => prev.filter(c => c !== cat));
-        setBulkCatsToAdd(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
-    };
-    const toggleBulkCatRemove = (cat) => {
-        setBulkCatsToAdd(prev => prev.filter(c => c !== cat));
-        setBulkCatsToRemove(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+    const handleToggleMutation = (key, type) => {
+        setBulkMutations(prev => {
+            const currentAction = prev[key]?.action;
+            const newMutations = { ...prev };
+
+            if (!currentAction) {
+                newMutations[key] = { type, action: 'ADD' };
+            } else if (currentAction === 'ADD') {
+                newMutations[key] = { type, action: 'REMOVE' };
+            } else {
+                delete newMutations[key];
+            }
+            return newMutations;
+        });
     };
 
-    const toggleBulkTagAdd = (tag) => {
-        setBulkTagsToRemove(prev => prev.filter(t => t !== tag));
-        setBulkTagsToAdd(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+    const handleForceRemove = (key, type) => {
+        setBulkMutations(prev => {
+            const newMutations = { ...prev };
+            if (newMutations[key]?.action === 'REMOVE') {
+                delete newMutations[key];
+            } else {
+                newMutations[key] = { type, action: 'REMOVE' };
+            }
+            return newMutations;
+        });
     };
-    const toggleBulkTagRemove = (tag) => {
-        setBulkTagsToAdd(prev => prev.filter(t => t !== tag));
-        setBulkTagsToRemove(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
-    };
-    const addCustomBulkTag = () => {
-        const tag = bulkTagInput.trim();
-        if (tag && !bulkTagsToAdd.includes(tag)) {
-            setBulkTagsToAdd(prev => [...prev, tag]);
-        }
-        setBulkTagInput('');
-    };
+
+    const handleClearMutations = () => setBulkMutations({});
 
     const handleBulkEdit = async () => {
-        const hasChanges = bulkCatsToAdd.length > 0 || bulkCatsToRemove.length > 0 || bulkTagsToAdd.length > 0 || bulkTagsToRemove.length > 0;
-        if (!hasChanges) return;
+        const mutationKeys = Object.keys(bulkMutations);
+        if (mutationKeys.length === 0) return;
+
         setBulkSaving(true);
+
+        const catsToAdd = mutationKeys.filter(k => bulkMutations[k].type === 'cat' && bulkMutations[k].action === 'ADD');
+        const catsToRemove = mutationKeys.filter(k => bulkMutations[k].type === 'cat' && bulkMutations[k].action === 'REMOVE');
+        const tagsToAdd = mutationKeys.filter(k => bulkMutations[k].type === 'tag' && bulkMutations[k].action === 'ADD');
+        const tagsToRemove = mutationKeys.filter(k => bulkMutations[k].type === 'tag' && bulkMutations[k].action === 'REMOVE');
+
+        const lastEditedBy = {
+            name: user?.fullName || user?.primaryEmailAddress?.emailAddress || 'Unknown',
+            avatar: user?.imageUrl || '',
+            email: user?.primaryEmailAddress?.emailAddress || ''
+        };
+
         try {
             await Promise.all(selectedIds.map(id => {
                 const product = data.find(p => p.id === id);
                 if (!product) return Promise.resolve();
-                // Build new categories array (supports both legacy `category` string + new `categories` array)
+
                 const currentCats = Array.isArray(product.categories) && product.categories.length > 0
                     ? product.categories
                     : (product.category ? [product.category] : []);
+
                 const newCats = [
-                    ...currentCats.filter(c => !bulkCatsToRemove.includes(c)),
-                    ...bulkCatsToAdd.filter(c => !currentCats.includes(c))
+                    ...currentCats.filter(c => !catsToRemove.includes(c)),
+                    ...catsToAdd.filter(c => !currentCats.includes(c))
                 ];
+
                 const currentTags = Array.isArray(product.tags) ? product.tags : [];
                 const newTags = [
-                    ...currentTags.filter(t => !bulkTagsToRemove.includes(t)),
-                    ...bulkTagsToAdd.filter(t => !currentTags.includes(t))
+                    ...currentTags.filter(t => !tagsToRemove.includes(t)),
+                    ...tagsToAdd.filter(t => !currentTags.includes(t))
                 ];
-                return updateProduct(id, { categories: newCats, tags: newTags });
+
+                return updateProduct(id, { categories: newCats, tags: newTags, lastEditedBy });
             }));
+
             // Reflect changes in local state immediately
             setData(prev => prev.map(p => {
                 if (!selectedIds.includes(p.id)) return p;
+
                 const currentCats = Array.isArray(p.categories) && p.categories.length > 0
                     ? p.categories : (p.category ? [p.category] : []);
                 const newCats = [
-                    ...currentCats.filter(c => !bulkCatsToRemove.includes(c)),
-                    ...bulkCatsToAdd.filter(c => !currentCats.includes(c))
+                    ...currentCats.filter(c => !catsToRemove.includes(c)),
+                    ...catsToAdd.filter(c => !currentCats.includes(c))
                 ];
+
                 const currentTags = Array.isArray(p.tags) ? p.tags : [];
                 const newTags = [
-                    ...currentTags.filter(t => !bulkTagsToRemove.includes(t)),
-                    ...bulkTagsToAdd.filter(t => !currentTags.includes(t))
+                    ...currentTags.filter(t => !tagsToRemove.includes(t)),
+                    ...tagsToAdd.filter(t => !currentTags.includes(t))
                 ];
-                return { ...p, categories: newCats, tags: newTags };
+
+                return { ...p, categories: newCats, tags: newTags, lastEditedBy };
             }));
+
             showToast(`✅ Đã cập nhật ${selectedIds.length} sản phẩm`);
-            setBulkEditOpen(false);
-            setBulkCatsToAdd([]); setBulkCatsToRemove([]);
-            setBulkTagsToAdd([]); setBulkTagsToRemove([]);
+            setBulkMutations({});
             setSelectedIds([]);
         } catch (err) {
             console.error('Bulk edit error:', err);
@@ -268,15 +313,24 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
     const handleSaveProduct = async (formData) => {
         setSaving(true);
         try {
+            const productData = {
+                ...formData,
+                lastEditedBy: {
+                    name: user?.fullName || user?.primaryEmailAddress?.emailAddress || 'Unknown',
+                    avatar: user?.imageUrl || '',
+                    email: user?.primaryEmailAddress?.emailAddress || ''
+                }
+            };
+
             if (formData.id) {
                 const { id, createdAt, updatedAt, ...rest } = formData;
-                await updateProduct(id, rest);
+                await updateProduct(id, { ...rest, lastEditedBy: productData.lastEditedBy });
                 showToast(`✅ Đã cập nhật "${formData.name}"`);
-                setData(prev => prev.map(p => p.id === id ? { ...p, ...rest, updatedAt: new Date() } : p));
+                setData(prev => prev.map(p => p.id === id ? { ...p, ...rest, lastEditedBy: productData.lastEditedBy, updatedAt: new Date() } : p));
             } else {
-                const newId = await addProduct(formData);
+                const newId = await addProduct(productData);
                 showToast(`✅ Đã thêm "${formData.name}"`);
-                setData(prev => [{ ...formData, id: newId, createdAt: new Date() }, ...prev]);
+                setData(prev => [{ ...productData, id: newId, createdAt: new Date() }, ...prev]);
             }
             setModalProduct(null);
         } catch (e) {
@@ -286,12 +340,40 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
         }
     };
 
-    const handleUpdateTags = async (newTags) => {
+    const handleUpdateTagsAndProducts = async (newTags) => {
+        setSaving(true);
         try {
+            // Identify tags that have been removed completely from the system
+            const removedTags = globalTags.filter(t => !newTags.includes(t));
+
+            // Scrub these tags from all products
+            if (removedTags.length > 0) {
+                const productsToUpdate = data.filter(p => p.tags && p.tags.some(t => removedTags.includes(t)));
+
+                await Promise.all(productsToUpdate.map(p => {
+                    const updatedTags = p.tags.filter(t => !removedTags.includes(t));
+                    return updateProduct(p.id, { tags: updatedTags });
+                }));
+
+                // Update local state immediately without full refresh
+                setData(prev => prev.map(p => {
+                    if (productsToUpdate.some(up => up.id === p.id)) {
+                        return { ...p, tags: p.tags.filter(t => !removedTags.includes(t)) };
+                    }
+                    return p;
+                }));
+            }
+
+            // Finally update Global Tags Document
             await updateGlobalTags(newTags);
             setGlobalTags(newTags);
+            showToast(`✅ Đã cập nhật cài đặt Tags hệ thống`);
         } catch (e) {
             console.error("Error updating tags:", e);
+            alert("Lỗi khi cập nhật tags: " + e.message);
+        } finally {
+            setSaving(false);
+            setIsTagManagerOpen(false);
         }
     };
 
@@ -364,7 +446,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
     };
 
     return (
-        <div className="w-full flex flex-col gap-6 animate-slide-up relative z-10">
+        <div className="w-full flex flex-col gap-6 relative z-10">
 
             {/* Header & Controls - STICKY */}
             <div className="sticky top-6 z-[100] flex flex-col gap-6 bg-white/80 backdrop-blur-2xl p-6 sm:p-8 rounded-[32px] ring-1 ring-black/[0.04] shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
@@ -383,13 +465,22 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                     </div>
 
                     {isDataMaster && (
-                        <button
-                            onClick={() => setModalProduct({})}
-                            className="flex items-center gap-2 px-6 py-3.5 bg-[#1d1d1f] text-white rounded-2xl text-[13px] font-bold hover:bg-black transition-all shadow-lg hover:shadow-black/20"
-                        >
-                            <Plus size={18} />
-                            Thêm sản phẩm
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setIsTagManagerOpen(true)}
+                                className="flex items-center gap-2 px-6 py-3.5 bg-white border border-black/[0.08] text-[#1d1d1f] rounded-2xl text-[13px] font-bold hover:bg-[#F5F5F7] transition-all"
+                            >
+                                <Settings2 size={18} />
+                                Quản lý Tags
+                            </button>
+                            <button
+                                onClick={() => setModalProduct({})}
+                                className="flex items-center gap-2 px-6 py-3.5 bg-[#1d1d1f] text-white rounded-2xl text-[13px] font-bold hover:bg-black transition-all shadow-lg hover:shadow-black/20"
+                            >
+                                <Plus size={18} />
+                                Thêm sản phẩm
+                            </button>
+                        </div>
                     )}
                 </div>
 
@@ -566,6 +657,22 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                                                             </span>
                                                         )}
                                                     </div>
+
+                                                    {/* User Last Edited */}
+                                                    {item.lastEditedBy && (
+                                                        <div className="flex items-center gap-1.5 mt-1.5 opacity-60 hover:opacity-100 transition-opacity">
+                                                            {item.lastEditedBy.avatar ? (
+                                                                <img src={item.lastEditedBy.avatar} alt={item.lastEditedBy.name} className="w-4 h-4 rounded-full shadow-sm ring-1 ring-black/5" />
+                                                            ) : (
+                                                                <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[8px] font-bold text-slate-500 ring-1 ring-black/5">
+                                                                    {item.lastEditedBy.name?.charAt(0) || '?'}
+                                                                </div>
+                                                            )}
+                                                            <span className="text-[10px] font-medium text-[#86868b] truncate max-w-[150px]" title={`Cập nhật lần cuối bởi ${item.lastEditedBy.name}`}>
+                                                                {item.lastEditedBy.name}
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td className="px-4 py-4 text-[#424245] font-mono text-[12px] truncate" title={item.kataban}>
@@ -656,230 +763,6 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                 )}
             </div>
 
-            {/* DEV Bulk Action Bar */}
-            {selectedIds.length > 0 && isDataMaster && (
-                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[150] animate-slide-up">
-                    <div className="bg-[#1d1d1f] text-white px-8 py-4 rounded-[32px] shadow-2xl flex items-center gap-6 ring-1 ring-white/10 backdrop-blur-xl">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Đã chọn</span>
-                            <span className="text-[15px] font-black">{selectedIds.length} sản phẩm</span>
-                        </div>
-                        <div className="h-8 w-px bg-white/10" />
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => setSelectedIds([])}
-                                className="px-4 py-2 text-[12px] font-black uppercase tracking-widest hover:opacity-60 transition-all"
-                            >
-                                Hủy
-                            </button>
-                            <button
-                                onClick={() => { setBulkEditOpen(true); setBulkCatsToAdd([]); setBulkCatsToRemove([]); setBulkTagsToAdd([]); setBulkTagsToRemove([]); }}
-                                className="px-6 py-2.5 bg-blue-500 text-white rounded-2xl text-[12px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-2"
-                            >
-                                <Edit3 size={14} /> Sửa Tags &amp; Ngành hàng
-                            </button>
-                            {isDev && (
-                                <button
-                                    onClick={handleBulkDelete}
-                                    className="px-6 py-2.5 bg-red-500 text-white rounded-2xl text-[12px] font-black uppercase tracking-widest shadow-xl shadow-red-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-2"
-                                >
-                                    <Trash2 size={14} /> Xóa {selectedIds.length} mục
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Bulk Edit Modal */}
-            {bulkEditOpen && (
-                <div className="fixed inset-0 z-[200] flex items-end justify-center p-4 sm:p-6" onClick={() => setBulkEditOpen(false)}>
-                    <div className="absolute inset-0 bg-black/[0.02] backdrop-blur-[20px] backdrop-saturate-[180%]" />
-                    <div
-                        className="relative w-full max-w-2xl bg-white rounded-[32px] shadow-[0_-8px_40px_rgba(0,0,0,0.12)] ring-1 ring-black/5 animate-in slide-in-from-bottom-4 duration-300 p-8 flex flex-col gap-7"
-                        onClick={e => e.stopPropagation()}
-                    >
-                        {/* Header */}
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-[11px] font-black uppercase tracking-widest text-blue-500 mb-1">Chỉnh sửa hàng loạt</p>
-                                <h3 className="text-[22px] font-black text-[#1d1d1f] tracking-tight">Cập nhật {selectedIds.length} sản phẩm</h3>
-                            </div>
-                            <button onClick={() => setBulkEditOpen(false)} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-all">
-                                <X size={18} />
-                            </button>
-                        </div>
-
-                        {/* Selection Summary Display */}
-                        {selectionSummary && (
-                            <div className="bg-slate-50/50 rounded-2xl p-5 border border-black/[0.03] flex flex-col gap-4">
-                                <div className="flex flex-wrap gap-2 items-center">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 w-full mb-1 flex items-center gap-1.5">
-                                        <Check size={10} strokeWidth={4} className="text-blue-500" /> Đặc điểm chung của {selectedIds.length} sản phẩm:
-                                    </span>
-                                    {ALL_TYPES.filter(c => (selectionSummary.categories[c] || 0) === selectedIds.length).map(c => (
-                                        <span key={c} className="px-2.5 py-1 rounded-full bg-blue-500 text-white text-[10px] font-black border border-blue-600 shadow-sm">
-                                            {c}
-                                        </span>
-                                    ))}
-                                    {globalTags.filter(t => (selectionSummary.tags[t] || 0) === selectedIds.length).map(t => (
-                                        <span key={t} className="px-2.5 py-1 rounded-full bg-teal-600 text-white text-[10px] font-black border border-teal-700 shadow-sm">
-                                            {t}
-                                        </span>
-                                    ))}
-                                    {(ALL_TYPES.filter(c => (selectionSummary.categories[c] || 0) === selectedIds.length).length === 0 &&
-                                        globalTags.filter(t => (selectionSummary.tags[t] || 0) === selectedIds.length).length === 0) && (
-                                            <span className="text-[11px] text-slate-400 italic">Chưa có ngành/tag chung cho toàn bộ lựa chọn</span>
-                                        )}
-                                </div>
-
-                                {/* Partial match summary (Optional - only if many products) */}
-                                {selectedIds.length > 1 && (
-                                    <div className="flex flex-wrap gap-2 items-center opacity-80">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 w-full mb-1 flex items-center gap-1.5">
-                                            <Info size={10} className="text-amber-500" /> Xuất hiện trong một số sản phẩm:
-                                        </span>
-                                        {ALL_TYPES.filter(c => (selectionSummary.categories[c] || 0) > 0 && (selectionSummary.categories[c] || 0) < selectedIds.length).map(c => (
-                                            <span key={c} className="px-2 py-0.5 rounded-full bg-white text-blue-500 text-[9px] font-bold border border-blue-100">
-                                                {c} ({selectionSummary.categories[c]})
-                                            </span>
-                                        ))}
-                                        {globalTags.filter(t => (selectionSummary.tags[t] || 0) > 0 && (selectionSummary.tags[t] || 0) < selectedIds.length).map(t => (
-                                            <span key={t} className="px-2 py-0.5 rounded-full bg-white text-teal-600 text-[9px] font-bold border border-teal-100">
-                                                {t} ({selectionSummary.tags[t]})
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-
-                        {/* Categories — multi add/remove */}
-                        <div>
-                            <label className="block text-[12px] font-black uppercase tracking-widest text-slate-400 mb-3">
-                                Ngành hàng — chọn để thêm <span className="text-green-500">✚</span> hoặc xoá <span className="text-red-400">✕</span> khỏi sản phẩm
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                                {ALL_TYPES.map(cat => {
-                                    const isAdding = bulkCatsToAdd.includes(cat);
-                                    const isRemoving = bulkCatsToRemove.includes(cat);
-                                    const count = selectionSummary?.categories[cat] || 0;
-                                    const isEvery = count === selectedIds.length;
-                                    const isSome = count > 0 && count < selectedIds.length;
-
-                                    return (
-                                        <div key={cat} className={`flex items-center rounded-2xl overflow-hidden ring-1 transition-all ${isEvery ? 'ring-blue-500/30 bg-blue-50/30' : 'ring-black/5'}`}>
-                                            <button
-                                                onClick={() => toggleBulkCatAdd(cat)}
-                                                className={`group/btn px-3 py-1.5 text-[11px] font-bold transition-all flex items-center gap-1.5 ${isAdding ? 'bg-green-500 text-white' : 'bg-slate-50/50 text-slate-600 hover:bg-green-50 hover:text-green-600'
-                                                    }`}
-                                                title={isEvery ? "Tất cả sp đã chọn đều có ngành này" : isSome ? `Có ${count}/${selectedIds.length} sp có ngành này` : "Thêm ngành này"}
-                                            >
-                                                {isAdding ? '✚' : isEvery ? <Check size={10} strokeWidth={4} className="text-blue-500" /> : isSome ? <Info size={10} className="text-amber-500" /> : '✚'}
-                                                {cat}
-                                            </button>
-                                            <button
-                                                onClick={() => toggleBulkCatRemove(cat)}
-                                                className={`px-2 py-1.5 text-[11px] font-bold border-l border-white/30 transition-all ${isRemoving ? 'bg-red-500 text-white' : 'bg-slate-50/50 text-slate-400 hover:bg-red-50 hover:text-red-500'
-                                                    }`}
-                                                title="Xoá ngành hàng này khỏi tất cả sản phẩm đã chọn"
-                                            >
-                                                ✕
-                                            </button>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                            {(bulkCatsToAdd.length > 0 || bulkCatsToRemove.length > 0) && (
-                                <div className="mt-3 p-3 bg-slate-50 rounded-2xl text-[12px] font-medium text-slate-600 flex flex-col gap-1">
-                                    {bulkCatsToAdd.length > 0 && <p><span className="text-green-600 font-black">+ Thêm ngành:</span> {bulkCatsToAdd.join(', ')}</p>}
-                                    {bulkCatsToRemove.length > 0 && <p><span className="text-red-500 font-black">− Xoá ngành:</span> {bulkCatsToRemove.join(', ')}</p>}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Tags */}
-                        <div>
-                            <label className="block text-[12px] font-black uppercase tracking-widest text-slate-400 mb-3">Tags — chọn để thêm <span className="text-green-500">✚</span> hoặc xoá <span className="text-red-400">✕</span></label>
-                            <div className="flex flex-wrap gap-2 mb-4">
-                                {globalTags.map(tag => {
-                                    const isAdding = bulkTagsToAdd.includes(tag);
-                                    const isRemoving = bulkTagsToRemove.includes(tag);
-                                    const count = selectionSummary?.tags[tag] || 0;
-                                    const isEvery = count === selectedIds.length;
-                                    const isSome = count > 0 && count < selectedIds.length;
-
-                                    return (
-                                        <div key={tag} className={`flex items-center rounded-2xl overflow-hidden ring-1 transition-all ${isEvery ? 'ring-teal-500/30 bg-teal-50/30' : 'ring-black/5'}`}>
-                                            <button
-                                                onClick={() => toggleBulkTagAdd(tag)}
-                                                className={`px-3 py-1.5 text-[11px] font-bold transition-all flex items-center gap-1.5 ${isAdding ? 'bg-green-500 text-white' : 'bg-slate-50/50 text-slate-600 hover:bg-green-50 hover:text-green-600'
-                                                    }`}
-                                                title={isEvery ? "Tất cả sp đều có tag này" : isSome ? `Có ${count}/${selectedIds.length} sp có tag này` : "Thêm tag"}
-                                            >
-                                                {isAdding ? '✚' : isEvery ? <Check size={10} strokeWidth={4} className="text-teal-600" /> : isSome ? <Info size={10} className="text-amber-500" /> : '✚'}
-                                                {tag}
-                                            </button>
-                                            <button
-                                                onClick={() => toggleBulkTagRemove(tag)}
-                                                className={`px-2 py-1.5 text-[11px] font-bold border-l border-white/30 transition-all ${isRemoving ? 'bg-red-500 text-white' : 'bg-slate-50/50 text-slate-400 hover:bg-red-50 hover:text-red-500'
-                                                    }`}
-                                                title="Xoá tag này khỏi tất cả sản phẩm đã chọn"
-                                            >
-                                                ✕
-                                            </button>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                            {/* Custom tag input */}
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={bulkTagInput}
-                                    onChange={e => setBulkTagInput(e.target.value)}
-                                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomBulkTag(); } }}
-                                    placeholder="Thêm tag mới..."
-                                    className="flex-1 text-[13px] px-4 py-2.5 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 font-medium"
-                                />
-                                <button
-                                    onClick={addCustomBulkTag}
-                                    className="px-5 py-2.5 bg-slate-800 text-white rounded-2xl text-[12px] font-black hover:bg-black transition-all"
-                                >
-                                    Thêm
-                                </button>
-                            </div>
-                            {/* Preview of what will be added/removed */}
-                            {(bulkTagsToAdd.length > 0 || bulkTagsToRemove.length > 0) && (
-                                <div className="mt-4 p-4 bg-slate-50 rounded-2xl text-[12px] font-medium text-slate-600 flex flex-col gap-1.5">
-                                    {bulkTagsToAdd.length > 0 && (
-                                        <p><span className="text-green-600 font-black">+ Thêm:</span> {bulkTagsToAdd.join(', ')}</p>
-                                    )}
-                                    {bulkTagsToRemove.length > 0 && (
-                                        <p><span className="text-red-500 font-black">− Xoá:</span> {bulkTagsToRemove.join(', ')}</p>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
-                            <button onClick={() => setBulkEditOpen(false)} className="px-6 py-3 text-[13px] font-bold text-slate-500 hover:text-slate-800 transition-all">
-                                Hủy bỏ
-                            </button>
-                            <button
-                                onClick={handleBulkEdit}
-                                disabled={bulkSaving || (bulkCatsToAdd.length === 0 && bulkCatsToRemove.length === 0 && bulkTagsToAdd.length === 0 && bulkTagsToRemove.length === 0)}
-                                className="px-8 py-3 bg-[#1d1d1f] text-white rounded-2xl text-[13px] font-black shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
-                            >
-                                {bulkSaving ? <Loader2 size={15} className="animate-spin" /> : null}
-                                {bulkSaving ? 'Đang lưu...' : `Lưu thay đổi cho ${selectedIds.length} sản phẩm`}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Quick Setting Guide Modal */}
             {quickSettingGuide && (
@@ -1012,7 +895,7 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
                 <ProductFormModal
                     product={Object.keys(modalProduct).length === 0 ? null : modalProduct}
                     globalTags={globalTags}
-                    onUpdateTags={handleUpdateTags}
+                    onUpdateTags={handleUpdateTagsAndProducts}
                     onSave={handleSaveProduct}
                     onDelete={handleDelete}
                     onClose={() => setModalProduct(null)}
@@ -1022,11 +905,259 @@ export default function ProductDatabase({ onOpenSpecs, compareList = [], onToggl
 
             {/* In-page Toast */}
             {toast && (
-                <div className="fixed bottom-10 right-10 z-[200] bg-[#1d1d1f] text-white px-6 py-3 rounded-2xl shadow-2xl animate-slide-up flex items-center gap-3">
+                <div className="fixed bottom-10 right-10 z-[300] bg-[#1d1d1f] text-white px-6 py-3 rounded-2xl shadow-2xl animate-slide-up flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     <span className="text-[13px] font-bold">{toast}</span>
                 </div>
             )}
+
+            {/* PERSISTENT FLOATING BULK CONSOLE - PORTALLED TO BODY */}
+            {selectedIds.length > 0 && isDataMaster && typeof document !== 'undefined' && createPortal(
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[99999] w-[calc(100%-48px)] max-w-6xl pointer-events-none">
+                    {!isConsoleExpanded ? (
+                        /* PHASE 1: COMPACT SELECTION BAR */
+                        <div className="bg-[#1d1d1f]/95 backdrop-blur-3xl text-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] ring-1 ring-white/10 px-8 py-4 flex items-center justify-between gap-8 border border-white/10 animate-slide-up opacity-100 pointer-events-auto mx-auto w-fit min-w-[400px]">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+                                    <Box size={20} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[14px] font-black">{selectedIds.length} sản phẩm đã chọn</span>
+                                    <span className="text-[10px] uppercase tracking-widest opacity-40 font-bold text-blue-400">Sẵn sàng chỉnh sửa</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => setSelectedIds([])}
+                                    className="px-5 py-2 rounded-xl text-[12px] font-bold uppercase tracking-wider hover:bg-white/10 transition-all text-white/60"
+                                >
+                                    Huỷ
+                                </button>
+                                <button
+                                    onClick={() => setIsConsoleExpanded(true)}
+                                    className="px-8 py-2.5 bg-blue-500 text-white rounded-xl text-[13px] font-black uppercase tracking-widest ring-4 ring-blue-500/20 hover:scale-[1.05] active:scale-95 transition-all shadow-xl shadow-blue-500/20 flex items-center gap-2"
+                                >
+                                    Tiến hành sửa <Edit3 size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        /* PHASE 2: TRISTATE MATRIX MASTER UI */
+                        <div className="pointer-events-auto flex-1 flex flex-col bg-[#1d1d1f]/95 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 relative rounded-[32px] mx-2 mb-2 border border-white/10 shadow-2xl">
+                            {/* Header: Selected Products Context */}
+                            <div className="flex items-center justify-between p-4 px-6 border-b border-white/5 bg-white/[0.02]">
+                                <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                                    <button
+                                        onClick={() => setIsConsoleExpanded(false)}
+                                        className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all text-white/40 hover:text-white shrink-0"
+                                        title="Thu gọn"
+                                    >
+                                        <ArrowUp className="-rotate-180" size={16} />
+                                    </button>
+                                    <div className="flex flex-col shrink-0 pr-4 border-r border-white/10">
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 text-blue-400">Master Data Mode</span>
+                                        <span className="text-[14px] font-black text-white">{selectedIds.length} sản phẩm đang chọn</span>
+                                    </div>
+                                    <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1 flex-1 items-center">
+                                        {data.filter(p => selectedIds.includes(p.id)).map(p => (
+                                            <div key={p.id} className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg shrink-0 group">
+                                                <span className="text-[11px] font-bold text-white/80 max-w-[120px] truncate">{p.name}</span>
+                                                <button onClick={() => setSelectedIds(prev => prev.filter(id => id !== p.id))} className="text-white/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 shrink-0 pl-4">
+                                    <button onClick={() => { setBulkMutations({}); setSelectedIds([]); }} className="px-4 py-2 rounded-xl bg-white/5 text-[11px] font-black uppercase tracking-widest hover:bg-white/10 transition-all text-white/60 hover:text-white">
+                                        Huỷ bỏ
+                                    </button>
+                                    <button
+                                        onClick={handleBulkEdit}
+                                        disabled={bulkSaving || Object.keys(bulkMutations).length === 0}
+                                        className="px-6 py-2.5 bg-blue-500 text-white rounded-xl text-[12px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30 disabled:hover:scale-100 flex items-center gap-2 shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
+                                    >
+                                        {bulkSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} strokeWidth={3} />}
+                                        Lưu {Object.keys(bulkMutations).length > 0 && `(${Object.keys(bulkMutations).length})`}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Control Bar: Search & Filter */}
+                            <div className="px-6 py-3 border-b border-white/5 flex items-center gap-4 bg-black/20">
+                                <div className="relative flex-1 max-w-md">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={16} />
+                                    <input
+                                        type="text"
+                                        value={bulkSearchQuery}
+                                        onChange={e => setBulkSearchQuery(e.target.value)}
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter' && bulkSearchQuery.trim()) {
+                                                const query = bulkSearchQuery.trim();
+                                                if (ALL_TYPES.includes(query)) handleToggleMutation(query, 'cat');
+                                                else handleToggleMutation(query, 'tag');
+                                                setBulkSearchQuery('');
+                                            }
+                                        }}
+                                        placeholder="Tìm hoặc tạo tag/ngành mới..."
+                                        className="w-full bg-white/[0.03] border border-white/10 rounded-lg py-2 pl-9 pr-3 text-[13px] text-white focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all"
+                                    />
+                                    {bulkSearchQuery && (
+                                        <button onClick={() => setBulkSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-white"><X size={14} /></button>
+                                    )}
+                                </div>
+                                <div className="h-6 w-px bg-white/10" />
+                                <div className="flex gap-2 text-[11px] font-bold uppercase tracking-widest text-[#86868b] items-center">
+                                    <Activity size={14} className="opacity-50" />
+                                    <span>Ghi chú:</span>
+                                    <div className="flex gap-4 ml-2">
+                                        <span className="flex items-center gap-1 text-white/40"><div className="w-3 h-3 rounded-[3px] border border-white/20 bg-white/5"></div> Trống</span>
+                                        <span className="flex items-center gap-1 text-amber-300"><div className="w-3 h-3 rounded-[3px] border border-amber-500/30 bg-amber-500/10 flex items-center justify-center"><div className="w-1.5 h-[1.5px] bg-amber-400"></div></div> Bán phần</span>
+                                        <span className="flex items-center gap-1 text-teal-300"><div className="w-3 h-3 rounded-[3px] border border-teal-500/30 bg-teal-500/10 flex items-center justify-center"><Check size={8} className="text-teal-400" strokeWidth={4} /></div> Có đủ</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* The Matrix (Dense Properties Grid) */}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-[#161618]">
+                                <div className="flex flex-col gap-10">
+                                    {/* Categories Matrix */}
+                                    <div className="flex flex-col gap-4">
+                                        <h3 className="text-[12px] font-black uppercase tracking-widest text-white/40 flex items-center gap-2">
+                                            <Layers size={16} /> Ngành hàng
+                                        </h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {ALL_TYPES.filter(c => !bulkSearchQuery || c.toLowerCase().includes(bulkSearchQuery.toLowerCase())).map(cat => {
+                                                const consensus = selectionSummary?.getStatus('cat', cat) || 'none';
+                                                const mutation = bulkMutations[cat]?.action;
+
+                                                let visualState = consensus;
+                                                if (mutation === 'ADD') visualState = 'all';
+                                                if (mutation === 'REMOVE') visualState = 'none';
+
+                                                const isAddPending = mutation === 'ADD';
+                                                const isRemovePending = mutation === 'REMOVE';
+
+                                                return (
+                                                    <button
+                                                        key={cat}
+                                                        onClick={() => handleToggleMutation(cat, 'cat')}
+                                                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all user-select-none group ${isAddPending ? 'bg-green-500/15 border-green-500/50 ring-1 ring-green-500/20' :
+                                                            isRemovePending ? 'bg-red-500/10 border-red-500/30 opacity-60' :
+                                                                visualState === 'all' ? 'bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20' :
+                                                                    visualState === 'some' ? 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20' :
+                                                                        'bg-white/5 border-white/10 hover:bg-white/10 text-white/50'
+                                                            }`}
+                                                    >
+                                                        <div className={`w-3.5 h-3.5 rounded-[4px] border flex items-center justify-center transition-colors ${isAddPending ? 'bg-green-500 border-green-400' :
+                                                            isRemovePending ? 'bg-transparent border-red-500/50' :
+                                                                visualState === 'all' ? 'bg-blue-500 border-blue-400' :
+                                                                    visualState === 'some' ? 'bg-amber-500/20 border-amber-500/50' :
+                                                                        'bg-transparent border-white/20'
+                                                            }`}>
+                                                            {isAddPending ? <Plus size={10} className="text-white" strokeWidth={4} /> :
+                                                                isRemovePending ? <X size={10} className="text-red-400" strokeWidth={4} /> :
+                                                                    visualState === 'all' ? <Check size={10} className="text-white" strokeWidth={4} /> :
+                                                                        visualState === 'some' ? <div className="w-1.5 h-0.5 bg-amber-400 rounded-full" /> :
+                                                                            null}
+                                                        </div>
+                                                        <span className={`text-[12px] font-bold ${isAddPending ? 'text-green-300' :
+                                                            isRemovePending ? 'text-red-400 line-through' :
+                                                                visualState === 'all' ? 'text-blue-300' :
+                                                                    visualState === 'some' ? 'text-amber-300' :
+                                                                        'text-white/60 group-hover:text-white'
+                                                            }`}>
+                                                            {cat}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Tags Matrix */}
+                                    <div className="flex flex-col gap-4">
+                                        <h3 className="text-[12px] font-black uppercase tracking-widest text-white/40 flex items-center gap-2">
+                                            <Box size={16} /> Tags Phổ Biến & Tuỳ Chọn
+                                        </h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {Array.from(new Set([...globalTags, ...Object.keys(bulkMutations).filter(k => bulkMutations[k].type === 'tag')]))
+                                                .filter(t => !bulkSearchQuery || t.toLowerCase().includes(bulkSearchQuery.toLowerCase()))
+                                                .map(tag => {
+                                                    const consensus = selectionSummary?.getStatus('tag', tag) || 'none';
+                                                    const mutation = bulkMutations[tag]?.action;
+
+                                                    let visualState = consensus;
+                                                    if (mutation === 'ADD') visualState = 'all';
+                                                    if (mutation === 'REMOVE') visualState = 'none';
+
+                                                    const isAddPending = mutation === 'ADD';
+                                                    const isRemovePending = mutation === 'REMOVE';
+
+                                                    return (
+                                                        <button
+                                                            key={tag}
+                                                            onClick={() => handleToggleMutation(tag, 'tag')}
+                                                            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border transition-all user-select-none group ${isAddPending ? 'bg-green-500/15 border-green-500/50 ring-1 ring-green-500/20' :
+                                                                isRemovePending ? 'bg-red-500/10 border-red-500/30 opacity-60' :
+                                                                    visualState === 'all' ? 'bg-teal-500/10 border-teal-500/30 hover:bg-teal-500/20' :
+                                                                        visualState === 'some' ? 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20' :
+                                                                            'bg-white/5 border-white/10 hover:bg-white/10 text-white/50'
+                                                                }`}
+                                                        >
+                                                            <div className={`w-3 h-3 rounded-[3px] border flex items-center justify-center transition-colors ${isAddPending ? 'bg-green-500 border-green-400' :
+                                                                isRemovePending ? 'bg-transparent border-red-500/50' :
+                                                                    visualState === 'all' ? 'bg-teal-500 border-teal-400' :
+                                                                        visualState === 'some' ? 'bg-amber-500/20 border-amber-500/50' :
+                                                                            'bg-transparent border-white/20'
+                                                                }`}>
+                                                                {isAddPending ? <Plus size={8} className="text-white" strokeWidth={4} /> :
+                                                                    isRemovePending ? <X size={8} className="text-red-400" strokeWidth={4} /> :
+                                                                        visualState === 'all' ? <Check size={8} className="text-white" strokeWidth={4} /> :
+                                                                            visualState === 'some' ? <div className="w-1 h-[1.5px] bg-amber-400 rounded-full" /> :
+                                                                                null}
+                                                            </div>
+                                                            <span className={`text-[11px] font-bold ${isAddPending ? 'text-green-300' :
+                                                                isRemovePending ? 'text-red-400 line-through' :
+                                                                    visualState === 'all' ? 'text-teal-300' :
+                                                                        visualState === 'some' ? 'text-amber-300' :
+                                                                            'text-white/60 group-hover:text-white'
+                                                                }`}>
+                                                                {tag}
+                                                            </span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            {bulkSearchQuery && !globalTags.some(t => t.toLowerCase() === bulkSearchQuery.toLowerCase()) && !ALL_TYPES.some(c => c.toLowerCase() === bulkSearchQuery.toLowerCase()) && (
+                                                <button
+                                                    onClick={() => { handleToggleMutation(bulkSearchQuery, 'tag'); setBulkSearchQuery(''); }}
+                                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 transition-all text-blue-300"
+                                                >
+                                                    <Plus size={12} />
+                                                    <span className="text-[11px] font-bold italic">Tạo mới: "{bulkSearchQuery}"</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>,
+                document.body
+            )}
+            {isTagManagerOpen && (
+                <TagManagerModal
+                    globalTags={globalTags}
+                    products={data}
+                    onClose={() => setIsTagManagerOpen(false)}
+                    onUpdateTags={handleUpdateTagsAndProducts}
+                />
+            )}
+
         </div>
     );
 }
+

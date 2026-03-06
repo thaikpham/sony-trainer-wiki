@@ -4,21 +4,19 @@ import { useUser } from "@clerk/nextjs";
 import { ArrowLeft, Trophy, Sparkles } from "lucide-react";
 import Link from "next/link";
 import BadgeShowcase from '@/components/BadgeShowcase';
-import { getRoleKeys } from '@/lib/roles';
+import { useRoleAccess } from '@/components/RoleProvider';
 
 export default function BadgesPage() {
-    const { isLoaded, isSignedIn, user } = useUser();
+    const { isLoaded: userLoaded, isSignedIn, user } = useUser();
+    const { roleKeys, loading: rolesLoading } = useRoleAccess();
 
-    if (!isLoaded || !isSignedIn) {
+    if (!userLoaded || rolesLoading || !isSignedIn) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#F5F5F7]">
                 <span className="animate-pulse font-bold tracking-tight text-slate-400">Đang tải bộ sưu tập...</span>
             </div>
         );
     }
-
-    const email = user.primaryEmailAddress?.emailAddress;
-    const roleKeys = getRoleKeys(email);
 
     return (
         <div className="min-h-screen bg-[#F5F5F7] text-[#1d1d1f] font-sans selection:bg-blue-200 flex flex-col items-center overflow-x-hidden">
