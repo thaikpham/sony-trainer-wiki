@@ -2,11 +2,19 @@
  * MCP Client utility for calling tools on the Sony Ecosystem MCP Server.
  */
 
-const MCP_URL = process.env.MCP_SERVER_URL || 'http://localhost:8080';
+const RAW_MCP_URL = process.env.MCP_SERVER_URL || 'http://localhost:8080';
+
+function resolveMcpEndpoint() {
+    const normalized = RAW_MCP_URL.replace(/\/+$/, '');
+    if (normalized.endsWith('/message')) {
+        return normalized;
+    }
+    return `${normalized}/message`;
+}
 
 export async function callMcpTool(toolName, args) {
     try {
-        const response = await fetch(`${MCP_URL}/message`, {
+        const response = await fetch(resolveMcpEndpoint(), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

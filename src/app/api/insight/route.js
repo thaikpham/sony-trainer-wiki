@@ -1,35 +1,51 @@
 import { NextResponse } from 'next/server';
+import { buildFallbackInsight } from '@/lib/insightFallback';
+
+function cleanText(value) {
+    if (typeof value !== 'string') return '';
+    return value.replace(/\*\*/g, '').replace(/#/g, '').trim();
+}
 
 export async function POST(request) {
+    let activeNeedsText = '';
+    let loadout = null;
+
     try {
-        const { activeNeedsText, loadout } = await request.json();
-        const apiKey = process.env.GEMINI_API_KEY || "";
+        const body = await request.json();
+        activeNeedsText = typeof body?.activeNeedsText === 'string' ? body.activeNeedsText : '';
+        loadout = body?.loadout || null;
+    } catch (error) {
+        console.error('Invalid request body in /api/insight:', error);
+    }
+
+    const fallbackText = buildFallbackInsight({ activeNeedsText, loadout });
+    const apiKey = process.env.GEMINI_API_KEY || '';
+
+    if (!apiKey) {
+        return NextResponse.json({
+            text: fallbackText,
+            fallbackReason: 'missing_gemini_api_key'
+        });
+    }
+
+    try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
-        const sys = `Bạn là một nhiếp ảnh gia truyền cảm hứng và Cố vấn cấp cao của Sony Alpha. Hãy viết một bài phân tích CHI TIẾT nhưng CỰC KỲ NGẮN GỌN về sự kết hợp thiết bị này, tập trung 100% vào TRẢI NGHIỆM THỰC TẾ. TUYỆT ĐỐI KHÔNG dùng từ ngữ hàn lâm khô khan (như XA, XD motor).
+        const sysPrompt = `Ban la co van Sony Alpha.
+Hay tra ve phan tich ngan gon theo dung bo cuc:
+1) DEAL TOT NHAT (Khuyen dung)
+2) CHIEN BINH BUT PHA (3 gach dau dong ngan)
+3) SO SANH NGANG voi goi Good va Best
+Khong dung markdown. Moi dong 1-2 cau.`;
 
-QUY TẮC HIỂN THỊ UI (RẤT QUAN TRỌNG):
-1. TUYỆT ĐỐI KHÔNG viết các đoạn văn dài dòng (người dùng sẽ lười đọc).
-2. Hãy dùng các gạch đầu dòng ngắn (Bullet points), mỗi dòng CHỈ 1-2 câu súc tích.
-3. KHÔNG DÙNG Markdown (* hay #). VIẾT HOA các từ khóa chính để dễ quét bằng mắt.
-
-Yêu cầu trình bày theo cấu trúc sau (dùng các icon emoji để trang trí cho sinh động):
-1. **DEAL TỐT NHẤT (Khuyên dùng)**: Nhấn mạnh tại sao cấu hình "Đề Xuất" lại là điểm nghẽn hoàn hảo nhất (sweet spot) cho nhu cầu của khách.
-2. **CHIẾN BINH BỨT PHÁ**: 3 gạch đầu dòng siêu ngắn (1 câu/gạch) phân tích sức mạnh thực chiến của cấu hình Đề Xuất.
-3. **SO SÁNH NGANG**:
-   - Khác gì Tùy chọn Tiết Kiệm: Phân tích vì sao cấu hình Đề Xuất lại đáng tiền hơn hẳn cấu hình Tiết kiệm (Good) và người dùng "không nên tiếc tiền".
-   - Khác gì Tùy chọn Nâng Cấp: Chỉ ra tại sao cấu hình Nâng cấp (Best) lại thực sự cần thiết nếu muốn tiến vào "level nhiếp ảnh gia chuyên nghiệp" (kích thích FOMO).`;
-
-        const usr = `Nhu cầu: ${activeNeedsText}.
-- Tiết kiệm: Body ${loadout.good.camName} + Lens ${loadout.good.lensName}
-- Đề Xuất (Recommended): Body ${loadout.better.camName} + Lens ${loadout.better.lensName}
-- Nâng cấp: Body ${loadout.best.camName} + Lens ${loadout.best.lensName}
-
-Hãy thuyết phục tôi tại sao Đề Xuất là chân lý, và lướt qua sự khác biệt với Tiết kiệm & Nâng cấp.`;
+        const userPrompt = `Nhu cau: ${activeNeedsText || 'Da dung'}
+- Good: ${loadout?.good?.camName || 'N/A'} + ${loadout?.good?.lensName || 'N/A'}
+- Better: ${loadout?.better?.camName || 'N/A'} + ${loadout?.better?.lensName || 'N/A'}
+- Best: ${loadout?.best?.camName || 'N/A'} + ${loadout?.best?.lensName || 'N/A'}`;
 
         const payload = {
-            contents: [{ parts: [{ text: usr }] }],
-            systemInstruction: { parts: [{ text: sys }] }
+            contents: [{ parts: [{ text: userPrompt }] }],
+            systemInstruction: { parts: [{ text: sysPrompt }] }
         };
 
         const response = await fetch(url, {
@@ -39,13 +55,22 @@ Hãy thuyết phục tôi tại sao Đề Xuất là chân lý, và lướt qua 
         });
 
         const data = await response.json();
-        if (data.error) throw new Error(data.error.message);
+        if (!response.ok || data?.error) {
+            throw new Error(data?.error?.message || `Gemini HTTP ${response.status}`);
+        }
 
-        let aiRes = data.candidates?.[0]?.content?.parts?.[0]?.text || "ERR_NO_RESPONSE";
-        aiRes = aiRes.replace(/\*\*/g, '').replace(/#/g, '');
+        const aiText = cleanText(data?.candidates?.[0]?.content?.parts?.[0]?.text);
+        if (!aiText) {
+            throw new Error('Empty Gemini insight response');
+        }
 
-        return NextResponse.json({ text: aiRes });
+        return NextResponse.json({ text: aiText, source: 'gemini' });
     } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error('Insight LLM Error:', error);
+        return NextResponse.json({
+            text: fallbackText,
+            fallbackReason: 'gemini_unavailable'
+        });
     }
 }
+
