@@ -1,0 +1,53 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/maxScale: '20'
+  labels:
+    cloud.googleapis.com/location: asia-southeast1
+  name: sony-mcp-server
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '20'
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 559.0.0
+        run.googleapis.com/startup-cpu-boost: 'true'
+    spec:
+      containerConcurrency: 80
+      containers:
+      - env:
+        - name: GEMINI_API_KEY
+          value: AIzaSyC6T45tJq_8QA4F9zUK_rLVWyxOcNDK-ZQ
+        - name: PINECONE_API_KEY
+          value: pcsk_5MfdjW_5ePKpa9SYKadAQ24AFH131UTvDozLfA8jYR8PPZuw7tFNHzPKYrJhcBoqTgH2cV
+        - name: PINECONE_INDEX_NAME
+          value: alpha-focus-wiki
+        - name: FIREBASE_PROJECT_ID
+          value: wiki-portal-47be7
+        - name: FIREBASE_CLIENT_EMAIL
+          value: firebase-adminsdk-fbsvc@wiki-portal-47be7.iam.gserviceaccount.com
+        - name: FIREBASE_PRIVATE_KEY
+          value: "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDKRVUl0fZ5qEL1\nskE4Yb8WjV0CiVofU0wGQA4JZk8agOHwd4ukFBEe5H/uUG56k4myW5TRjAOAuFWO\nGD/fztLUfJiTybv4RCi5onKY0q7dpjGCGPvJf4R9s0dY3xkEYOY6erXU+kwR8ca+\nvEGyAHL95LQYBZhyLUWZDJV8FHguoShvbL53lDeVVP1nqzRGO4e5+uhAzydr7mSC\nxXtkcSMXlWZH+BRyil+G95cj/wbD6UH4/CDQjWSdmsSC7kp4e0S9PXGEGu3c1B7D\nQjRCTBhk+TVJhT7OYOrltqYnNVkv+MTJhj0xGrhPWDzFtURaG5FX2wntloUb9jSu\nODCaAlz3AgMBAAECggEAD0loIwCYSR9/WARNy44PnAu5AM0So5VvBHXo2asCxXUC\nHmNaiV7+4D/Sr1ci0l6+JF2phKC5TwwfYyrQAQEni+mSunCfpSa5kTYGxSf/ET9T\nNIrg1JyvjbRz6vKJeHw+SiMmBN+Zyi1koNund2VzS17ygXJC0DY9sVBzJ7qATr26\n4mAPg/ee3xla621P1KHM6ecDQSWJOkJ7X4EE4D2oKJXHHs6eDbtyEG3SscG4cDqi\nVgD3+4DfpzrPQ7/1B/ok/DicwRnlWSzfEwqkbWl3563wCUuPsqjzm4ZaxMA1+83P\nEOfpDVeMJsIRJgf2RW3G9wSrObDotdBGVN/h1BeVUQKBgQDoVr+/v0+tQPsxlxFu\nsz1dMpnPLmE97MhxLW5ZElAe90x72nkfnfrENBWfIy9nguKcKPiflZZmnWX7LD8B\n2/KK04RzkPLJE42Do2nsUzHDbWVAkrrGB8UzTffgIL7fEp4KORMvQYlWJ33CuVH4\nhhrQvaOAd14nbo20vWzxKYte2QKBgQDe3q/lIkS0KGf1BQzCbJv8izU1Yzmja9Uv\nPOykPt/R0sJkh/j+bQInMTB5Itm+D7bDjPYebyzJ/99FxOtNXrVvuZJ8wAGC2c3N\noD9EQvFUIeqzD5ulDyRB4SQdQ/hTWXnMdllroRPqlyxnVUJbUE4N1OY49+SdNq/E\nXW0x5iHYTwKBgQCmljyaMYPhh6wUHGslYmLnRfa+dFTI39PAQoDSYK0N5ubyDu21\n28IHmAjAt6uvnkr5CO9rDQhvvv92Hn12ycuX+p0Hd7B8uAZJkovKJMSTiQaGTC6a\n+stMQ+Us0I3KyECEt/OneGgOW/Zx/gpmFVF4xeBLpkreHwh/xSotqEoD0QKBgQCO\nwb+Tmua9K6CjTs/EfgNQue6kOuHBryHH91NxRaDiawj/kiVI+5REfHqbLVqiJrif\n+9vu1LGw1kgzDZbXYVIAtbKCXA7bvR3Zl8rOs76XcH5Aoj/Fc7R6ynbylAYthYPC\nFxDiIzR5sMnNisxNZ1wH+hZZ6Vez6EKgGmQGcW2+ewKBgQDl/cLKWZ/gosT75K1q\n2e0BQQEHyDQCG7NlgiNrSpnFx1PrBJIRgZFGGwUYk10SW0+qrxjBlRnUDIUciY9a\n3Fas3fo9xih8iY6MxKd31mg6SQ5kEOdrjB7nCijpHSdOeTFL3tkB4mpL7UaSnC4M\nil9c92nHjT+dPSp/kDE7GORoKw==\n-----END PRIVATE KEY-----"
+        image: asia-southeast1-docker.pkg.dev/wiki-portal-47be7/mcp-server/sony-mcp-server:latest
+        ports:
+        - containerPort: 8080
+          name: http1
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        startupProbe:
+          failureThreshold: 1
+          periodSeconds: 240
+          tcpSocket:
+            port: 8080
+          timeoutSeconds: 240
+      serviceAccountName: 321148320222-compute@developer.gserviceaccount.com
+      timeoutSeconds: 300
+  traffic:
+  - latestRevision: true
+    percent: 100

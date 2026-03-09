@@ -1,0 +1,55 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics, isSupported } from "firebase/analytics";
+import { getFirestore } from "firebase/firestore";
+
+// Firebase configuration — loaded from environment variables (never hardcode keys in source)
+const firebaseConfig = {
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+};
+
+// Guard: chỉ khởi tạo Firebase nếu có đủ config
+export const isFirebaseConfigured = !!firebaseConfig.projectId && !!firebaseConfig.apiKey;
+
+if (!isFirebaseConfigured) {
+    console.warn(
+        "[Firebase] Thiếu cấu hình môi trường. Vui lòng điền đầy đủ giá trị vào file .env.local.\n" +
+        "Firebase sẽ không hoạt động cho đến khi cấu hình được cung cấp."
+    );
+}
+
+// Initialize Firebase
+let app = null;
+let firestoreDb = null;
+
+if (isFirebaseConfigured) {
+    app = initializeApp(firebaseConfig);
+    firestoreDb = getFirestore(app);
+}
+
+export const db = firestoreDb;
+
+export function getDbOrThrow() {
+    if (!firestoreDb) {
+        throw new Error(
+            "[Firebase] Firestore is not configured. Please provide NEXT_PUBLIC_FIREBASE_* environment variables."
+        );
+    }
+    return firestoreDb;
+}
+
+// Initialize Analytics (Only in browser environment & when Firebase is configured)
+export let analytics;
+if (typeof window !== "undefined" && isFirebaseConfigured && app) {
+    isSupported().then((supported) => {
+        if (supported) {
+            analytics = getAnalytics(app);
+        }
+    });
+}
