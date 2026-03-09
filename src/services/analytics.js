@@ -1,48 +1,31 @@
-import { db, getDbOrThrow } from '../lib/firebase';
-import {
-    collection,
-    doc,
-    setDoc,
-    updateDoc,
-    increment,
-    serverTimestamp,
-    deleteDoc,
-    getDocs,
-    getDoc,
-    query,
-    where,
-    runTransaction,
-} from 'firebase/firestore';
+import { supabase } from '../lib/supabaseClient';
 
 /**
  * Tracks a unique user registration/login.
- * Increments the global member count if this is a first-time user.
  */
 export async function trackUserRegistration(user) {
     if (!user?.primaryEmailAddress?.emailAddress) return;
     const email = user.primaryEmailAddress.emailAddress;
 
     try {
-        const db = getDbOrThrow();
-        const userRef = doc(db, 'registered_users', email);
-        const userSnap = await getDoc(userRef);
+        const { data: userSnap } = await supabase.from('registered_users').select('email').eq('email', email).single();
 
-        if (!userSnap.exists()) {
-            // New unique user - register and increment global count
-            await runTransaction(db, async (transaction) => {
-                const metadataRef = doc(db, 'metadata', 'users');
-                const metaSnap = await transaction.get(metadataRef);
+        if (!userSnap) {
+            // New unique user - register
+            await supabase.from('registered_users').insert({
+                email,
+                display_name: user.fullName || user.username || 'Alpha Member'
+            });
 
-                transaction.set(userRef, {
-                    email,
-                    displayName: user.fullName || user.username || 'Alpha Member',
-                    registeredAt: serverTimestamp(),
-                });
+            // Update global user count in settings metadata
+            const { data: meta } = await supabase.from('settings').select('data').eq('id', 'users').single();
+            const currentCount = meta?.data?.totalUsersCount || 0;
 
-                if (metaSnap.exists()) {
-                    transaction.update(metadataRef, { totalUsersCount: increment(1) });
-                } else {
-                    transaction.set(metadataRef, { totalUsersCount: 1 });
+            await supabase.from('settings').upsert({
+                id: 'users',
+                data: {
+                    totalUsersCount: currentCount + 1,
+                    lastSyncedAt: new Date().toISOString()
                 }
             });
         }
@@ -56,80 +39,68 @@ export async function trackUserRegistration(user) {
  */
 export async function trackGlobalPulse() {
     try {
-        const db = getDbOrThrow();
-        const metadataRef = doc(db, 'metadata', 'interactions');
-        await setDoc(metadataRef, {
-            totalPulseCount: increment(1),
-            lastInteraction: serverTimestamp()
-        }, { merge: true });
+        const { data: meta } = await supabase.from('settings').select('data').eq('id', 'interactions').single();
+        const currentCount = meta?.data?.totalPulseCount || 0;
+
+        await supabase.from('settings').upsert({
+            id: 'interactions',
+            data: {
+                totalPulseCount: currentCount + 1,
+                lastInteraction: new Date().toISOString()
+            }
+        });
     } catch (error) {
         console.error("Error tracking global pulse:", error);
     }
 }
 
-// ============================================
-// Feature Usage Tracking
-// ============================================
-
 /**
  * Increments the usage count for a specific feature.
- * @param {string} featureId - Unique ID of the feature (e.g., 'ai_recommend', 'colorlab')
- * @param {string} label - Human readable name for the dashboard
  */
 export async function trackFeatureUsage(featureId, label) {
     if (!featureId) return;
     try {
-        const db = getDbOrThrow();
-        const featureRef = doc(db, 'analytics_features', featureId);
-        await setDoc(featureRef, {
-            label: label || featureId,
-            usageCount: increment(1),
-            lastUsed: serverTimestamp()
-        }, { merge: true });
+        // Fetch current count to manual increment (Supabase RPC increment could also be used)
+        const { data: feature } = await supabase.from('analytics_features').select('usage_count').eq('id', featureId).single();
+        const currentCount = feature?.usage_count || 0;
 
-        // Also track as a global interaction pulse
+        await supabase.from('analytics_features').upsert({
+            id: featureId,
+            label: label || featureId,
+            usage_count: currentCount + 1,
+            last_used: new Date().toISOString()
+        });
+
         await trackGlobalPulse();
     } catch (error) {
         console.error("Error tracking feature usage:", error);
     }
 }
 
-// ============================================
-// Active User Heartbeat
-// ============================================
-
-const SESSION_TIMEOUT_MS = 60000; // 1 minute timeout for stale sessions
-
 /**
- * Updates a heartbeat for the current user to track them as "active".
- * @param {string} userId - Unique user ID (clerk ID or email)
+ * Updates a heartbeat for the current user.
  */
 export async function trackActiveUser(userId) {
     if (!userId) return;
     try {
-        const db = getDbOrThrow();
-        const sessionRef = doc(db, 'active_sessions', userId);
-        await setDoc(sessionRef, {
-            lastSeen: serverTimestamp(),
-        }, { merge: true });
+        await supabase.from('active_sessions').upsert({
+            user_id: userId,
+            last_seen: new Date().toISOString()
+        });
     } catch (error) {
         console.error("Error tracking active user:", error);
     }
 }
 
 /**
- * Cleanup stale sessions (best-effort client-side; ideally a Cloud Function).
+ * Cleanup stale sessions.
  */
 export async function cleanupStaleSessions() {
     try {
-        if (!db || process.env.NEXT_PUBLIC_ENABLE_CLIENT_CLEANUP !== '1') {
-            return;
-        }
-        const cutoff = new Date(Date.now() - SESSION_TIMEOUT_MS);
-        const sessionsCol = collection(db, 'active_sessions');
-        const q = query(sessionsCol, where('lastSeen', '<', cutoff));
-        const snapshot = await getDocs(q);
-        await Promise.all(snapshot.docs.map(d => deleteDoc(d.ref)));
+        if (process.env.NEXT_PUBLIC_ENABLE_CLIENT_CLEANUP !== '1') return;
+
+        const cutoff = new Date(Date.now() - 60000).toISOString();
+        await supabase.from('active_sessions').delete().lt('last_seen', cutoff);
     } catch (error) {
         console.error("Error cleaning up stale sessions:", error);
     }

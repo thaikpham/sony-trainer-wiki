@@ -1,6 +1,5 @@
 import { createClerkClient } from '@clerk/nextjs/server';
-import { db } from '@/lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { supabase } from '@/lib/supabaseClient';
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
@@ -10,21 +9,19 @@ export async function GET(request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        if (!db) {
-            return NextResponse.json({ success: false, error: 'Firestore is not configured' }, { status: 500 });
-        }
-
         const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 
         // Fetch total user count from Clerk
         const count = await clerkClient.users.getCount();
 
-        // Update Firestore metadata
-        const metadataRef = doc(db, 'metadata', 'users');
-        await setDoc(metadataRef, {
-            totalUsersCount: count,
-            lastSyncedAt: new Date().toISOString()
-        }, { merge: true });
+        // Update Supabase settings table
+        await supabase.from('settings').upsert({
+            id: 'users',
+            data: {
+                totalUsersCount: count,
+                lastSyncedAt: new Date().toISOString()
+            }
+        });
 
         return NextResponse.json({ success: true, count });
     } catch (error) {
