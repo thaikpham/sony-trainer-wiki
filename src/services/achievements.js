@@ -1,6 +1,6 @@
 import { getDbOrThrow } from '@/lib/firebase';
 import { doc, getDoc, setDoc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
-import { getUserOverride } from './db';
+import { getUserOverride, setUserOverride } from './db';
 
 // Milestone definitions — each action type can have multiple tiers.
 // Existing "old" badges (NIGHT_OWL, EARLY_BIRD, GEAR_MASTER, LENS_CONNOISSEUR, COLOR_MAGICIAN)
@@ -99,16 +99,10 @@ export async function grantBadge(email, badgeKey) {
     // 3. Add the new badge and save back to user_overrides
     const newBadges = [...existingBadges, badgeKey];
 
-    const db = getDbOrThrow();
-    const id = email.replace(/[@.]/g, '_');
-    const docRef = doc(db, 'user_overrides', id);
-
-    await setDoc(docRef, {
-        email,
+    await setUserOverride(email, {
         roles: existingRoles,
-        badges: newBadges,
-        updatedAt: serverTimestamp()
-    }, { merge: true });
+        badges: newBadges
+    });
 
     return true; // Successfully granted
 }

@@ -1,7 +1,6 @@
-'use client'
+'use client';
 import { useState } from 'react';
-import { db } from '../lib/firebase'; // Make sure this path is correct based on where you place this file
-import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { getProducts, updateProduct } from '../services/db';
 
 const A6400_GUIDE = `📸 PHẦN 1: CHẾ ĐỘ CHỤP (SHOOTING MODES)
 Tư vấn khách chọn mode dựa trên mục đích:
@@ -82,40 +81,34 @@ export default function DemoDataLoader() {
         setLoading(true);
         setStatus('Fetching products...');
         try {
-            const productsCol = collection(db, 'products');
-            const snapshot = await getDocs(productsCol);
+            const snapshot = await getProducts();
+            setStatus('Found ' + snapshot.length + ' products. Searching for A6400 and ZV-E1...');
 
-            setStatus('Found ' + snapshot.size + ' products. Searching for A6400 and ZV-E1...');
-
-            let a6400Id = null;
-            let zve1Id = null;
+            let a6400 = null;
+            let zve1 = null;
 
             snapshot.forEach((doc) => {
-                const data = doc.data();
-                const lowerName = data.name ? data.name.toLowerCase() : '';
-                if (lowerName.includes('a6400') || lowerName.includes('alpha 6400') || data.kataban === 'ILCE-6400') {
-                    a6400Id = doc.id;
+                const lowerName = doc.name ? doc.name.toLowerCase() : '';
+                // doc here has id, name, category, and unpacked data fields because getProducts does mapDataToDoc
+                if (lowerName.includes('a6400') || lowerName.includes('alpha 6400') || doc.kataban === 'ILCE-6400') {
+                    a6400 = doc;
                 }
                 if (lowerName.includes('zv-e1') && !lowerName.includes('zv-e10')) {
-                    zve1Id = doc.id;
+                    zve1 = doc;
                 }
             });
 
-            if (a6400Id) {
-                setStatus(s => s + '\n' + 'Updating A6400 (ID: ' + a6400Id + ')...');
-                await updateDoc(doc(db, 'products', a6400Id), {
-                    quickSettingGuide: A6400_GUIDE
-                });
+            if (a6400) {
+                setStatus(s => s + '\n' + 'Updating A6400 (ID: ' + a6400.id + ')...');
+                await updateProduct(a6400.id, { ...a6400, quickSettingGuide: A6400_GUIDE });
                 setStatus(s => s + '\n' + 'A6400 updated successfully!');
             } else {
                 setStatus(s => s + '\n' + 'A6400 not found in the database. Please create it first to add the demo data.');
             }
 
-            if (zve1Id) {
-                setStatus(s => s + '\n' + 'Updating ZV-E1 (ID: ' + zve1Id + ')...');
-                await updateDoc(doc(db, 'products', zve1Id), {
-                    quickSettingGuide: ZVE1_GUIDE
-                });
+            if (zve1) {
+                setStatus(s => s + '\n' + 'Updating ZV-E1 (ID: ' + zve1.id + ')...');
+                await updateProduct(zve1.id, { ...zve1, quickSettingGuide: ZVE1_GUIDE });
                 setStatus(s => s + '\n' + 'ZV-E1 updated successfully!');
             } else {
                 setStatus(s => s + '\n' + 'ZV-E1 not found in the database. Please create it first to add the demo data.');

@@ -1,8 +1,7 @@
-import { db } from '@/lib/firebase';
-import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { hasAdminAccess } from '@/lib/roles';
+import { getProducts, updateProduct } from '@/services/db';
 
 export async function POST(req) {
     try {
@@ -16,21 +15,14 @@ export async function POST(req) {
             return new NextResponse('Forbidden', { status: 403 });
         }
 
-        if (!db) {
-            return new NextResponse('Firestore is not configured', { status: 500 });
-        }
-
-        const dataStoreRef = collection(db, 'DataStore');
-        const snapshot = await getDocs(dataStoreRef);
-
+        const products = await getProducts();
         let count = 0;
         const promises = [];
 
-        snapshot.forEach((docSnapshot) => {
-            const data = docSnapshot.data();
-            if (data.highlights) {
-                const docRef = doc(db, 'DataStore', docSnapshot.id);
-                promises.push(updateDoc(docRef, { highlights: '' }));
+        products.forEach((product) => {
+            if (product.highlights) {
+                // Wipe highlights property correctly using updateProduct to avoid losing other jsonb fields
+                promises.push(updateProduct(product.id, { ...product, highlights: '' }));
                 count++;
             }
         });

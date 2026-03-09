@@ -1,8 +1,8 @@
 'use client';
 import { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { useUser } from '@clerk/nextjs';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { supabase } from '@/lib/supabaseClient';
 import { getRoleKeys } from '@/lib/roles';
 import GlobalBadgeToast from './GlobalBadgeToast';
 
@@ -33,49 +33,58 @@ export function RoleProvider({ children }) {
 
     // 1. Fetch the Global Role Matrix
     useEffect(() => {
-        if (!db) return;
-
-        const docRef = doc(db, 'settings', 'rolesConfig');
-        const unsubscribe = onSnapshot(docRef, (snap) => {
-            if (snap.exists()) {
-                setMatrix({ ...DEFAULT_PERMISSIONS, ...snap.data() });
+        const fetchMatrix = async () => {
+            const { data } = await supabase.from('settings').select('*').eq('id', 'rolesConfig').single();
+            if (data?.data) {
+                setMatrix({ ...DEFAULT_PERMISSIONS, ...data.data });
             } else {
-                setDoc(docRef, DEFAULT_PERMISSIONS).catch(console.error);
                 setMatrix(DEFAULT_PERMISSIONS);
+                // Optionally insert default
+                supabase.from('settings').upsert({ id: 'rolesConfig', data: DEFAULT_PERMISSIONS }).then();
             }
-        }, (err) => {
-            console.error("Error fetching rolesConfig:", err);
-            setMatrix(DEFAULT_PERMISSIONS);
-        });
+        };
 
-        return () => unsubscribe();
+        fetchMatrix();
+
+        const channel = supabase.channel('public:settings')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'settings', filter: 'id=eq.rolesConfig' }, (payload) => {
+                if (payload.new?.data) {
+                    setMatrix({ ...DEFAULT_PERMISSIONS, ...payload.new.data });
+                }
+            })
+            .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
     }, []);
 
     // 2. Fetch User Overrides (Live Achievements/Roles)
     useEffect(() => {
-        if (!isLoaded || !user?.primaryEmailAddress?.emailAddress || !db) return;
+        if (!isLoaded || !user?.primaryEmailAddress?.emailAddress) return;
 
         const email = user.primaryEmailAddress.emailAddress;
-        const id = email.replace(/[@.]/g, '_');
-        const overrideRef = doc(db, 'user_overrides', id);
 
-        const unsubscribe = onSnapshot(overrideRef, (snap) => {
-            if (snap.exists()) {
-                const data = snap.data();
-                setOverrides({
-                    roles: data.roles || [],
-                    badges: data.badges || []
-                });
+        const fetchOverrides = async () => {
+            const { data } = await supabase.from('user_overrides').select('*').eq('email', email).single();
+            if (data) {
+                setOverrides({ roles: data.roles || [], badges: data.badges || [] });
             } else {
                 setOverrides({ roles: [], badges: [] });
             }
             setLoading(false);
-        }, (err) => {
-            console.error("Error fetching user_overrides:", err);
-            setLoading(false);
-        });
+        };
+        fetchOverrides();
 
-        return () => unsubscribe();
+        const channel = supabase.channel('public:user_overrides')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'user_overrides', filter: `email=eq.${email}` }, (payload) => {
+                if (payload.new) {
+                    setOverrides({ roles: payload.new.roles || [], badges: payload.new.badges || [] });
+                } else if (payload.eventType === 'DELETE') {
+                    setOverrides({ roles: [], badges: [] });
+                }
+            })
+            .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
     }, [isLoaded, user]);
 
     const access = useMemo(() => {

@@ -4,8 +4,7 @@ import { Search, RefreshCw, Users, Tag, Plus, X, Loader2, ChevronRight, Shield, 
 import Image from 'next/image';
 import { ROLES } from '@/lib/roles';
 import { useRoleAccess, DEFAULT_PERMISSIONS } from '@/components/RoleProvider';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { supabase } from '@/lib/supabaseClient';
 
 // -------- Helpers --------
 const CORE_ROLES = Object.entries(ROLES).filter(([, v]) => v.category === 'core').map(([k, v]) => ({ key: k, ...v }));
@@ -307,7 +306,7 @@ function RolePermissionsMatrix({ matrix, matrixLoading }) {
             }
             updatedMatrix[roleKey][permissionKey] = !currentValue;
 
-            await setDoc(doc(db, 'settings', 'rolesConfig'), updatedMatrix);
+            await supabase.from('settings').upsert({ id: 'rolesConfig', data: updatedMatrix });
         } catch (e) {
             console.error("Failed to update matrix", e);
             alert("Lỗi khi cập nhật quyền.");
