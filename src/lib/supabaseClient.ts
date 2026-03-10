@@ -126,9 +126,22 @@ export async function addProduct(productData: any) {
 
 export async function updateProduct(id: string, productData: any) {
     const { id: ignoredId, category, line, name, ...restData } = productData;
-    await supabase.from('products').update({
-        category, name, data: restData, updated_at: new Date().toISOString()
-    }).eq('id', id);
+    
+    // Only include fields that actually exist in productData to avoid overwriting with undefined
+    const updatePayload: any = {
+        updated_at: new Date().toISOString()
+    };
+    if (category !== undefined) updatePayload.category = category;
+    if (name !== undefined) updatePayload.name = name;
+    
+    // Merge existing data if we are doing a partial update (like saving tags in admin)
+    if (Object.keys(restData).length > 0) {
+        // Fetch current data first to merge jsonb correctly
+        const { data: currentDoc } = await supabase.from('products').select('data').eq('id', id).single();
+        updatePayload.data = { ...(currentDoc?.data || {}), ...restData };
+    }
+
+    await supabase.from('products').update(updatePayload).eq('id', id);
     invalidateProductsCache();
 }
 

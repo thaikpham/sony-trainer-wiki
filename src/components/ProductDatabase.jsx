@@ -36,6 +36,7 @@ export default function ProductDatabase({
     // Helper function to render Sony Badges
     const renderBadges = (name) => {
         const badges = [];
+        if (!name) return badges;
         if (name.includes('GM') || name.includes('G Master')) {
             badges.push(<span key="gm" className="bg-[#ff4500] text-white text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wide leading-none" title="G Master">GM</span>);
         } else if (/\bG\b/.test(name)) {
@@ -402,12 +403,18 @@ export default function ProductDatabase({
         const searchLower = searchTerm.toLowerCase();
         return data.filter(item => {
             const cats = getProductCategories(item);
+            const safeIncludes = (val, search) => {
+                if (typeof val === 'string') return val.toLowerCase().includes(search);
+                if (Array.isArray(val)) return val.some(v => typeof v === 'string' && v.toLowerCase().includes(search));
+                return false;
+            };
+
             const matchesSearch =
-                item.name.toLowerCase().includes(searchLower) ||
-                (item.kataban && item.kataban.toLowerCase().includes(searchLower)) ||
-                (item.highlights && item.highlights.toLowerCase().includes(searchLower)) ||
-                (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchLower))) ||
-                cats.some(c => c.toLowerCase().includes(searchLower));
+                safeIncludes(item.name, searchLower) ||
+                safeIncludes(item.kataban, searchLower) ||
+                safeIncludes(item.highlights, searchLower) ||
+                safeIncludes(item.tags, searchLower) ||
+                safeIncludes(cats, searchLower);
 
             // Multi-category AND logic: match if product belongs to ALL selected categories
             const matchesMainCat = activeCategories.length === 0 || activeCategories.every(c => cats.includes(c));
@@ -598,7 +605,7 @@ export default function ProductDatabase({
                                             key={item.id}
                                             onClick={() => {
                                                 handleOpenSpecs(item);
-                                                trackFeatureUsage(`prod_${item.name.replace(/\s+/g, '_')}`, item.name);
+                                                trackFeatureUsage(`prod_${(item.name || '').replace(/\s+/g, '_')}`, item.name || 'Unknown');
                                             }}
                                             className={`group cursor-pointer transition-colors duration-300 hover:bg-[#F5F5F7]/80 ${selectedIds.includes(item.id) ? 'bg-orange-500/5' : ''}`}
                                             style={{ animationDelay: `${idx * 50}ms` }}
@@ -628,8 +635,8 @@ export default function ProductDatabase({
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    setQuickSettingGuide({ name: item.name, guide: item.quickSettingGuide });
-                                                                    trackFeatureUsage(`guide_${item.name.replace(/\s+/g, '_')}`, item.name);
+                                                                    setQuickSettingGuide({ name: item.name || 'Sản phẩm', guide: item.quickSettingGuide });
+                                                                    trackFeatureUsage(`guide_${(item.name || '').replace(/\s+/g, '_')}`, item.name || 'Unknown');
                                                                 }}
                                                                 title="Quick Setting Guide"
                                                                 className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-orange-100 text-orange-600 hover:bg-orange-500 hover:text-white transition-all text-[9px] font-bold uppercase tracking-wide border border-orange-200 flex-shrink-0"
@@ -637,7 +644,7 @@ export default function ProductDatabase({
                                                                 <Settings2 size={10} /> Guide
                                                             </button>
                                                         )}
-                                                        <FeatureStar featureId={`prod_${item.name.replace(/\s+/g, '_')}`} />
+                                                        <FeatureStar featureId={`prod_${(item.name || '').replace(/\s+/g, '_')}`} />
                                                     </div>
 
                                                     {/* Visual Categories & Tags */}
@@ -694,8 +701,8 @@ export default function ProductDatabase({
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             const type = item.type?.toLowerCase().includes('body') || item.type?.toLowerCase().includes('camera') ? 'camera' : 'lens';
-                                                            if (onToggleCompare) onToggleCompare(item.name, type);
-                                                            trackFeatureUsage(`prod_${item.name.replace(/\s+/g, '_')}`, item.name);
+                                                            if (onToggleCompare) onToggleCompare(item.name || 'Unknown', type);
+                                                            trackFeatureUsage(`prod_${(item.name || '').replace(/\s+/g, '_')}`, item.name || 'Unknown');
                                                         }}
                                                         className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-all ${isSelected ? 'bg-green-500 text-white hover:bg-red-500' : 'bg-[#F5F5F7] text-[#1d1d1f] hover:bg-[#1d1d1f] hover:text-white'}`}
                                                     >

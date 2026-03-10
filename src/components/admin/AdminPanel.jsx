@@ -1,9 +1,10 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { Database, RefreshCw, BarChart3, Package, UploadCloud } from 'lucide-react';
+import { Database, RefreshCw, BarChart3, Package, UploadCloud, GraduationCap } from 'lucide-react';
 import ProductTable from './ProductTable';
 import ProductFormModal from './ProductFormModal';
 import LiveReportsTable from './LiveReportsTable';
+import AdminAcademyPanel from './AdminAcademyPanel';
 import { getAllProductsAdmin, addProduct, updateProduct, deleteProduct, getGlobalTags, updateGlobalTags } from '@/services/db';
 import { useUser } from '@clerk/nextjs';
 import { getRoleKeys } from '@/lib/roles';
@@ -119,12 +120,20 @@ export default function AdminPanel() {
             {/* Header & Tabs */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 flex-shrink-0 bg-white p-4 rounded-[32px] ring-1 ring-black/5 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br flex items-center justify-center shadow-lg transition-all ${activeTab === 'products' ? 'from-violet-500 to-indigo-600' : 'from-teal-500 to-emerald-600'}`}>
-                        {activeTab === 'products' ? <Package size={22} className="text-white" /> : <BarChart3 size={22} className="text-white" />}
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br flex items-center justify-center shadow-lg transition-all ${
+                        activeTab === 'products' ? 'from-violet-500 to-indigo-600' : 
+                        activeTab === 'academy' ? 'from-[#FF5500] to-orange-600' :
+                        'from-teal-500 to-emerald-600'
+                    }`}>
+                        {activeTab === 'products' ? <Package size={22} className="text-white" /> : 
+                         activeTab === 'academy' ? <GraduationCap size={22} className="text-white" /> :
+                         <BarChart3 size={22} className="text-white" />}
                     </div>
                     <div>
                         <h1 className="text-[18px] font-black text-[#1d1d1f] tracking-tight">
-                            {activeTab === 'products' ? 'Quản lý Sản Phẩm' : 'Báo cáo Livestream'}
+                            {activeTab === 'products' ? 'Quản lý Sản Phẩm' : 
+                             activeTab === 'academy' ? 'Sony Academy' : 
+                             'Báo cáo Livestream'}
                         </h1>
                         <p className="text-[12px] text-slate-500 font-medium">
                             Sony Training Wiki • Admin Panel
@@ -138,6 +147,12 @@ export default function AdminPanel() {
                         className={`px-4 py-2 rounded-xl text-[12px] font-black transition-all ${activeTab === 'products' ? 'bg-white text-[#1d1d1f] shadow-sm ring-1 ring-black/5' : 'text-[#86868b] hover:text-[#1d1d1f]'}`}
                     >
                         Sản phẩm
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('academy')}
+                        className={`px-4 py-2 rounded-xl text-[12px] font-black transition-all ${activeTab === 'academy' ? 'bg-white text-[#1d1d1f] shadow-sm ring-1 ring-black/5' : 'text-[#86868b] hover:text-[#1d1d1f]'}`}
+                    >
+                        Academy
                     </button>
                     <button
                         onClick={() => setActiveTab('reports')}
@@ -174,6 +189,8 @@ export default function AdminPanel() {
                             onEdit={(p) => setModalProduct(p)}
                         />
                     </div>
+                ) : activeTab === 'academy' ? (
+                    <AdminAcademyPanel />
                 ) : (
                     <LiveReportsTable />
                 )}

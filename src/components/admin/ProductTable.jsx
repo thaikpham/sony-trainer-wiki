@@ -224,7 +224,7 @@ export default function ProductTable({ products = [], onAdd, onEdit, loading }) 
 
                                     {/* Name */}
                                     <td className="px-4 py-2.5 font-semibold text-[#1d1d1f] max-w-[200px] truncate" title={product.name}>
-                                        {product.name || '—'}
+                                        {product.name || <span className="text-red-500 italic text-[11px]">Sản phẩm không tên</span>}
                                     </td>
 
                                     {/* Kataban */}
