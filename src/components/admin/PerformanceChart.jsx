@@ -83,7 +83,7 @@ export default function PerformanceChart({ data }) {
                         <div key={index} className="flex items-center justify-between gap-6 mb-1 last:mb-0">
                             <span className="text-[12px] font-bold text-slate-500">{entry.name}:</span>
                             <span className="text-[13px] font-black" style={{ color: entry.color }}>
-                                {entry.name === 'Revenue' ? `${entry.value.toLocaleString()}đ` : entry.value.toLocaleString()}
+                                {entry.name === 'Revenue' ? `${(entry.value || 0).toLocaleString()}đ` : (entry.value || 0).toLocaleString()}
                                 {entry.name === 'CVR' ? '%' : ''}
                             </span>
                         </div>

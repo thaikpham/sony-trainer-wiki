@@ -71,7 +71,7 @@ export async function POST(request) {
             Tier: ${product.tier}
             Specs: ${product.keySpecs}
             Target User: ${product.targetUser}
-            Price: ~${product.estimatedPriceVND.toLocaleString()} VND
+            Price: ~${(product.estimatedPriceVND || 0).toLocaleString()} VND
             `;
             const vectorId = product.productName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 

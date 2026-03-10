@@ -79,7 +79,7 @@ export default function AnalyticsDashboard() {
                                         </div>
                                         <div className="flex flex-col items-end">
                                             <span className="text-[13px] font-black text-foreground">
-                                                {feature.usageCount.toLocaleString()}
+                                                {(feature.usage_count || feature.usageCount || 0).toLocaleString()}
                                             </span>
                                             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Clicks</span>
                                         </div>
