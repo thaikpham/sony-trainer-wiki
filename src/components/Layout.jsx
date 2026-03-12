@@ -97,7 +97,7 @@ export default function Layout({ children }) {
                     <div className="relative" id="nav-dropdown">
                         <button
                             onClick={handleLogoAreaClick}
-                            className="flex items-center gap-2.5 px-3 py-2 -ml-3 rounded-2xl group hover:bg-black/[0.04] transition-all duration-300 ease-in-out"
+                            className="flex items-center gap-2.5 px-3 py-2 -ml-3 rounded-2xl group hover:bg-black/[0.04] transition-all duration-300 ease-in-out print:hidden"
                             aria-expanded={isMenuOpen}
                             aria-haspopup="true"
                         >
@@ -148,7 +148,7 @@ export default function Layout({ children }) {
                     </div>
 
                     {/* Right: Clerk Auth Integration Only */}
-                    <div className="flex items-center justify-end h-12">
+                    <div className="flex items-center justify-end h-12 print:hidden">
                         <SignedOut>
                             <SignInButton mode="modal">
                                 <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold bg-[#1d1d1f] text-white hover:bg-black transition-all shadow-[0_2px_8px_rgba(0,0,0,0.08)]">

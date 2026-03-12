@@ -486,7 +486,7 @@ export default function LiveStream() {
                 </div>
 
                 {currentStep === 1 && (
-                    <div className="flex flex-col w-full animate-fade-in gap-6 print:m-0 print:p-0">
+                    <div className="flex flex-col w-full animate-fade-in gap-6 print:m-0 print:p-0 print:gap-2">
                         {/* Print Header */}
                         <div className="hidden print:flex flex-col mb-6 items-center border-b-2 border-black pb-4 mt-8">
                             <h2 className="text-2xl font-black uppercase text-black">Cẩm Nang SONY</h2>
@@ -524,29 +524,29 @@ export default function LiveStream() {
                                 </div>
                             </div>
 
-                            <div className="overflow-x-auto w-full custom-scrollbar pb-4 print:overflow-visible">
-                                <table className="w-full text-left border-collapse min-w-[900px] print:min-w-full">
+                            <div className="overflow-x-auto w-full custom-scrollbar pb-4 print:overflow-hidden print:pb-0">
+                                <table className="w-full text-left border-collapse min-w-[900px] print:min-w-0 print:w-full print:text-[11px] print:leading-tight">
                                     <thead>
-                                        <tr className="bg-[#F5F5F7] text-[#86868b] text-[12px] uppercase tracking-wider font-bold print:bg-slate-200 print:text-black print:border-y-2 print:border-black">
-                                            <th className="p-3 border-b border-r border-slate-200 rounded-tl-xl w-[50px] text-center print:border-black/20 print:border-l print:rounded-none">No.</th>
-                                            <th className="p-3 border-b border-r border-slate-200 w-[180px] print:border-black/20">Group</th>
-                                            <th className="p-3 border-b border-r border-slate-200 w-[120px]">Brand</th>
-                                            <th className="p-3 border-b border-r border-slate-200 min-w-[200px]">Gear list</th>
-                                            <th className="p-3 border-b border-r border-slate-200 w-[80px] text-center">Qty</th>
-                                            <th className="p-3 border-b border-r border-slate-200 w-[120px]">Serial number</th>
-                                            <th className="p-3 border-b border-r border-slate-200 w-[100px] text-center">Source</th>
-                                            <th className="p-3 border-b border-r border-slate-200 w-[100px] text-center print:border-black/20">Status</th>
-                                            {!isEditingEquipment && <th className="p-3 border-b border-l border-slate-200 w-[80px] text-center rounded-tr-xl print:table-cell print:border-black/20 print:border-r print:border-l-0 print:rounded-none">Check</th>}
+                                        <tr className="bg-[#F5F5F7] text-[#86868b] text-[12px] uppercase tracking-wider font-bold print:bg-slate-200 print:text-black print:border-y-2 print:border-black print:text-[10px]">
+                                            <th className="p-3 border-b border-r border-slate-200 rounded-tl-xl w-[50px] text-center print:border-black/20 print:border-l print:rounded-none print:w-auto print:px-1 print:py-1.5">No.</th>
+                                            <th className="p-3 border-b border-r border-slate-200 w-[180px] print:border-black/20 print:w-auto print:px-1 print:py-1.5">Group</th>
+                                            <th className="p-3 border-b border-r border-slate-200 w-[120px] print:w-auto print:px-1 print:py-1.5 print:whitespace-nowrap">Brand</th>
+                                            <th className="p-3 border-b border-r border-slate-200 min-w-[200px] print:w-auto print:px-2 print:py-1.5">Gear list</th>
+                                            <th className="p-3 border-b border-r border-slate-200 w-[80px] text-center print:w-auto print:px-1 print:py-1.5 print:whitespace-nowrap">Qty</th>
+                                            <th className="p-3 border-b border-r border-slate-200 w-[120px] print:w-auto print:px-1 print:py-1.5">Serial number</th>
+                                            <th className="p-3 border-b border-r border-slate-200 w-[100px] text-center print:w-auto print:px-1 print:py-1.5 print:whitespace-nowrap">Source</th>
+                                            <th className="p-3 border-b border-r border-slate-200 w-[100px] text-center print:border-black/20 print:w-auto print:px-1 print:py-1.5 print:whitespace-nowrap">Status</th>
+                                            {!isEditingEquipment && <th className="p-3 border-b border-l border-slate-200 w-[80px] text-center rounded-tr-xl print:table-cell print:border-black/20 print:border-r print:border-l-0 print:rounded-none print:w-auto print:px-1 print:py-1.5">Check</th>}
                                             {isEditingEquipment && <th className="p-3 border-b border-l border-slate-200 w-[60px] text-center rounded-tr-xl print:hidden">Xóa</th>}
                                         </tr>
                                     </thead>
                                     <tbody className="text-[13px] text-[#1d1d1f] align-middle">
                                         {equipmentList.map((item, index) => (
                                             <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors print:border-b-black/20 print:break-inside-avoid">
-                                                <td className="p-3 border-r border-slate-100 text-center font-bold text-[#86868b] print:border-black/20 print:border-l print:text-black">{index + 1}</td>
+                                                <td className="p-3 border-r border-slate-100 text-center font-bold text-[#86868b] print:border-black/20 print:border-l print:text-black print:px-1 print:py-1">{index + 1}</td>
                                                 
                                                 {/* Group */}
-                                                <td className="p-3 border-r border-slate-100 print:border-black/20">
+                                                <td className="p-3 border-r border-slate-100 print:border-black/20 print:px-1 print:py-1">
                                                     {isEditingEquipment ? 
                                                         <input type="text" value={item.group || ''} onChange={(e) => {
                                                             const newList = [...equipmentList];
@@ -557,7 +557,7 @@ export default function LiveStream() {
                                                 </td>
 
                                                 {/* Brand */}
-                                                <td className="p-3 border-r border-slate-100 print:border-black/20">
+                                                <td className="p-3 border-r border-slate-100 print:border-black/20 print:px-1 print:py-1">
                                                     {isEditingEquipment ? 
                                                         <input type="text" value={item.brand || ''} onChange={(e) => {
                                                             const newList = [...equipmentList];
@@ -568,7 +568,7 @@ export default function LiveStream() {
                                                 </td>
 
                                                 {/* Gear list */}
-                                                <td className="p-3 border-r border-slate-100 font-bold print:border-black/20 print:text-black">
+                                                <td className="p-3 border-r border-slate-100 font-bold print:border-black/20 print:text-black print:px-2 print:py-1">
                                                     {isEditingEquipment ? 
                                                         <input type="text" value={item.gearList || ''} onChange={(e) => {
                                                             const newList = [...equipmentList];
@@ -579,7 +579,7 @@ export default function LiveStream() {
                                                 </td>
 
                                                 {/* Quantity */}
-                                                <td className="p-3 border-r border-slate-100 text-center print:border-black/20">
+                                                <td className="p-3 border-r border-slate-100 text-center print:border-black/20 print:px-1 print:py-1">
                                                     {isEditingEquipment ? 
                                                         <input type="number" value={item.quantity || ''} onChange={(e) => {
                                                             const newList = [...equipmentList];
@@ -590,7 +590,7 @@ export default function LiveStream() {
                                                 </td>
 
                                                 {/* Serial number */}
-                                                <td className="p-3 border-r border-slate-100 print:border-black/20">
+                                                <td className="p-3 border-r border-slate-100 print:border-black/20 print:px-1 print:py-1">
                                                     {isEditingEquipment ? 
                                                         <input type="text" value={item.serialNumber || ''} onChange={(e) => {
                                                             const newList = [...equipmentList];
@@ -601,7 +601,7 @@ export default function LiveStream() {
                                                 </td>
 
                                                 {/* Source */}
-                                                <td className="p-3 border-r border-slate-100 text-center print:border-black/20">
+                                                <td className="p-3 border-r border-slate-100 text-center print:border-black/20 print:px-1 print:py-1">
                                                     {isEditingEquipment ? 
                                                         <input type="text" value={item.source || ''} onChange={(e) => {
                                                             const newList = [...equipmentList];
@@ -612,7 +612,7 @@ export default function LiveStream() {
                                                 </td>
 
                                                 {/* Status */}
-                                                <td className="p-3 border-r border-slate-100 text-center print:border-black/20">
+                                                <td className="p-3 border-r border-slate-100 text-center print:border-black/20 print:px-1 print:py-1">
                                                     {isEditingEquipment ? 
                                                         <input type="text" value={item.status || ''} onChange={(e) => {
                                                             const newList = [...equipmentList];
@@ -627,7 +627,7 @@ export default function LiveStream() {
 
                                                 {/* Actions */}
                                                 {!isEditingEquipment && (
-                                                    <td className="p-3 border-slate-100 text-center print:table-cell print:border-black/20 print:border-r flex items-center justify-center">
+                                                    <td className="p-3 border-slate-100 text-center print:table-cell print:border-black/20 print:border-r print:px-1 print:py-1">
                                                         <div className="flex items-center justify-center">
                                                             <input 
                                                                 type="checkbox" 
