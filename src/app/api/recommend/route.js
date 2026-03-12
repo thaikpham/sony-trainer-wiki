@@ -177,7 +177,7 @@ ${retrievedContext}`;
 
         const geminiModel = genAI.getGenerativeModel(
             {
-                model: 'gemini-1.5-flash',
+                model: 'gemini-2.5-flash',
                 systemInstruction: sysPrompt,
                 generationConfig: {
                     temperature: 0.2,
