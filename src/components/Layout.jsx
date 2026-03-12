@@ -102,7 +102,7 @@ export default function Layout({ children }) {
                             aria-haspopup="true"
                         >
                             <Aperture className="text-[#1d1d1f] group-hover:rotate-90 transition-transform duration-500 ease-in-out" size={28} strokeWidth={2.5} />
-                            <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-[#1d1d1f]">Sony Training Wiki</h1>
+                            <span className="text-xl md:text-2xl font-semibold tracking-tight text-[#1d1d1f]">Sony Training Wiki</span>
                             <ChevronDown
                                 size={18}
                                 strokeWidth={2.5}
@@ -151,9 +151,9 @@ export default function Layout({ children }) {
                     <div className="flex items-center justify-end h-12 print:hidden">
                         <SignedOut>
                             <SignInButton mode="modal">
-                                <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold bg-[#1d1d1f] text-white hover:bg-black transition-all shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+                                <div role="button" className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold bg-[#1d1d1f] text-white hover:bg-black transition-all shadow-[0_2px_8px_rgba(0,0,0,0.08)] cursor-pointer">
                                     Đăng nhập
-                                </button>
+                                </div>
                             </SignInButton>
                         </SignedOut>
                         <SignedIn>
