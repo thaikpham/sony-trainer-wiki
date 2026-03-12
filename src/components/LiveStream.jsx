@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Monitor, Upload, SlidersHorizontal, ChevronRight, ChevronLeft, PowerOff, Loader2, Mic, Settings2, FlipHorizontal, Download, Link, KeyRound, MonitorPlay, BookOpen, X, CheckCircle2, Cable, Laptop, RadioReceiver, Video, Lightbulb, PlayCircle, Star, Settings, Plus, Trash2, ClipboardList, Wand2, Bot, Send, Sparkles, BarChart3, Aperture } from 'lucide-react';
+import { Camera, Monitor, Upload, SlidersHorizontal, ChevronRight, ChevronLeft, PowerOff, Loader2, Mic, Settings2, FlipHorizontal, Download, Link, KeyRound, MonitorPlay, BookOpen, X, CheckCircle2, Cable, Laptop, RadioReceiver, Video, Lightbulb, PlayCircle, Star, Settings, Plus, Trash2, ClipboardList, Wand2, Bot, Send, Sparkles, BarChart3, Aperture, Printer } from 'lucide-react';
 import { platformIcons } from '@/data/platformIcons';
 import { platformsData } from '@/data/platformsData';
 import StudioDiagram from './livestream/StudioDiagram';
 import { useRoleAccess } from '@/components/RoleProvider';
 import { saveLiveReport } from '@/services/db';
+import { getLiveStreamConfig, updateLiveStreamConfig, getLiveStreamEquipment, updateLiveStreamEquipment } from '@/lib/supabaseClient';
 import { useUser } from '@clerk/nextjs';
 import { trackClientAction } from '@/lib/trackActionClient';
 
@@ -19,7 +20,53 @@ export default function LiveStream() {
     const [isStreaming, setIsStreaming] = useState(false);
     const [cameraError, setCameraError] = useState('');
     const { user } = useUser();
-    const { canViewReport } = useRoleAccess();
+    const { canViewReport, roleKeys } = useRoleAccess();
+    const isEmployee = roleKeys?.some(k => ['DEV', 'TRAINER', 'PRODUCT_MARKETING', 'DATA'].includes(k));
+
+    const [liveConfig, setLiveConfig] = useState({ 
+        pictureProfile: `Công thức PROCOLOR-003: EXTRA DR Stream 109
+- Black Level: -5
+- Gamma: Cine4
+- Black Gamma: Wide -7
+- Knee: Auto
+- Color Mode: Pro
+- Saturation: +8
+- Color Phase: 0
+- Color Depth: R-1, G-1, B+1, C+1, M+1, Y-1
+- Detail: Lvl 0, Mode Manual, V/H Bal 2, B/W Bal Type 3, Limit 3, Crisp 7, Hi-Light 4` 
+    });
+    const [isEditingPP, setIsEditingPP] = useState(false);
+    const [tempPPText, setTempPPText] = useState('');
+
+    const [equipmentList, setEquipmentList] = useState([]);
+    const [isEditingEquipment, setIsEditingEquipment] = useState(false);
+
+    useEffect(() => {
+        async function fetchConfig() {
+            try {
+                const [config, equipment] = await Promise.all([
+                    getLiveStreamConfig(),
+                    getLiveStreamEquipment()
+                ]);
+                setLiveConfig(config);
+                setTempPPText(config.pictureProfile);
+                setEquipmentList(equipment || []);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        fetchConfig();
+    }, []);
+
+    const handleSavePP = async () => {
+        try {
+            await updateLiveStreamConfig({ pictureProfile: tempPPText });
+            setLiveConfig({ pictureProfile: tempPPText });
+            setIsEditingPP(false);
+        } catch (err) {
+            alert('Lỗi cập nhật: ' + err.message);
+        }
+    };
 
     const [activePlatformIndex, setActivePlatformIndex] = useState(0);
     const [platforms, setPlatforms] = useState(platformsData);
@@ -50,22 +97,7 @@ export default function LiveStream() {
     const [chatInput, setChatInput] = useState('');
     const [isChatLoading, setIsChatLoading] = useState(false);
     const chatEndRef = useRef(null);
-    const [equipmentList, setEquipmentList] = useState([
-        { id: 1, name: '', series: '', condition: '' }
-    ]);
-    const addEquipment = () => {
-        if (equipmentList.length < 10) {
-            setEquipmentList([...equipmentList, { id: Date.now(), name: '', series: '', condition: '' }]);
-        }
-    };
 
-    const updateEquipment = (id, field, value) => {
-        setEquipmentList(equipmentList.map(eq => eq.id === id ? { ...eq, [field]: value } : eq));
-    };
-
-    const removeEquipment = (id) => {
-        setEquipmentList(equipmentList.filter(eq => eq.id !== id));
-    };
 
     // --- Post-Live Report State ---
     const [reportMetrics, setReportMetrics] = useState({
@@ -362,8 +394,8 @@ export default function LiveStream() {
 
 
     return (
-        <div className="w-full animate-slide-up flex flex-col mx-auto min-h-[85vh]">
-            <div className="mb-6 px-2">
+        <div className="w-full animate-slide-up flex flex-col mx-auto min-h-[85vh] print:min-h-0 print:w-full">
+            <div className="mb-6 px-2 print:hidden">
                 <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-teal-50 to-emerald-50 text-teal-700 font-semibold text-[11px] px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider ring-1 ring-teal-500/20">
                     <Monitor size={12} className="mr-1" />
                     <span>Live Studio Hub</span>
@@ -372,9 +404,9 @@ export default function LiveStream() {
                 <p className="text-[#86868b] text-[15px] font-medium">Bản xem trước Camera trực tiếp và Hướng dẫn thiết lập cho từng nền tảng thương mại điện tử.</p>
             </div>
 
-            <div className="flex flex-col gap-6 px-2 flex-grow h-full pb-12">
+            <div className="flex flex-col gap-6 px-2 flex-grow h-full pb-12 print:pb-0 print:p-0">
                 {/* Premium Step Navigation */}
-                <div className="w-full relative py-8 px-4 sm:px-10 mb-8 bg-white/40 backdrop-blur-xl rounded-[40px] ring-1 ring-black/[0.03] shadow-[0_20px_50px_rgba(0,0,0,0.02)] overflow-hidden">
+                <div className="w-full relative py-8 px-4 sm:px-10 mb-8 bg-white/40 backdrop-blur-xl rounded-[40px] ring-1 ring-black/[0.03] shadow-[0_20px_50px_rgba(0,0,0,0.02)] overflow-hidden print:hidden">
                     {/* Background decorative elements */}
                     <div className="absolute top-0 left-0 w-64 h-64 bg-teal-500/5 blur-[100px] -z-10"></div>
                     <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[100px] -z-10"></div>
@@ -454,91 +486,219 @@ export default function LiveStream() {
                 </div>
 
                 {currentStep === 1 && (
-                    <div className="flex flex-col w-full animate-fade-in gap-6">
-                        <div className="glass-panel p-6 sm:p-10 rounded-[40px]">
-                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-black/5">
-                                <h4 className="text-[20px] font-black text-[#1d1d1f] flex items-center gap-2">
-                                    <ClipboardList size={24} className="text-teal-600" />
-                                    Chuẩn bị Thiết bị (Pre-Live)
-                                </h4>
-                                <span className="text-[11px] font-bold bg-[#F5F5F7] text-[#86868b] px-3 py-1.5 rounded-lg uppercase tracking-wider ring-1 ring-black/5 shadow-sm">
-                                    Bắt buộc
-                                </span>
-                            </div>
-
-                            <div className="mb-6">
-                                <p className="text-[14px] text-[#86868b] mb-4 font-medium">
-                                    Vui lòng liệt kê các vật tư, thiết bị đã mượn hoặc có sẵn trong phòng live trước khi bắt đầu (tối đa 10 mục).
-                                </p>
-
-                                <div className="space-y-4">
-                                    {equipmentList.map((eq, index) => (
-                                        <div key={eq.id} className="flex flex-col sm:flex-row gap-3 bg-[#F5F5F7] p-4 rounded-2xl ring-1 ring-black/5">
-                                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-teal-600 font-bold text-[14px] shadow-sm shrink-0">
-                                                {index + 1}
-                                            </div>
-                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-grow">
-                                                <div>
-                                                    <label className="text-[11px] font-bold text-[#86868b] uppercase tracking-wider mb-1.5 block">Tên Sản Phẩm*</label>
-                                                    <input
-                                                        type="text"
-                                                        value={eq.name}
-                                                        onChange={(e) => updateEquipment(eq.id, 'name', e.target.value)}
-                                                        placeholder="VD: Sony A7C II"
-                                                        className="w-full bg-white border border-slate-200 text-[#1d1d1f] text-[13px] rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500/50"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-[11px] font-bold text-[#86868b] uppercase tracking-wider mb-1.5 block">Số Series</label>
-                                                    <input
-                                                        type="text"
-                                                        value={eq.series}
-                                                        onChange={(e) => updateEquipment(eq.id, 'series', e.target.value)}
-                                                        placeholder="Số S/N (nếu có)"
-                                                        className="w-full bg-white border border-slate-200 text-[#1d1d1f] text-[13px] rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500/50"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-[11px] font-bold text-[#86868b] uppercase tracking-wider mb-1.5 block">Tình Trạng Mượn</label>
-                                                    <input
-                                                        type="text"
-                                                        value={eq.condition}
-                                                        onChange={(e) => updateEquipment(eq.id, 'condition', e.target.value)}
-                                                        placeholder="VD: Mới, Khá mới, Xước dăm..."
-                                                        className="w-full bg-white border border-slate-200 text-[#1d1d1f] text-[13px] rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500/50"
-                                                    />
-                                                </div>
-                                            </div>
-                                            {equipmentList.length > 1 && (
-                                                <button
-                                                    onClick={() => removeEquipment(eq.id)}
-                                                    className="w-8 h-8 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors shrink-0 mt-6 sm:mt-0"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    ))}
+                    <div className="flex flex-col w-full animate-fade-in gap-6 print:m-0 print:p-0">
+                        {/* Print Header */}
+                        <div className="hidden print:flex flex-col mb-6 items-center border-b-2 border-black pb-4 mt-8">
+                            <h2 className="text-2xl font-black uppercase text-black">Cẩm Nang SONY</h2>
+                            <h3 className="text-xl font-bold mt-1">Danh Sách Thiết Bị Cài Đặt Pre-Live</h3>
+                            <p className="text-[13px] font-medium mt-1">Biểu mẫu kiểm kê ngày: {new Date().toLocaleDateString('vi-VN')}</p>
+                        </div>
+                        
+                        <div className="glass-panel p-6 sm:p-10 rounded-[40px] bg-white print:p-0 print:shadow-none print:border-none print:rounded-none">
+                            <div className="flex flex-col sm:flex-row items-center justify-between mb-8 pb-4 border-b border-black/5 gap-4 print:hidden">
+                                <div className="flex items-center gap-3">
+                                    <ClipboardList size={28} className="text-teal-600" />
+                                    <div>
+                                        <h4 className="text-[22px] font-black text-[#1d1d1f] flex items-center gap-2">
+                                            Chuẩn bị Thiết bị (Pre-Live)
+                                        </h4>
+                                        <p className="text-[13px] text-[#86868b] font-medium mt-1">Danh sách kiểm kê thiết bị phòng live.</p>
+                                    </div>
                                 </div>
-
-                                {equipmentList.length < 10 && (
+                                <div className="flex items-center gap-3 print:hidden">
+                                    {isEmployee && (
+                                        <button
+                                            onClick={() => setIsEditingEquipment(!isEditingEquipment)}
+                                            className={`px-4 py-2 rounded-xl font-bold text-[13px] transition-all flex items-center gap-2 ${isEditingEquipment ? 'bg-teal-500 text-white shadow-md' : 'bg-[#F5F5F7] text-[#1d1d1f] hover:bg-slate-200'}`}
+                                        >
+                                            <Settings size={16} />
+                                            {isEditingEquipment ? 'Đang chỉnh sửa' : 'Chỉnh sửa'}
+                                        </button>
+                                    )}
                                     <button
-                                        onClick={addEquipment}
-                                        className="mt-4 flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 rounded-xl bg-teal-50 text-teal-600 hover:bg-teal-100 font-bold text-[13px] transition-colors"
+                                        onClick={() => window.print()}
+                                        className="px-4 py-2 rounded-xl bg-[#1d1d1f] text-white font-bold text-[13px] hover:bg-black/80 transition-all flex items-center gap-2 shadow-md"
                                     >
-                                        <Plus size={16} /> Thêm Thiết Bị
+                                        <Printer size={16} /> Print PDF
                                     </button>
-                                )}
+                                </div>
                             </div>
 
-                            <div className="flex justify-end mt-8">
-                                <button
-                                    onClick={() => setCurrentStep(2)}
-                                    className="px-6 py-3 rounded-xl bg-[#1d1d1f] text-white font-bold text-[14px] flex items-center gap-2 hover:opacity-90 transition-opacity"
-                                >
-                                    Tiếp tục <ChevronRight size={16} />
-                                </button>
+                            <div className="overflow-x-auto w-full custom-scrollbar pb-4 print:overflow-visible">
+                                <table className="w-full text-left border-collapse min-w-[900px] print:min-w-full">
+                                    <thead>
+                                        <tr className="bg-[#F5F5F7] text-[#86868b] text-[12px] uppercase tracking-wider font-bold print:bg-slate-200 print:text-black print:border-y-2 print:border-black">
+                                            <th className="p-3 border-b border-r border-slate-200 rounded-tl-xl w-[50px] text-center print:border-black/20 print:border-l print:rounded-none">No.</th>
+                                            <th className="p-3 border-b border-r border-slate-200 w-[180px] print:border-black/20">Group</th>
+                                            <th className="p-3 border-b border-r border-slate-200 w-[120px]">Brand</th>
+                                            <th className="p-3 border-b border-r border-slate-200 min-w-[200px]">Gear list</th>
+                                            <th className="p-3 border-b border-r border-slate-200 w-[80px] text-center">Qty</th>
+                                            <th className="p-3 border-b border-r border-slate-200 w-[120px]">Serial number</th>
+                                            <th className="p-3 border-b border-r border-slate-200 w-[100px] text-center">Source</th>
+                                            <th className="p-3 border-b border-r border-slate-200 w-[100px] text-center print:border-black/20">Status</th>
+                                            {!isEditingEquipment && <th className="p-3 border-b border-l border-slate-200 w-[80px] text-center rounded-tr-xl print:table-cell print:border-black/20 print:border-r print:border-l-0 print:rounded-none">Check</th>}
+                                            {isEditingEquipment && <th className="p-3 border-b border-l border-slate-200 w-[60px] text-center rounded-tr-xl print:hidden">Xóa</th>}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="text-[13px] text-[#1d1d1f] align-middle">
+                                        {equipmentList.map((item, index) => (
+                                            <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors print:border-b-black/20 print:break-inside-avoid">
+                                                <td className="p-3 border-r border-slate-100 text-center font-bold text-[#86868b] print:border-black/20 print:border-l print:text-black">{index + 1}</td>
+                                                
+                                                {/* Group */}
+                                                <td className="p-3 border-r border-slate-100 print:border-black/20">
+                                                    {isEditingEquipment ? 
+                                                        <input type="text" value={item.group || ''} onChange={(e) => {
+                                                            const newList = [...equipmentList];
+                                                            newList[index].group = e.target.value;
+                                                            setEquipmentList(newList);
+                                                        }} className="w-full bg-white border border-slate-200 rounded px-2 py-1 outline-none focus:border-teal-500" />
+                                                    : <span className="font-semibold text-indigo-600">{item.group}</span>}
+                                                </td>
+
+                                                {/* Brand */}
+                                                <td className="p-3 border-r border-slate-100 print:border-black/20">
+                                                    {isEditingEquipment ? 
+                                                        <input type="text" value={item.brand || ''} onChange={(e) => {
+                                                            const newList = [...equipmentList];
+                                                            newList[index].brand = e.target.value;
+                                                            setEquipmentList(newList);
+                                                        }} className="w-full bg-white border border-slate-200 rounded px-2 py-1 outline-none focus:border-teal-500" />
+                                                    : item.brand}
+                                                </td>
+
+                                                {/* Gear list */}
+                                                <td className="p-3 border-r border-slate-100 font-bold print:border-black/20 print:text-black">
+                                                    {isEditingEquipment ? 
+                                                        <input type="text" value={item.gearList || ''} onChange={(e) => {
+                                                            const newList = [...equipmentList];
+                                                            newList[index].gearList = e.target.value;
+                                                            setEquipmentList(newList);
+                                                        }} className="w-full bg-white border border-slate-200 rounded px-2 py-1 outline-none focus:border-teal-500" />
+                                                    : item.gearList}
+                                                </td>
+
+                                                {/* Quantity */}
+                                                <td className="p-3 border-r border-slate-100 text-center print:border-black/20">
+                                                    {isEditingEquipment ? 
+                                                        <input type="number" value={item.quantity || ''} onChange={(e) => {
+                                                            const newList = [...equipmentList];
+                                                            newList[index].quantity = e.target.value;
+                                                            setEquipmentList(newList);
+                                                        }} className="w-full bg-white border border-slate-200 rounded px-2 py-1 outline-none focus:border-teal-500 text-center" />
+                                                    : <span className="inline-block bg-slate-100 px-2.5 py-0.5 rounded-lg font-black text-slate-700">{item.quantity}</span>}
+                                                </td>
+
+                                                {/* Serial number */}
+                                                <td className="p-3 border-r border-slate-100 print:border-black/20">
+                                                    {isEditingEquipment ? 
+                                                        <input type="text" value={item.serialNumber || ''} onChange={(e) => {
+                                                            const newList = [...equipmentList];
+                                                            newList[index].serialNumber = e.target.value;
+                                                            setEquipmentList(newList);
+                                                        }} className="w-full bg-white border border-slate-200 rounded px-2 py-1 outline-none focus:border-teal-500 text-xs font-mono" />
+                                                    : <span className="text-xs font-mono text-slate-500">{item.serialNumber}</span>}
+                                                </td>
+
+                                                {/* Source */}
+                                                <td className="p-3 border-r border-slate-100 text-center print:border-black/20">
+                                                    {isEditingEquipment ? 
+                                                        <input type="text" value={item.source || ''} onChange={(e) => {
+                                                            const newList = [...equipmentList];
+                                                            newList[index].source = e.target.value;
+                                                            setEquipmentList(newList);
+                                                        }} className="w-full bg-white border border-slate-200 rounded px-2 py-1 outline-none focus:border-teal-500 text-center" />
+                                                    : item.source}
+                                                </td>
+
+                                                {/* Status */}
+                                                <td className="p-3 border-r border-slate-100 text-center print:border-black/20">
+                                                    {isEditingEquipment ? 
+                                                        <input type="text" value={item.status || ''} onChange={(e) => {
+                                                            const newList = [...equipmentList];
+                                                            newList[index].status = e.target.value;
+                                                            setEquipmentList(newList);
+                                                        }} className="w-full bg-white border border-slate-200 rounded px-2 py-1 outline-none focus:border-teal-500 text-center" />
+                                                    : <span className={`inline-block px-2 py-1 rounded-md text-[11px] font-bold ${item.status?.toLowerCase() === 'good' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
+                                                        {item.status || '-'}
+                                                      </span>
+                                                    }
+                                                </td>
+
+                                                {/* Actions */}
+                                                {!isEditingEquipment && (
+                                                    <td className="p-3 border-slate-100 text-center print:table-cell print:border-black/20 print:border-r flex items-center justify-center">
+                                                        <div className="flex items-center justify-center">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer accent-teal-600 print:appearance-none print:w-4 print:h-4 print:border-2 print:border-black print:rounded-sm"
+                                                                checked={item.checked || false}
+                                                                onChange={(e) => {
+                                                                    const newList = [...equipmentList];
+                                                                    newList[index].checked = e.target.checked;
+                                                                    setEquipmentList(newList);
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </td>
+                                                )}
+
+                                                {isEditingEquipment && (
+                                                    <td className="p-3 border-l border-slate-100 text-center print:hidden">
+                                                        <button 
+                                                            onClick={() => {
+                                                                const newList = equipmentList.filter((_, i) => i !== index);
+                                                                setEquipmentList(newList);
+                                                            }}
+                                                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
+
+                            {isEditingEquipment && (
+                                <div className="mt-4 flex gap-3 print:hidden border-t border-slate-100 pt-4">
+                                    <button
+                                        onClick={() => {
+                                            setEquipmentList([...equipmentList, {
+                                                id: Date.now(), group: '', brand: '', gearList: '', quantity: 1, serialNumber: '', source: '', status: 'Good', checked: false
+                                            }]);
+                                        }}
+                                        className="px-4 py-2 rounded-xl bg-teal-50 text-teal-600 font-bold text-[13px] hover:bg-teal-100 transition-colors flex items-center gap-2"
+                                    >
+                                        <Plus size={16} /> Thêm Dòng
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                await updateLiveStreamEquipment(equipmentList);
+                                                alert('Lưu danh sách thiết bị thành công!');
+                                                setIsEditingEquipment(false);
+                                            } catch (err) {
+                                                alert('Lỗi khi lưu: ' + err.message);
+                                            }
+                                        }}
+                                        className="px-6 py-2 rounded-xl bg-teal-600 text-white font-bold text-[13px] hover:bg-teal-700 transition-colors ml-auto shadow-md"
+                                    >
+                                        Lưu Thay Đổi
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div className="flex justify-end mt-8 print:hidden">
+                            <button
+                                onClick={() => setCurrentStep(2)}
+                                className="px-6 py-3 rounded-xl bg-[#1d1d1f] text-white font-bold text-[14px] flex items-center gap-2 hover:opacity-90 transition-opacity"
+                            >
+                                Tiếp tục <ChevronRight size={16} />
+                            </button>
                         </div>
                     </div>
                 )}
@@ -795,6 +955,10 @@ export default function LiveStream() {
                                                 <div className="w-5 h-5 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 size={12} /></div>
                                                 <span className="leading-relaxed"><strong className="text-[#1d1d1f]">Âm thanh:</strong> Đếm thử {'"'}1..2..3..Alo{'"'} và quan sát hình sóng xanh nảy trên OBS/TikTok để chắc chắn luồng không bị {"'"}câm{"'"}.</span>
                                             </li>
+                                            <li className="flex gap-4 p-1">
+                                                <div className="w-5 h-5 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center flex-shrink-0 mt-0.5"><CheckCircle2 size={12} /></div>
+                                                <span className="leading-relaxed"><strong className="text-[#1d1d1f]">Bật thu âm:</strong> Thêm phần bật thu âm trong menu máy ảnh Sony là ở chế độ quay phim, tab đỏ (shooting) - Audio Recording ON.</span>
+                                            </li>
 
                                         </ul>
                                     </div>
@@ -828,9 +992,47 @@ export default function LiveStream() {
                                         <p className="text-[15px] text-teal-50 font-medium mb-5 relative z-10 leading-relaxed">
                                             Để da người sáng đẹp, tương phản vùng tối sáng tốt mà không cần hậu kỳ màu phức tạp, vui lòng sang tab ColorLab và thiết lập công thức sau:
                                         </p>
-                                        <div className="bg-black/20 backdrop-blur-md px-5 py-4 rounded-xl border border-white/20 relative z-10 font-mono text-[14px] font-bold tracking-wide text-center content-center justify-center items-center flex">
-                                            PROCOLOR-003: EXTRA DR Stream 109
-                                        </div>
+                                        {isEditingPP ? (
+                                            <div className="relative z-10 font-mono flex flex-col gap-2">
+                                                <textarea
+                                                    value={tempPPText}
+                                                    onChange={(e) => setTempPPText(e.target.value)}
+                                                    className="w-full bg-black/20 backdrop-blur-md px-4 py-3 rounded-xl border border-white/20 text-[14px] font-bold tracking-wide text-white outline-none resize-none min-h-[80px]"
+                                                />
+                                                <div className="flex gap-2 justify-end">
+                                                    <button onClick={() => setIsEditingPP(false)} className="px-4 py-2 rounded-lg bg-white/10 text-white text-[12px] font-bold hover:bg-white/20 transition-colors">Hủy</button>
+                                                    <button onClick={handleSavePP} className="px-4 py-2 rounded-lg bg-white text-teal-700 text-[12px] font-bold hover:bg-white/90 transition-colors">Lưu</button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="bg-black/20 backdrop-blur-md px-5 py-4 rounded-xl border border-white/20 relative z-10 font-mono text-[14px] font-bold tracking-wide group flex flex-col gap-2">
+                                                {liveConfig.pictureProfile.split('\n').map((line, idx) => {
+                                                    const trimmed = line.trim();
+                                                    if (!trimmed) return null;
+                                                    
+                                                    if (trimmed.startsWith('-')) {
+                                                        const parts = trimmed.split(':');
+                                                        const label = parts[0].replace(/^- /, '');
+                                                        const value = parts.length > 1 ? parts.slice(1).join(':').trim() : '';
+                                                        return (
+                                                            <div key={idx} className="flex justify-between items-center bg-white/5 rounded-lg px-4 py-2 border border-white/10 hover:bg-white/10 transition-colors">
+                                                                <span className="text-white/70 font-medium">{label}</span>
+                                                                <span className="text-white text-right font-black">{value}</span>
+                                                            </div>
+                                                        );
+                                                    } else {
+                                                        return (
+                                                            <div key={idx} className="text-center text-yellow-300 font-black text-[15px] mb-2 uppercase tracking-widest">{trimmed}</div>
+                                                        );
+                                                    }
+                                                })}
+                                                {isEmployee && (
+                                                    <button onClick={() => { setTempPPText(liveConfig.pictureProfile); setIsEditingPP(true); }} className="absolute top-3 right-3 p-2 bg-white/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-md hover:bg-white/20">
+                                                        <Settings size={16} className="text-white" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

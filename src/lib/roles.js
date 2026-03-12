@@ -531,6 +531,7 @@ export const ROLE_EMAIL_MAP = {
     'nhanlt.luunhan@gmail.com': ['TRAINER', 'DATA'],
     'buingockieuanhwork@gmail.com': ['DATA', 'SALESMAN'],
     'minhtranduy.sony@gmail.com': ['DATA', 'SALESMAN'],
+    'trannghiem1291@gmail.com': ['TRAINER'],
     // Examples — update with real emails:
     // 'trainer@sony.com': ['TRAINER'],
     // 'marketing@sony.com': ['PRODUCT_MARKETING'],

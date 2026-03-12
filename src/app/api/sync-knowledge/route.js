@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { callMcpTool } from '@/lib/mcp';
+import { GoogleGenerativeAI, TaskType } from '@google/generative-ai';
+import { createClient } from '@supabase/supabase-js';
 
 export const maxDuration = 60; // Allow more time for this route as it does web search and embeddings
 
@@ -13,23 +13,24 @@ export async function POST(request) {
 
     try {
         const apiKey = process.env.GEMINI_API_KEY || "";
-        const pineconeKey = process.env.PINECONE_API_KEY || "";
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-        if (!apiKey || !pineconeKey) {
-            throw new Error("Missing API keys for Gemini or Pinecone");
+        if (!apiKey || !supabaseUrl || !supabaseKey) {
+            throw new Error("Missing API keys or Supabase credentials");
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
+        const supabase = createClient(supabaseUrl, supabaseKey);
 
         // Step 1: Scout Agent (Gemini + Google Search)
         const geminiModel = genAI.getGenerativeModel({
             model: "gemini-2.0-flash",
             generationConfig: {
-                temperature: 0.1, // Low temp for factual data
+                temperature: 0.1,
             }
         });
 
-        // The exact prompt to find new gear
         const scoutPrompt = `
         You are an elite Sony camera equipment researcher. 
         Your task is to use Google Search to find ANY Sony E-mount cameras or lenses that have been announced or released in the last 6 months.
@@ -64,34 +65,50 @@ export async function POST(request) {
             return NextResponse.json({ message: "No new products found adjusting the last 6 months window.", productsFound: 0 });
         }
 
-        const productsToSync = newProducts.map(product => {
-            const textChunk = `
-            Product: ${product.productName}
-            Category: ${product.category}
-            Tier: ${product.tier}
-            Specs: ${product.keySpecs}
-            Target User: ${product.targetUser}
-            Price: ~${(product.estimatedPriceVND || 0).toLocaleString()} VND
-            `;
-            const vectorId = product.productName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
+        let syncedCount = 0;
 
-            return {
-                id: vectorId,
-                text: textChunk,
-                metadata: {
-                    type: "auto-ingested-product",
-                    category: product.category,
-                    tier: product.tier
-                }
-            };
-        });
+        for (const product of newProducts) {
+            // Check if product already exists in knowledge_chunks (prevent duplicates)
+            const sourceId = product.productName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            
+            const { data: existing } = await supabase
+                .from('knowledge_chunks')
+                .select('id')
+                .eq('source_id', sourceId)
+                .single();
 
-        // Step 2: Upsert into Pinecone via MCP Server
-        await callMcpTool('upsert_trainer_wiki_knowledge', { products: productsToSync });
+            if (existing) continue;
+
+            // Generate Embedding
+            const textChunk = `[AUTO-INGESTED PRODUCT]
+Name: ${product.productName}
+Category: ${product.category}
+Tier: ${product.tier}
+Specs: ${product.keySpecs}
+Target User: ${product.targetUser}
+Price: ~${(product.estimatedPriceVND || 0).toLocaleString()} VND`;
+
+            const embResult = await embeddingModel.embedContent({
+                content: { role: 'user', parts: [{ text: textChunk }] },
+                taskType: TaskType.RETRIEVAL_DOCUMENT,
+                outputDimensionality: 768
+            });
+
+            // Upsert into Supabase
+            const { error: upsertError } = await supabase.from('knowledge_chunks').insert({
+                source_type: 'auto-ingested-product',
+                source_id: sourceId,
+                content: textChunk,
+                embedding: embResult.embedding.values
+            });
+
+            if (!upsertError) syncedCount++;
+        }
 
         return NextResponse.json({
-            message: "Successfully synced new knowledge to the AI Brain via MCP Server.",
-            productsSynced: productsToSync.length,
+            message: "Successfully synced new knowledge to the AI Brain in Supabase.",
+            productsSynced: syncedCount,
             details: newProducts
         });
 

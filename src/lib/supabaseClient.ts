@@ -67,6 +67,87 @@ export async function updateGlobalTags(tags: string[]) {
 }
 
 // ============================================
+// Live Stream Configs (Settings)
+// ============================================
+export async function getLiveStreamConfig() {
+    const { data, error } = await supabase.from('settings').select('*').eq('id', 'livestream').single();
+    if (!error && data?.data) {
+        return data.data;
+    }
+    return { 
+        pictureProfile: `Công thức PROCOLOR-001: ClearCast Pro
+- Black Level: -5
+- Gamma: S-Cinetone
+- Black Gamma: Wide -7
+- Knee: Auto
+- Color Mode: S-Cinetone
+- Saturation: +8
+- Color Phase: 0
+- Color Depth: R-1, G-1, B+1, C+1, M+1, Y-1
+- Detail: Lvl 0, Mode Manual, V/H Bal 2, B/W Bal Type 3, Limit 3, Crisp 7, Hi-Light 4` 
+    };
+}
+
+export async function updateLiveStreamConfig(config: any) {
+    await supabase.from('settings').upsert({ id: 'livestream', data: config });
+}
+
+// ============================================
+// Live Stream Equipment (Settings)
+// ============================================
+export async function getLiveStreamEquipment() {
+    const { data, error } = await supabase.from('settings').select('*').eq('id', 'livestream_equipment').single();
+    if (!error && data?.data) {
+        return data.data;
+    }
+    return [
+        { id: 1, group: 'Live Computer', brand: 'Asus', gearList: 'PC', quantity: 1, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 2, group: 'Live Computer', brand: 'Asus', gearList: 'ProArt Monitor', quantity: 2, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 3, group: 'Capture Card', brand: 'Elgato', gearList: 'Stream Deck', quantity: 1, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 4, group: 'Capture Card', brand: 'Elgato', gearList: 'Wave XLR', quantity: 1, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 5, group: 'Accessories', brand: '', gearList: 'XLR Cables', quantity: '', serialNumber: '', source: '', status: '', checked: false },
+        { id: 6, group: 'Accessories', brand: '', gearList: 'HDMI Cables', quantity: '', serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 7, group: 'Lighting', brand: 'Elgato', gearList: 'Key Light Air', quantity: 1, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 8, group: 'Lighting', brand: 'Nanlite', gearList: 'Forza 60B II', quantity: 1, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 9, group: 'Lighting', brand: 'Nanlite', gearList: 'FS-300B', quantity: 1, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 10, group: 'Lighting', brand: 'Nanlite', gearList: 'Tube 30C', quantity: 2, serialNumber: '', source: 'Trainer', status: 'Good', checked: false },
+        { id: 11, group: 'Lighting', brand: 'Nanlite', gearList: 'Parvo Slim 120C & Pack', quantity: 1, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 12, group: 'Lighting', brand: 'Amaran', gearList: '200X', quantity: 2, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 13, group: 'Lighting', brand: 'Zhiyun', gearList: '20W RGB', quantity: 1, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 14, group: 'Lighting', brand: 'Zhiyun', gearList: '40W', quantity: 1, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 15, group: 'Light Mods', brand: 'Apurture', gearList: 'Fresnel', quantity: 1, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 16, group: 'Light Mods', brand: 'Apurture', gearList: 'Light Dome', quantity: 1, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 17, group: 'Light Mods', brand: 'Nanlite', gearList: 'Softbox 60 FMM', quantity: 1, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 18, group: 'Light Stands', brand: '', gearList: 'Black', quantity: 2, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 19, group: 'Light Stands', brand: '', gearList: 'Chrome', quantity: 1, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 20, group: 'Light Stands', brand: '', gearList: 'Chrome', quantity: 1, serialNumber: '', source: 'Trainer', status: 'Good', checked: false },
+        { id: 21, group: 'Tripod', brand: 'Benro', gearList: 'KH26', quantity: 3, serialNumber: '', source: 'VDK', status: 'Good', checked: false },
+        { id: 22, group: 'Camera', brand: '', gearList: '', quantity: '', serialNumber: '', source: 'DI-MKT', status: 'Good', checked: false },
+        { id: 23, group: 'Camera', brand: '', gearList: '', quantity: '', serialNumber: '', source: 'DI-MKT', status: 'Good', checked: false },
+        { id: 24, group: 'Camera', brand: '', gearList: '', quantity: '', serialNumber: '', source: 'DI-MKT', status: 'Good', checked: false },
+        { id: 25, group: 'Lens', brand: '', gearList: '', quantity: '', serialNumber: '', source: 'DI-MKT', status: 'Good', checked: false },
+        { id: 26, group: 'Lens', brand: '', gearList: '', quantity: '', serialNumber: '', source: 'DI-MKT', status: 'Good', checked: false },
+        { id: 27, group: 'Lens', brand: '', gearList: '', quantity: '', serialNumber: '', source: 'DI-MKT', status: 'Good', checked: false },
+        { id: 28, group: 'Microphone', brand: '', gearList: '', quantity: '', serialNumber: '', source: '', status: 'Good', checked: false },
+        { id: 29, group: 'Microphone', brand: '', gearList: '', quantity: '', serialNumber: '', source: '', status: 'Good', checked: false },
+        { id: 30, group: 'Microphone', brand: '', gearList: '', quantity: '', serialNumber: '', source: '', status: 'Good', checked: false },
+        { id: 31, group: '', brand: '', gearList: '', quantity: '', serialNumber: '', source: '', status: 'Good', checked: false },
+        { id: 32, group: '', brand: '', gearList: '', quantity: '', serialNumber: '', source: '', status: 'Good', checked: false },
+        { id: 33, group: '', brand: '', gearList: '', quantity: '', serialNumber: '', source: '', status: 'Good', checked: false },
+        { id: 34, group: '', brand: '', gearList: '', quantity: '', serialNumber: '', source: '', status: 'Good', checked: false },
+        { id: 35, group: '', brand: '', gearList: '', quantity: '', serialNumber: '', source: '', status: 'Good', checked: false },
+        { id: 36, group: '', brand: '', gearList: '', quantity: '', serialNumber: '', source: '', status: 'Good', checked: false },
+        { id: 37, group: '', brand: '', gearList: '', quantity: '', serialNumber: '', source: '', status: 'Good', checked: false },
+        { id: 38, group: '', brand: '', gearList: '', quantity: '', serialNumber: '', source: '', status: 'Good', checked: false },
+        { id: 39, group: '', brand: '', gearList: '', quantity: '', serialNumber: '', source: '', status: 'Good', checked: false }
+    ];
+}
+
+export async function updateLiveStreamEquipment(equipmentList: any[]) {
+    await supabase.from('settings').upsert({ id: 'livestream_equipment', data: equipmentList });
+}
+
+// ============================================
 // CRUD for Tutorials
 // ============================================
 export function getLivestreamTutorials() {

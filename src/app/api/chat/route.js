@@ -1,20 +1,24 @@
 import { NextResponse } from 'next/server';
-import { Pinecone } from '@pinecone-database/pinecone';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { createClient } from '@supabase/supabase-js';
+import { GoogleGenerativeAI, TaskType } from '@google/generative-ai';
+
 export async function POST(request) {
     try {
         const { chatHistory, context } = await request.json();
         const apiKey = process.env.GEMINI_API_KEY || "";
-        if (!apiKey) {
+        
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        if (!apiKey || !supabaseUrl || !supabaseKey) {
             return NextResponse.json(
-                { error: 'missing_gemini_api_key' },
+                { error: 'missing_credentials' },
                 { status: 500 }
             );
         }
-        const pineconeKey = process.env.PINECONE_API_KEY || "";
 
+        const supabase = createClient(supabaseUrl, supabaseKey);
         const genAI = new GoogleGenerativeAI(apiKey);
-        const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }, { apiVersion: "v1beta" });
         const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
 
         // Lấy câu hỏi cuối cùng của user
@@ -23,27 +27,29 @@ export async function POST(request) {
         let retrievedContext = "";
 
         try {
-            if (pineconeKey) {
-                const pc = new Pinecone({ apiKey: pineconeKey });
-                const index = pc.index('alpha-focus-wiki');
+            // 1. Nhúng câu hỏi của User bằng Gemini (768 dims)
+            const embeddingResult = await embeddingModel.embedContent({
+                content: { role: 'user', parts: [{ text: userMessage }] },
+                taskType: TaskType.RETRIEVAL_QUERY,
+                outputDimensionality: 768
+            });
+            const userVector = embeddingResult.embedding.values;
 
-                // 1. Nhúng câu hỏi của User
-                const embeddingResult = await embeddingModel.embedContent(userMessage);
-                const userVector = embeddingResult.embedding.values.slice(0, 1024);
+            // 2. Query Supabase Vector Search
+            const { data: matches, error: searchError } = await supabase.rpc('match_knowledge_chunks', {
+                query_embedding: userVector,
+                match_threshold: 0.5,
+                match_count: 3
+            });
 
-                // 2. Query Pinecone
-                const queryResponse = await index.query({
-                    vector: userVector,
-                    topK: 3,
-                    includeMetadata: true
-                });
-
-                const matches = queryResponse.matches || [];
-                retrievedContext = matches.map((m) => m.metadata.text).join('\n\n---\n\n');
+            if (searchError) throw searchError;
+            
+            if (matches && matches.length > 0) {
+                retrievedContext = matches.map((m) => m.content).join('\n\n---\n\n');
             }
         } catch (err) {
-            console.error("Pinecone Query failed: ", err);
-            // Fallback or ignore if not initialized
+            console.error("Supabase Vector Query failed: ", err);
+            // Fallback
         }
 
         const sys = `You are a highly persuasive, elite Sales Expert and Brand Ambassador for Sony Alpha Vietnam. 

@@ -30,36 +30,44 @@ async function recoverData() {
   let recoveredCount = 0;
   
   for (const dbProduct of dbProducts) {
-    // Check if name is null, undefined, or empty string
-    if (!dbProduct.name || !dbProduct.category) {
-      // Find matching original product using kataban (stored in dbProduct.data)
-      const kataban = dbProduct.data?.kataban || dbProduct.kataban; // Handle varying schema structures just in case
+    // Unconditionally update all records
+    const kataban = dbProduct.data?.kataban || dbProduct.kataban; // Handle varying schema structures just in case
       
-      if (kataban) {
-        const originalProduct = importData.find(p => p.kataban === kataban);
+    if (kataban) {
+      const originalProduct = importData.find(p => p.kataban === kataban);
         
-        if (originalProduct) {
-          console.log(`Recovering: Kataban ${kataban} -> Name: ${originalProduct.name}, Category: ${originalProduct.category}`);
+      if (originalProduct) {
+        console.log(`Recovering: Kataban ${kataban} -> Name: ${originalProduct.name}, Category: ${originalProduct.category}`);
           
-          // Update the database
-          const { error: updateError } = await supabase.from('products')
-            .update({
-              name: originalProduct.name,
-              category: originalProduct.category
-            })
-            .eq('id', dbProduct.id);
+        // Safely map missing JSONB data properties as well
+        const updatedData = {
+          ...(dbProduct.data || {}),
+          name: originalProduct.name,
+          category: originalProduct.category,
+          kataban: originalProduct.kataban
+        };
+        // Restore highlights if missing
+        if (!updatedData.highlights && originalProduct.highlights !== undefined) updatedData.highlights = originalProduct.highlights;
+
+        // Update the database
+        const { error: updateError } = await supabase.from('products')
+          .update({
+            name: originalProduct.name,
+            category: originalProduct.category,
+            data: updatedData
+          })
+          .eq('id', dbProduct.id);
             
-          if (updateError) {
-             console.error(`Failed to recover ${kataban}:`, updateError);
-          } else {
-             recoveredCount++;
-          }
+        if (updateError) {
+           console.error(`Failed to recover ${kataban}:`, updateError);
         } else {
-          console.warn(`Could not find original data for kataban: ${kataban}`);
+           recoveredCount++;
         }
       } else {
-         console.warn(`Broken product with ID ${dbProduct.id} has no kataban to match against.`);
+        console.warn(`Could not find original data for kataban: ${kataban}`);
       }
+    } else {
+       console.warn(`Broken product with ID ${dbProduct.id} has no kataban to match against.`);
     }
   }
   

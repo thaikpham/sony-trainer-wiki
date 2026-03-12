@@ -256,6 +256,20 @@ export default function Dashboard() {
                                         <h2 className="text-[20px] font-bold text-[#1d1d1f] tracking-tight">Control Panel</h2>
                                     </div>
                                     <div className="flex-grow flex flex-col gap-3 relative z-10">
+                                        <Link href="/academy/admin" className="w-full bg-[#F5F5F7]/80 hover:bg-[#F5F5F7] ring-1 ring-black/5 px-5 py-4 rounded-2xl text-left flex items-center justify-between group transition-all">
+                                            <div className="flex flex-col">
+                                                <span className="text-[14px] font-bold text-[#1d1d1f] group-hover:text-teal-600 transition-colors">Quản lý Sony Academy</span>
+                                                <span className="text-[12px] text-[#86868b] font-medium">Phát triển Lộ trình & Bộ câu hỏi (Quiz)</span>
+                                            </div>
+                                            <ArrowLeft size={16} className="text-[#86868b] group-hover:text-teal-500 group-hover:-translate-x-1 transition-all rotate-180" />
+                                        </Link>
+                                        <Link href="/livestream" className="w-full bg-[#F5F5F7]/80 hover:bg-[#F5F5F7] ring-1 ring-black/5 px-5 py-4 rounded-2xl text-left flex items-center justify-between group transition-all">
+                                            <div className="flex flex-col">
+                                                <span className="text-[14px] font-bold text-[#1d1d1f] group-hover:text-red-600 transition-colors">Cẩm nang Livestream</span>
+                                                <span className="text-[12px] text-[#86868b] font-medium">Hướng dẫn & Báo cáo Livestream</span>
+                                            </div>
+                                            <ArrowLeft size={16} className="text-[#86868b] group-hover:text-red-500 group-hover:-translate-x-1 transition-all rotate-180" />
+                                        </Link>
                                         <button className="w-full bg-[#F5F5F7]/80 hover:bg-[#F5F5F7] ring-1 ring-black/5 px-5 py-4 rounded-2xl text-left flex items-center justify-between group transition-all">
                                             <div className="flex flex-col">
                                                 <span className="text-[14px] font-bold text-[#1d1d1f] group-hover:text-indigo-600 transition-colors">Quản lý Dữ liệu AI (RAG Sync)</span>

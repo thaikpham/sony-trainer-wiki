@@ -1,7 +1,7 @@
 'use client';
 import { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { useUser } from '@clerk/nextjs';
-import { db } from '@/lib/firebase';
+
 import { supabase } from '@/lib/supabaseClient';
 import { getRoleKeys } from '@/lib/roles';
 import GlobalBadgeToast from './GlobalBadgeToast';

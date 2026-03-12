@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, TaskType } from '@google/generative-ai';
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
@@ -15,13 +15,11 @@ if (!supabaseUrl || !supabaseKey || !geminiKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 const genAI = new GoogleGenerativeAI(geminiKey);
-const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+const model = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
+const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 async function sync() {
     console.log('--- Starting Sony Wiki Knowledge Sync ---');
-
-    // 1. Clear existing chunks (optional, but cleaner for a full sync)
-    // await supabase.from('knowledge_chunks').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
     // 2. Fetch Products
     const { data: products, error: pError } = await supabase.from('products').select('*');
@@ -35,8 +33,13 @@ Name: ${item.name}
 Category: ${item.category}
 Details: ${JSON.stringify(item.data)}`;
 
-            const result = await model.embedContent(content);
+            const result = await model.embedContent({
+                content: { role: 'user', parts: [{ text: content }] },
+                taskType: TaskType.RETRIEVAL_DOCUMENT,
+                outputDimensionality: 768
+            });
             const embedding = result.embedding.values;
+            if (item === products[0]) console.log(`Detected dimension: ${embedding.length}`);
 
             const { error: upsertError } = await supabase.from('knowledge_chunks').upsert({
                 source_type: 'product',
@@ -46,6 +49,7 @@ Details: ${JSON.stringify(item.data)}`;
             }, { onConflict: 'source_id' });
 
             if (upsertError) console.error(`Failed to sync product ${item.name}:`, upsertError.message);
+            await sleep(4000); // 4000ms delay for 15 RPM limit
         } catch (e) {
             console.error(`Error processing product ${item.name}:`, e);
         }
@@ -62,7 +66,11 @@ Details: ${JSON.stringify(item.data)}`;
 Title: ${item.title}
 Content: ${JSON.stringify(item.data)}`;
 
-            const result = await model.embedContent(content);
+            const result = await model.embedContent({
+                content: { role: 'user', parts: [{ text: content }] },
+                taskType: TaskType.RETRIEVAL_DOCUMENT,
+                outputDimensionality: 768
+            });
             const embedding = result.embedding.values;
 
             const { error: upsertError } = await supabase.from('knowledge_chunks').upsert({
@@ -73,6 +81,7 @@ Content: ${JSON.stringify(item.data)}`;
             }, { onConflict: 'source_id' });
 
             if (upsertError) console.error(`Failed to sync tutorial ${item.title}:`, upsertError.message);
+            await sleep(4000);
         } catch (e) {
             console.error(`Error processing tutorial ${item.title}:`, e);
         }
@@ -89,7 +98,11 @@ Content: ${JSON.stringify(item.data)}`;
 Name: ${item.name}
 Settings: ${JSON.stringify(item.data)}`;
 
-            const result = await model.embedContent(content);
+            const result = await model.embedContent({
+                content: { role: 'user', parts: [{ text: content }] },
+                taskType: TaskType.RETRIEVAL_DOCUMENT,
+                outputDimensionality: 768
+            });
             const embedding = result.embedding.values;
 
             const { error: upsertError } = await supabase.from('knowledge_chunks').upsert({
@@ -100,6 +113,7 @@ Settings: ${JSON.stringify(item.data)}`;
             }, { onConflict: 'source_id' });
 
             if (upsertError) console.error(`Failed to sync profile ${item.name}:`, upsertError.message);
+            await sleep(500);
         } catch (e) {
             console.error(`Error processing profile ${item.name}:`, e);
         }

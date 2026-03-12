@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Aperture, BookOpenText, Sparkles, Video, ChevronDown, Terminal, LayoutDashboard } from 'lucide-react';
+import { Aperture, BookOpenText, Sparkles, Video, ChevronDown, Terminal, LayoutDashboard, GraduationCap } from 'lucide-react';
 import RoleBadgeDropdown from '@/components/RoleBadgeDropdown';
 import { getRoleKeys } from '@/lib/roles';
 import { useRoleAccess } from '@/components/RoleProvider';
@@ -35,6 +35,7 @@ export default function Layout({ children }) {
         { href: '/', label: 'Trang chủ', labelShort: 'Home', icon: Aperture, match: (p) => p === '/' },
         { href: '/ai', label: 'AI Tư vấn', labelShort: 'AI', icon: Sparkles, match: (p) => p.startsWith('/ai') },
         { href: '/wiki', label: 'Wiki', labelShort: 'Wiki', icon: BookOpenText, match: (p) => p.startsWith('/wiki') },
+        { href: '/academy', label: 'Academy', labelShort: 'Learn', icon: GraduationCap, match: (p) => p.startsWith('/academy') },
         { href: '/dashboard', label: 'Dashboard', labelShort: 'Dash', icon: LayoutDashboard, match: (p) => p.startsWith('/dashboard') },
         { href: '/livestream', label: 'Livestream', labelShort: 'Live', icon: Video, match: (p) => p.startsWith('/livestream') },
     ];
