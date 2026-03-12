@@ -24,16 +24,16 @@ export default function LiveStream() {
     const isEmployee = roleKeys?.some(k => ['DEV', 'TRAINER', 'PRODUCT_MARKETING', 'DATA'].includes(k));
 
     const [liveConfig, setLiveConfig] = useState({ 
-        pictureProfile: `Công thức PROCOLOR-003: EXTRA DR Stream 109
-- Black Level: -5
-- Gamma: Cine4
+        pictureProfile: `PP Preset Phòng Live Sony
+- Black Level: -15
+- Gamma: S-Cinetone
 - Black Gamma: Wide -7
-- Knee: Auto
-- Color Mode: Pro
-- Saturation: +8
+- Knee: Manual 75% +5
+- Color Mode: S-Cinetone
+- Saturation: +5
 - Color Phase: 0
-- Color Depth: R-1, G-1, B+1, C+1, M+1, Y-1
-- Detail: Lvl 0, Mode Manual, V/H Bal 2, B/W Bal Type 3, Limit 3, Crisp 7, Hi-Light 4` 
+- Color Depth: R0, G0, B0, C0, M0, Y0
+- Detail: Lvl 0, Mode Manual, V/H Bal 2, B/W Bal Type 3, Limit 7, Crisp 7, Hi-Light 4` 
     });
     const [isEditingPP, setIsEditingPP] = useState(false);
     const [tempPPText, setTempPPText] = useState('');
