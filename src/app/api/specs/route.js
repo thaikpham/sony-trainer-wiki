@@ -47,7 +47,7 @@ export async function POST(request) {
         const targetSchema = productType === 'camera' ? cameraSchema : lensSchema;
 
         const geminiModel = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash",
+            model: "gemini-1.5-flash",
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: targetSchema,
