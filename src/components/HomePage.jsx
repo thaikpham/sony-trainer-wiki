@@ -1,73 +1,104 @@
 'use client';
 
-import dynamic from 'next/dynamic';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { BookOpenText, Sparkles, GraduationCap, Video, LayoutDashboard, ArrowRight } from 'lucide-react';
 
-import HeroCyclingWord from '@/components/HeroCyclingWord';
-
-// Dynamic import for the heavier analytics component
-const AnalyticsDashboard = dynamic(() => import('./AnalyticsDashboard'), {
-    loading: () => <div className="w-full h-48 animate-pulse bg-black/5 rounded-[48px] mt-6 mb-10" />,
-    ssr: false // Analytics often rely on client-side data/window
-});
-
-const CATEGORY_WORDS = [
-    { label: 'Máy Ảnh', gradient: 'from-blue-500 to-cyan-400', glow: 'rgba(59,130,246,0.4)' },
-    { label: 'Ống Kính', gradient: 'from-violet-500 to-purple-400', glow: 'rgba(139,92,246,0.4)' },
-    { label: 'Tai Nghe', gradient: 'from-rose-500 to-pink-400', glow: 'rgba(244,63,94,0.4)' },
-    { label: 'Loa', gradient: 'from-amber-500 to-orange-400', glow: 'rgba(245,158,11,0.4)' },
-    { label: 'BRAVIA TV', gradient: 'from-emerald-500 to-teal-400', glow: 'rgba(16,185,129,0.4)' },
-    { label: 'Soundbar', gradient: 'from-orange-500 to-red-400', glow: 'rgba(249,115,22,0.4)' },
-    { label: 'Xperia', gradient: 'from-sky-500 to-indigo-400', glow: 'rgba(14,165,233,0.4)' },
-    { label: 'Phụ Kiện', gradient: 'from-fuchsia-500 to-pink-500', glow: 'rgba(217,70,239,0.4)' },
+const CARDS = [
+  {
+    href: '/wiki',
+    label: 'Wiki',
+    desc: 'Tra cứu thông số, ColorLab, kho sản phẩm Sony',
+    icon: BookOpenText,
+    gradient: 'from-blue-500 to-cyan-500',
+  },
+  {
+    href: '/ai',
+    label: 'AI Tư vấn',
+    desc: 'Gemini gợi ý thiết bị theo nhu cầu của bạn',
+    icon: Sparkles,
+    gradient: 'from-violet-500 to-purple-500',
+  },
+  {
+    href: '/academy',
+    label: 'Academy',
+    desc: 'Học bài bản, tích lũy huy hiệu',
+    icon: GraduationCap,
+    gradient: 'from-emerald-500 to-teal-500',
+  },
+  {
+    href: '/livestream',
+    label: 'Livestream',
+    desc: 'Studio diagram, SOP, báo cáo live',
+    icon: Video,
+    gradient: 'from-amber-500 to-orange-500',
+  },
+  {
+    href: '/dashboard',
+    label: 'Dashboard',
+    desc: 'Tổng quan và thống kê',
+    icon: LayoutDashboard,
+    gradient: 'from-slate-600 to-slate-700',
+  },
 ];
 
-/**
- * HomeHero — hero content rendered inside <Layout>.
- * Background orbs are fixed-positioned to cover the full viewport.
- * Cycling word uses justify='start' to align with the rest of the left-aligned headline.
- */
-export default function HomeHero() {
-    return (
-        <>
-            {/* ── BG ORBS (fixed = cover full viewport regardless of Layout structure) ── */}
-            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-                <div style={{ animation: 'orb-drift 20s ease-in-out infinite' }}
-                    className="absolute -top-1/3 -left-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-400/25 via-cyan-300/15 to-transparent rounded-full blur-[120px]" />
-                <div style={{ animation: 'orb-drift 26s ease-in-out infinite', animationDelay: '-9s' }}
-                    className="absolute -bottom-1/3 -right-1/4 w-[900px] h-[900px] bg-gradient-to-tl from-violet-400/20 via-fuchsia-300/15 to-transparent rounded-full blur-[130px]" />
-                <div style={{ animation: 'orb-drift 32s ease-in-out infinite', animationDelay: '-18s' }}
-                    className="absolute top-1/2 left-1/3 w-[500px] h-[500px] bg-gradient-to-tr from-rose-300/10 via-amber-200/10 to-transparent rounded-full blur-[90px]" />
-            </div>
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
+  },
+};
 
-            {/* ── HERO CONTENT ── */}
-            <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pt-8 text-center select-none">
+const item = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0 },
+};
 
-                {/* Headline block — vertical stack (3 lines) */}
-                <div style={{ animation: 'slide-up 0.55s ease-out forwards', opacity: 0, animationDelay: '0.06s' }}>
-                    <div className="text-[clamp(52px,6.5vw,96px)] font-black tracking-[-0.035em] leading-[0.92] text-foreground">
-                        Khám phá
-                    </div>
+export default function HomeDashboard() {
+  return (
+    <div className="w-full max-w-4xl mx-auto px-4 py-8 sm:py-12">
+      <motion.div
+        className="mb-10 sm:mb-12"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <h1 className="text-2xl sm:text-3xl font-black text-[#1d1d1f] tracking-tight mb-2">
+          Bảng điều khiển
+        </h1>
+        <p className="text-slate-600 font-medium">
+          Chọn mục dưới đây để khám phá.
+        </p>
+      </motion.div>
 
-                    <div className="text-[clamp(52px,6.5vw,96px)] leading-[0.92] py-[0.06em] w-full">
-                        <HeroCyclingWord words={CATEGORY_WORDS} intervalMs={2200} />
-                    </div>
-
-                    <div className="text-[clamp(52px,6.5vw,96px)] font-black tracking-[-0.035em] leading-[0.92] text-foreground">
-                        của Sony.
-                    </div>
-                </div>
-
-                {/* Accent bar */}
-                <div style={{ animation: 'slide-up 0.55s ease-out forwards', opacity: 0, animationDelay: '0.18s' }}
-                    className="mt-8 mb-5 w-10 h-[3px] rounded-full bg-gradient-to-r from-blue-500 to-violet-500" />
-
-
-                {/* Real-Time Analytics Dashboard */}
-                <div style={{ animation: 'slide-up 0.6s ease-out forwards', opacity: 0, animationDelay: '0.45s' }} className="w-full mt-6 mb-10">
-                    <AnalyticsDashboard />
-                </div>
-
-            </div>
-        </>
-    );
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5"
+        variants={container}
+        initial="hidden"
+        animate="show"
+      >
+        {CARDS.map(({ href, label, desc, icon: Icon, gradient }) => (
+          <motion.div key={href} variants={item}>
+            <Link
+              href={href}
+              className="group block p-6 rounded-2xl bg-white ring-1 ring-black/[0.06] hover:ring-black/10 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300 text-left h-full"
+            >
+              <div
+                className={`w-11 h-11 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white mb-4 group-hover:scale-105 transition-transform`}
+              >
+                <Icon size={22} />
+              </div>
+              <h2 className="text-lg font-bold text-[#1d1d1f] tracking-tight mb-1.5">{label}</h2>
+              <p className="text-sm text-slate-600 leading-relaxed mb-4">{desc}</p>
+              <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 group-hover:text-[#1d1d1f] transition-colors">
+                Vào
+                <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+              </span>
+            </Link>
+          </motion.div>
+        ))}
+      </motion.div>
+    </div>
+  );
 }
