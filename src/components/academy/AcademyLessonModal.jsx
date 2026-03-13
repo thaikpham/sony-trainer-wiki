@@ -9,7 +9,8 @@ export default function AcademyLessonModal({ node, isOpen, onClose, onComplete }
   const [showErrors, setShowErrors] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Reset state when modal opens/closes or node changes
+  // Reset state when modal opens (intentional reset-on-open)
+  /* eslint-disable react-hooks/set-state-in-effect -- reset form when modal opens */
   useEffect(() => {
     if (isOpen) {
       setStep(0);
@@ -18,6 +19,7 @@ export default function AcademyLessonModal({ node, isOpen, onClose, onComplete }
       setIsSubmitting(false);
     }
   }, [isOpen, node]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!node) return null;
 

@@ -40,7 +40,7 @@ export function useAcademy(initialPathId) {
       }
     };
     fetchAll();
-  }, []); // only on mount
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- only on mount
 
   // When active path changes, update the nodes slice
   useEffect(() => {
@@ -80,7 +80,7 @@ export function useAcademy(initialPathId) {
     if (allNodes.length > 0 && isLoaded) {
       fetchUserData();
     }
-  }, [fetchUserData]);
+  }, [fetchUserData]); // eslint-disable-line react-hooks/exhaustive-deps -- intentional: run when fetchUserData identity changes
 
   // Enrich a list of nodes with progress state
   const enrichNodes = (nodeList) =>

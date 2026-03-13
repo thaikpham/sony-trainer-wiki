@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, useReactFlow } from 'reactflow';
 

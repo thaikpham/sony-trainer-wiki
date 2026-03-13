@@ -49,34 +49,7 @@ export default function Dashboard() {
     const isEmployee = roleKeys.some(k => ['DEV', 'TRAINER', 'PRODUCT_MARKETING', 'DATA'].includes(k));
 
     return (
-        <div className="min-h-screen bg-[#F5F5F7] text-[#1d1d1f] font-sans selection:bg-blue-200 selection:text-blue-900 flex flex-col items-center overflow-x-hidden">
-            {/* Background Noise */}
-            <div
-                className="fixed inset-0 pointer-events-none opacity-[0.03] z-0 transition-opacity duration-500"
-                style={{
-                    backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")',
-                }}
-            />
-
-            <div className="w-full max-w-5xl px-4 sm:px-8 py-6 md:py-8 z-10 flex flex-col min-h-screen animate-fade-in relative">
-
-                {/* Header Navbar */}
-                <header className="flex justify-between items-center mb-10 pb-4 border-b border-black/5">
-                    <Link href="/" className="flex items-center gap-2 group text-[#1d1d1f] hover:opacity-70 transition-opacity">
-                        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                        <span className="font-bold">Quay lại Trang Chủ</span>
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        <SignOutButton redirectUrl="/">
-                            <button className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold bg-[#1d1d1f] text-white hover:bg-black transition-all shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
-                                <LogOut size={16} /> Đăng xuất
-                            </button>
-                        </SignOutButton>
-                    </div>
-                </header>
-
-                {/* Dashboard Main View */}
-                <main className="flex flex-col gap-8 pb-20">
+        <main className="flex flex-col gap-8 pb-20">
 
                     {/* Profile Banner */}
                     <div className="glass-panel p-6 sm:p-10 rounded-[40px] flex flex-col sm:flex-row items-center gap-8 relative overflow-hidden">
@@ -308,7 +281,5 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </main>
-            </div>
-        </div>
     );
 }

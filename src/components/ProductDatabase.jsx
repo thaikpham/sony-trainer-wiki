@@ -282,7 +282,7 @@ export default function ProductDatabase({
                     setGlobalTags(tags || []);
                 }
             } catch (err) {
-                console.error("Firebase fetch error:", err);
+                console.error("Product fetch error:", err);
                 if (isMounted) {
                     setError('Không thể tải dữ liệu sản phẩm từ hệ thống. Xin vui lòng thử lại sau.');
                 }

@@ -105,7 +105,7 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
 
     if (!isOpen) return null;
 
-    const isFromFirebase = Boolean(product);
+    const isProductProvided = Boolean(product);
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
@@ -122,7 +122,7 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
                             <h2 className="text-2xl font-black text-foreground tracking-tight">
                                 {product?.name || productName}
                             </h2>
-                            {isFromFirebase && (
+                            {isProductProvided && (
                                 <span className="px-2 py-0.5 bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-full">
                                     Hệ thống
                                 </span>
@@ -134,7 +134,7 @@ export default function SpecModal({ isOpen, onClose, product, productName: propN
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        {isDataMaster && isFromFirebase && (
+                        {isDataMaster && isProductProvided && (
                             <button
                                 onClick={() => {
                                     if (onEdit) onEdit(product);

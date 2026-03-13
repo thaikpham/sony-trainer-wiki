@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import type { ProductRecord, LiveReportPayload, LiveStreamConfig, LiveStreamEquipmentItem } from '@/types';
 
 // Environment variables required: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -88,7 +89,7 @@ export async function getLiveStreamConfig() {
     };
 }
 
-export async function updateLiveStreamConfig(config: any) {
+export async function updateLiveStreamConfig(config: LiveStreamConfig) {
     await supabase.from('settings').upsert({ id: 'livestream', data: config });
 }
 
@@ -129,7 +130,7 @@ export async function getLiveStreamEquipment() {
     ];
 }
 
-export async function updateLiveStreamEquipment(equipmentList: any[]) {
+export async function updateLiveStreamEquipment(equipmentList: LiveStreamEquipmentItem[]) {
     await supabase.from('settings').upsert({ id: 'livestream_equipment', data: equipmentList });
 }
 
@@ -180,7 +181,7 @@ export async function getAllProductsAdmin() {
     return (data || []).map(mapDataToDoc);
 }
 
-export async function addProduct(productData: any) {
+export async function addProduct(productData: ProductRecord & { id?: string }) {
     const { id, category, line, name, ...restData } = productData;
     const { data, error } = await supabase.from('products').insert({
         category, name, data: restData
@@ -191,7 +192,7 @@ export async function addProduct(productData: any) {
     return data.id;
 }
 
-export async function updateProduct(id: string, productData: any) {
+export async function updateProduct(id: string, productData: Partial<ProductRecord> & { id?: string }) {
     const { id: ignoredId, category, line, name, ...restData } = productData;
     
     // Only include fields that actually exist in productData to avoid overwriting with undefined
@@ -220,7 +221,7 @@ export async function deleteProduct(id: string) {
 // ============================================
 // CRUD for Live Reports
 // ============================================
-export async function saveLiveReport(reportData: any) {
+export async function saveLiveReport(reportData: LiveReportPayload) {
     const { userEmail, ...restData } = reportData;
     const { data } = await supabase.from('live_reports').insert({
         user_email: userEmail, data: restData

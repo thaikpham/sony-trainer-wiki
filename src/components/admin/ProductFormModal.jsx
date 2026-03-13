@@ -157,11 +157,14 @@ export default function ProductFormModal({
         return () => document.removeEventListener('keydown', handleEsc);
     }, [onClose]);
 
+    // Sync form from product when product or readOnly changes (edit modal)
+    /* eslint-disable react-hooks/set-state-in-effect -- init form from prop */
     useEffect(() => {
         setForm(sanitizeForm(product));
         setDeleteConfirm(false);
         setIsViewToggled(Boolean(product?.id) && propReadOnly);
     }, [product, propReadOnly]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const set = (key, value) => setForm(f => ({ ...f, [key]: value }));
 

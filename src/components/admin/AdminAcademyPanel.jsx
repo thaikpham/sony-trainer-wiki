@@ -180,8 +180,8 @@ export default function AdminAcademyPanel() {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { loadPaths(); }, []);
-  useEffect(() => { if (selectedPath) loadNodes(selectedPath.id); }, [selectedPath]);
+  useEffect(() => { loadPaths(); }, []); // eslint-disable-line react-hooks/exhaustive-deps -- load once on mount
+  useEffect(() => { if (selectedPath) loadNodes(selectedPath.id); }, [selectedPath]); // eslint-disable-line react-hooks/exhaustive-deps -- loadNodes stable
 
   /* ── Save path ────────────────────────────────────────────── */
   const handleSavePath = async (e) => {
@@ -341,7 +341,7 @@ export default function AdminAcademyPanel() {
                 {nodes.length === 0 && !loading && (
                   <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-300">
                     <Trophy size={32} />
-                    <p className="text-xs text-center">Chưa có node nào.<br />Nhấn "Add Node" để bắt đầu.</p>
+                    <p className="text-xs text-center">Chưa có node nào.<br />Nhấn &quot;Add Node&quot; để bắt đầu.</p>
                   </div>
                 )}
 

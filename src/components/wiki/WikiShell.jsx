@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BookOpen, Palette, BarChart3 } from 'lucide-react';
-import Layout from '@/components/Layout';
 import { trackFeatureUsage } from '@/services/analytics';
 import { useRoleAccess } from '@/components/RoleProvider';
 
@@ -44,7 +43,7 @@ export default function WikiShell({ children }) {
     const activeTab = WIKI_TABS.find(tab => tab.match(pathname))?.key ?? 'products';
 
     return (
-        <Layout>
+        <>
             <div className="flex items-center gap-2 mb-6">
                 <div className="flex bg-black/[0.04] p-1 rounded-2xl border border-black/[0.02]">
                     {WIKI_TABS.filter(tab => !tab.adminOnly || isAdmin).map((tab) => {
@@ -77,6 +76,6 @@ export default function WikiShell({ children }) {
             </div>
 
             {children}
-        </Layout>
+        </>
     );
 }

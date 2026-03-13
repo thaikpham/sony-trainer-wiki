@@ -14,6 +14,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 import { RoleProvider } from "@/components/RoleProvider";
+import Layout from "@/components/Layout";
 
 export const metadata = {
   title: "Sony Training Wiki",
@@ -29,7 +30,9 @@ export default function RootLayout({ children }) {
           suppressHydrationWarning={true}
         >
           <RoleProvider>
-            {children}
+            <Layout>
+              {children}
+            </Layout>
           </RoleProvider>
         </body>
       </html>

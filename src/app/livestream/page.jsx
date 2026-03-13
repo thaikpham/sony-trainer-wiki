@@ -1,22 +1,22 @@
 'use client';
-import dynamic from 'next/dynamic';
-import { Loader2 } from 'lucide-react';
-import Layout from '@/components/Layout';
 
-// LiveStream is 117KB — load only when on this page, never on server
-const LiveStream = dynamic(() => import('@/components/LiveStream'), {
-    ssr: false,
-    loading: () => (
-        <div className="flex items-center justify-center min-h-[50vh]">
-            <Loader2 size={32} className="animate-spin text-slate-400" />
-        </div>
-    ),
-});
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function LiveStreamPage() {
+    const router = useRouter();
+
+    useEffect(() => {
+        // Redirect the main /livestream path to the first step
+        router.push('/livestream/equipment');
+    }, [router]);
+
     return (
-        <Layout>
-            <LiveStream />
-        </Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="flex flex-col items-center gap-4">
+                <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-[#86868b] font-medium animate-pulse">Đang tải Sony Wiki Studio...</p>
+            </div>
+        </div>
     );
 }

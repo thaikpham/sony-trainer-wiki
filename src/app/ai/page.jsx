@@ -3,8 +3,6 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { ChevronRight, Cpu, Loader2, BookOpen, SlidersHorizontal, Hexagon, Target, ArrowLeft, Camera, Headphones, Tv } from 'lucide-react';
 import { NEEDS_DICT } from '@/lib/data';
-import Layout from '@/components/Layout';
-import ToggleCardBtn from '@/components/ToggleCardBtn';
 import SpecCard from '@/components/SpecCard';
 import ProductFormModal from '@/components/admin/ProductFormModal';
 import CompareBar from '@/components/CompareBar';
@@ -14,6 +12,22 @@ import { useUser } from '@clerk/nextjs';
 import FeatureStar from '@/components/FeatureStar';
 
 const CompareModal = dynamic(() => import('@/components/CompareModal'), { ssr: false, loading: () => null });
+
+function ToggleCardBtn({ active, onClick, icon: Icon, title, desc }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={`p-4 rounded-2xl text-left transition-all duration-300 ${active ? 'bg-slate-900 shadow-[0_4px_12px_rgba(0,0,0,0.1)] scale-[1.02]' : 'bg-white ring-1 ring-black/5 hover:bg-[#F5F5F7]/50'}`}
+        >
+            <div className={`${active ? 'text-white' : 'text-[#1d1d1f]'} flex items-center gap-2 mb-2`}>
+                {Icon && <Icon size={20} />}
+                <span className="text-[15px] font-semibold">{title}</span>
+            </div>
+            <div className={`text-[13px] ${active ? 'text-slate-300' : 'text-[#86868b]'}`}>{desc}</div>
+        </button>
+    );
+}
 
 export default function AIPage() {
     const { user } = useUser();
@@ -192,7 +206,7 @@ export default function AIPage() {
             },
         ];
         return (
-            <Layout>
+            <>
                 <div className="w-full animate-slide-up flex flex-col gap-6 mx-auto">
                     {renderStageNavigation('category')}
                     <div className="mb-2 text-center px-2">
@@ -225,13 +239,13 @@ export default function AIPage() {
                         })}
                     </div>
                 </div>
-            </Layout>
+            </>
         );
     }
 
     if (step === 'configure') {
         return (
-            <Layout>
+            <>
                 <div className="w-full animate-slide-up flex flex-col gap-6 mx-auto">
                     {renderStageNavigation('configure')}
                     <div className="mb-2 text-center sm:text-left px-2">
@@ -309,13 +323,13 @@ export default function AIPage() {
                         </button>
                     </div>
                 </div>
-            </Layout>
+            </>
         );
     }
 
     if (step === 'analyzing') {
         return (
-            <Layout>
+            <>
                 <div className="w-full animate-slide-up flex flex-col gap-6 mx-auto">
                     {renderStageNavigation('analyzing')}
                     <div className="w-full max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[50vh]">
@@ -337,7 +351,7 @@ export default function AIPage() {
                         </div>
                     </div>
                 </div>
-            </Layout>
+            </>
         );
     }
 
@@ -349,7 +363,7 @@ export default function AIPage() {
         const bodyLabels = { all: 'Tự Động', compact: 'Nhỏ Gọn', pro: 'Chuyên Nghiệp' };
         const investLabels = { balanced: 'Cân Bằng', body: 'Thân Máy', lens: 'Ống Kính' };
         return (
-            <Layout>
+            <>
                 <div className="w-full animate-slide-up flex flex-col mx-auto">
                     {renderStageNavigation('result')}
                     <div className="mb-8 md:mb-12 text-center sm:text-left flex flex-col md:flex-row md:items-start justify-between gap-6 px-2">
@@ -459,7 +473,7 @@ export default function AIPage() {
                 {pageToast && (
                     <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[300] px-5 py-3 rounded-2xl text-[13px] font-semibold shadow-xl ${pageToast.type === 'success' ? 'bg-[#1d1d1f] text-white' : 'bg-rose-600 text-white'}`}>{pageToast.msg}</div>
                 )}
-            </Layout>
+            </>
         );
     }
 

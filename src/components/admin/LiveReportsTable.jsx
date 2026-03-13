@@ -66,7 +66,7 @@ export default function LiveReportsTable() {
                     </div>
                     <div>
                         <h3 className="text-[18px] font-black text-foreground">Báo Cáo Hiệu Suất Live</h3>
-                        <p className="text-[12px] text-slate-500 font-bold uppercase tracking-widest">Dữ liệu từ hệ thống Firestore</p>
+                        <p className="text-[12px] text-slate-500 font-bold uppercase tracking-widest">Dữ liệu từ Supabase</p>
                     </div>
                 </div>
 
